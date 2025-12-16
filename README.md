@@ -1,6 +1,9 @@
 # ARCB Wider Updater
 
 **Tembel ama takıntılı adminin en yakın dostu**
+> One command. One updater. Zero nonsense.
+
+
 
 ARCB Wider Updater; Linux sistemlerde:
 - APT / DNF güncellemeleri
@@ -15,16 +18,23 @@ tek komutla ve loglayarak yapan bir updater scriptidir.
 
 ## 🚀 Hızlı Kurulum (Quick Install)
 
+> Not: Kurulum scripti açık kaynaklıdır. İncelemek için:
+> https://github.com/ahm3t0t/arcb-wider-updater/blob/main/install.sh
+
 Aşağıdaki tek komut ile **ARCB Wider Updater** sistemine kurulabilir:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/install.sh | bash
-
-
+```
 
 ## Kullanım
 
+>Sadece terminal ekranına çıktı vererek
 ```bash
-chmod +x guncel
-./guncel
-./guncel --gui
+guncel
+```
+
+>Bazı çıktılar GUI üzerine gelir 
+```bash
+guncel --gui
+```
