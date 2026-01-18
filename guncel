@@ -99,13 +99,14 @@ gui_tools(){
 
 # ---------- detect package manager ----------
 PM=""
-INSTALL_CMD=""
+INSTALL_CMD=()   # <-- array, SC2086 fix
+
 if has apt-get; then
   PM="apt"
-  INSTALL_CMD="apt-get install -y"
+  INSTALL_CMD=(apt-get install -y)
 elif has dnf; then
   PM="dnf"
-  INSTALL_CMD="dnf install -y"
+  INSTALL_CMD=(dnf install -y)
 else
   echo "Desteklenen paket yöneticisi bulunamadı (apt-get/dnf)." | tee -a "$LOGFILE"
   exit 1
@@ -126,7 +127,7 @@ install_if_missing(){
 
   if ! has "$cmd"; then
     if gui_question "'$cmd' yüklü değil. Kurulsun mu?\n\nPaket: $pkg"; then
-      run sudo $INSTALL_CMD "$pkg"
+      run sudo "${INSTALL_CMD[@]}" "$pkg"   # <-- array expansion, SC2086 fixed
     else
       echo "⏭ $cmd atlandı" | tee -a "$LOGFILE"
     fi
@@ -165,6 +166,7 @@ DISK_BEFORE="$(disk_line || echo 'n/a')"
 # ---------- system summary ----------
 sec "Sistem özeti"
 {
+# shellcheck disable=SC1091
   echo "OS     : $(. /etc/os-release 2>/dev/null; echo "${PRETTY_NAME:-Unknown}")"
   echo "CPU    : $(lscpu 2>/dev/null | awk -F: '/Model name/ {gsub(/^[ \t]+/,"",$2); print $2; exit}' || true)"
   echo "RAM    : $(free -h 2>/dev/null | awk '/Mem:/ {print $2 " total, " $3 " used, " $7 " available"}' || true)"
@@ -323,7 +325,7 @@ fi
 # ---------- reboot check ----------
 REBOOT_NOTE=""
 if [[ -f /var/run/reboot-required ]]; then
-  REBOOT_NOTE="⚠️ Reboot öneriliyor (/var/run/reboot-required mevcut)."
+  REBOOT_NOTE="⚠ Reboot öneriliyor (/var/run/reboot-required mevcut)."
 fi
 
 KERNEL_AFTER="$(uname -r)"
@@ -341,7 +343,7 @@ sec "Özet"
   [[ -n "$REBOOT_NOTE" ]] && echo "$REBOOT_NOTE"
   if [[ -n "$FLATPAK_EOL_SUMMARY" ]]; then
     echo
-    echo "⚠️ Flatpak EOL uyarısı tespit edildi (özet):"
+    echo "⚠ Flatpak EOL uyarısı tespit edildi (özet):"
     echo "$FLATPAK_EOL_SUMMARY"
   fi
 } | tee -a "$LOGFILE"
@@ -352,9 +354,8 @@ hr | tee -a "$LOGFILE"
 if [[ "$ZENITY_OK" -eq 1 ]]; then
   SUM="${APP_NAME} ${APP_VERSION}\n${APP_DESC}\n\n✔ Güncelleme tamamlandı.\n\nKernel:\n- önce: $KERNEL_BEFORE\n- şimdi: $KERNEL_AFTER\n\nDisk:\n- önce: $DISK_BEFORE\n- şimdi: $DISK_AFTER"
   [[ -n "$REBOOT_NOTE" ]] && SUM="$SUM\n\n$REBOOT_NOTE"
-  [[ -n "$FLATPAK_EOL_SUMMARY" ]] && SUM="$SUM\n\n⚠️ Flatpak EOL uyarısı var (detay logda)."
+  [[ -n "$FLATPAK_EOL_SUMMARY" ]] && SUM="$SUM\n\n⚠ Flatpak EOL uyarısı var (detay logda)."
 
   zenity --info --title="${APP_NAME}" --text="$SUM" --width=620 >/dev/null 2>&1 || true
   gui_log
 fi
-
