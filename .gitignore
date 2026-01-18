@@ -1,0 +1,56 @@
+# =========================
+# Logs & runtime artifacts
+# =========================
+Logs/
+*.log
+
+# =========================
+# Temporary files
+# =========================
+*.tmp
+*.swp
+*.swo
+*~
+.#*
+#*
+*.bak
+
+# =========================
+# Shell / script artifacts
+# =========================
+.env
+.env.*
+*.pid
+
+# =========================
+# OS-specific junk
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Editor / IDE
+# =========================
+.vscode/
+.idea/
+*.code-workspace
+
+# =========================
+# Test / coverage (ilerisi için)
+# =========================
+coverage/
+*.gcov
+*.gcda
+*.gcno
+
+# =========================
+# Rust (ileride geçince)
+# =========================
+target/
+Cargo.lock
+
+# =========================
+# GitHub Actions artifacts
+# =========================
+.artifacts/
