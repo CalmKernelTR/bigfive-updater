@@ -38,3 +38,4 @@ guncel
 ```bash
 guncel --gui
 ```
+
