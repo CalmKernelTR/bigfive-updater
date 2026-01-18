@@ -1,3 +1,6 @@
+[![CI](https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/ci.yml/badge.svg)](https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/ci.yml)
+
+
 # ARCB Wider Updater
 
 **Tembel ama takıntılı adminin en yakın dostu**
