@@ -4,6 +4,7 @@
 ![Latest Release](https://img.shields.io/github/v/release/ahm3t0t/arcb-wider-updater?sort=semver&label=Latest%20Version&color=blue)
 ![License](https://img.shields.io/github/license/ahm3t0t/arcb-wider-updater)
 
+
 **Linux sistemleri için Zırhlı, Akıllı ve Çoklu-Dağıtım (Multi-Distro) Güncelleme Aracı.**
 
 > *Tembel ama takıntılı adminin en yakın dostu.*
@@ -31,7 +32,7 @@ Debian (Zorin OS, Ubuntu) ve RHEL (Fedora) tabanlı sistemlerde; Snapshot (Yedek
 Aşağıdaki komutu terminale yapıştırın. Script gerekli yetkileri güvenli bir şekilde isteyecek ve kurulumu tamamlayacaktır:
 
 ```bash
-curl -fsSL [https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/install.sh](https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/install.sh) | sudo bash
+curl -fsSL https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/install.sh | sudo bash
 ```
 
 ## 🛠️ Kullanım

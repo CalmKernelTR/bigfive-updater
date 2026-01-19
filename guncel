@@ -273,10 +273,19 @@ AUTO_MODE="false"
 for arg in "$@"; do
     case $arg in
         --auto) AUTO_MODE="true" ;;
-        --help) 
-            echo "ARCB Wider Updater v$VERSION"
-            echo "--------------------------------"
-            exit 0 ;;
+        --help)
+        echo -e "${BOLD}ARCB Wider Updater v$VERSION ($CODENAME)${NC}"
+        echo "--------------------------------------------------"
+        echo "Kullanım: guncel [SEÇENEK]"
+        echo ""
+        echo "Seçenekler:"
+        echo "  --auto    Otomatik mod (Onay sormadan günceller)"
+        echo "  --help    Bu yardım mesajını gösterir"
+        echo ""
+        echo "Örnek:"
+        echo "  guncel          -> İnteraktif (Önerilen)"
+        echo "  guncel --auto   -> Cron / Zamanlanmış görevler"
+        exit 0 ;;
     esac
 done
 
