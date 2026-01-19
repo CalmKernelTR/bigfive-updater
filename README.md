@@ -51,3 +51,10 @@ Yardım:
 ```bash
 guncel --help
 ```
+
+
+## 🛣️ v3.0 Roadmap
+
+ARCB Wider Updater’ın gelecekteki yönünü ve tasarım kararlarını görmek için:  
+👉 [ROADMAP_v3.md](ROADMAP_v3.md)
+
