@@ -1,8 +1,8 @@
 # ARCB Wider Updater 🛡️
 
-![CI Status]([https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/ci.yml/badge.svg)](https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/ci.yml/badge.svg))
-![Latest Release]([https://img.shields.io/github/v/release/ahm3t0t/arcb-wider-updater?sort=semver&label=Latest%20Version&color=blue)](https://img.shields.io/github/v/release/ahm3t0t/arcb-wider-updater?sort=semver&label=Latest%20Version&color=blue))
-![License]([https://img.shields.io/github/license/ahm3t0t/arcb-wider-updater)](https://img.shields.io/github/license/ahm3t0t/arcb-wider-updater))
+![CI Status](https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/ci.yml/badge.svg)
+![Latest Release](https://img.shields.io/github/v/release/ahm3t0t/arcb-wider-updater?sort=semver&label=Latest%20Version&color=blue)
+![License](https://img.shields.io/github/license/ahm3t0t/arcb-wider-updater)
 
 **Linux sistemleri için Zırhlı, Akıllı ve Çoklu-Dağıtım (Multi-Distro) Güncelleme Aracı.**
 
@@ -53,4 +53,4 @@ guncel --auto
 * **v3.3.6 (Diamond Polish):** Snapper ve DNF entegrasyonunun tamamlanması.
 
 ---
-*Geliştirici: Ahmet T. & Çeto Başkan - Lisans: MIT*
+*Geliştirici: Ahmet Reis & Çeto Başkan - Lisans: MIT*
