@@ -47,11 +47,6 @@ GUI (zenity) istemiyorsan / sunucuda çalıştırıyorsan:
 guncel --no-gui
 ```
 
-GUI ile koşmak istersen:
-```bash
-guncel --gui
-```
-
 Yardım:
 ```bash
 guncel --help
