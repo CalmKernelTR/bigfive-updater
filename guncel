@@ -1,451 +1,341 @@
 #!/usr/bin/env bash
-set -euo pipefail
+#
+# ARCB Wider Updater v3.3.6 - Diamond Polish Edition
+# "Mükemmellik, ekleyecek bir şey kalmadığında değil,
+#  çıkaracak bir şey kalmadığında ulaşılır."
+#
+# GitHub: https://github.com/ahm3t0t/arcb-wider-updater
+#
 
-# ==============================================================================
-# ARCB Wider Updater - v2.97
-# Tembel ama takıntılı adminin en yakın dostu
-# ==============================================================================
-VERSION="2.97"
-APPNAME="ARCB Wider Updater"
-TZ="${TZ:-Europe/Istanbul}"
+# --- AYARLAR ---
+VERSION="3.3.6"
+LOG_DIR="/var/log/arcb-updater"
+LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
+GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
 
-# Defaults (ENV can override)
-SHOW_OUTPUT="${SHOW_OUTPUT:-0}"   # 0: only log, 1: show output on screen too
-NO_GUI="${NO_GUI:-0}"             # 1: never prompt zenity/interactive log view
+# STRICT MODE
+set -Eeuo pipefail
 
-usage() {
-  cat <<'EOF'
-Usage: ./guncel [--show-output] [--no-gui] [--help]
+# GÜVENLİK: Varsayılan dosya izinleri (Sadece sahibi okur/yazar)
+umask 0077
 
-  --show-output   Also show command outputs in terminal (still logs to file)
-  --no-gui        Disable zenity prompts and log viewer
-  --help          Show this help
+# Renkler
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+BOLD='\033[1m'
+NC='\033[0m'
 
-Environment overrides:
-  SHOW_OUTPUT=1   Same as --show-output
-  NO_GUI=1        Same as --no-gui
-EOF
+# --- YARDIMCI FONKSİYONLAR ---
+
+print_header() {
+    echo -e "\n${BLUE}${BOLD}>>> $1 ${NC}"
+    echo -e "${BLUE}--------------------------------------------------${NC}"
+    echo "[$(date '+%F %T')] >>> $1" >> "$LOG_FILE"
 }
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --show-output) SHOW_OUTPUT=1; shift ;;
-    --no-gui) NO_GUI=1; shift ;;
-    -h|--help) usage; exit 0 ;;
-    *) echo "ERR: Unknown argument: $1" >&2; usage; exit 2 ;;
-  esac
-done
-
-# ==============================================================================
-# Paths
-# ==============================================================================
-LOGDIR="${HOME}/Logs"
-mkdir -p "$LOGDIR"
-NOW="$(date '+%Y-%m-%d_%H-%M-%S')"
-LOGFILE="${LOGDIR}/arcb_wider_updater_${NOW}.log"
-
-# ==============================================================================
-# Helpers
-# ==============================================================================
-ts() { date '+[%Y-%m-%d %H:%M:%S %z]'; }
-
-log() {
-  printf '%s %s\n' "$(ts)" "$*" | tee -a "$LOGFILE"
+print_error() {
+    echo -e "${RED}${BOLD}❌ HATA: $1 ${NC}"
+    echo "[$(date '+%F %T')] ERROR: $1" >> "$LOG_FILE"
 }
 
-hr() {
-  printf '%*s\n' 94 '' | tr ' ' '-' | tee -a "$LOGFILE"
+print_warning() {
+    echo -e "${YELLOW}⚠️  UYARI: $1 ${NC}"
+    echo "[$(date '+%F %T')] WARN: $1" >> "$LOG_FILE"
 }
 
-sec() {
-  hr
-  log "▶ $*"
-  hr
+print_success() {
+    echo -e "${GREEN}${BOLD}✅ $1 ${NC}"
+    echo "[$(date '+%F %T')] SUCCESS: $1" >> "$LOG_FILE"
 }
 
-has() { command -v "$1" >/dev/null 2>&1; }
-
-LC_C() { LC_ALL=C "$@"; }
-
-# ==============================================================================
-# Trap manager (NO login shell! avoids "Agent pid ..." side effects)
-# ==============================================================================
-TRAP_CMDS=()
-add_trap() { TRAP_CMDS+=("$*"); }
-
-run_traps() {
-  local i cmd
-  for (( i=${#TRAP_CMDS[@]}-1; i>=0; i-- )); do
-    cmd="${TRAP_CMDS[i]}"
-    # execute in current shell; no .bashrc/.profile noise
-    eval "$cmd" || true
-  done
-}
-trap run_traps EXIT
-
-# ==============================================================================
-# Concurrency lock
-# ==============================================================================
-LOCKFILE="/tmp/arcb_wider_updater.lock"
-
-lock_init() {
-  if [[ -e "$LOCKFILE" ]]; then
-    local oldpid=""
-    oldpid="$(cat "$LOCKFILE" 2>/dev/null || true)"
-    if [[ -n "$oldpid" ]] && kill -0 "$oldpid" 2>/dev/null; then
-      echo "ERR: ${APPNAME} zaten çalışıyor! (PID: $oldpid)" >&2
-      exit 1
+download_file() {
+    local url="$1"
+    local output="$2"
+    
+    if command -v curl &> /dev/null; then
+        curl -fsSL "$url" -o "$output"
+    elif command -v wget &> /dev/null; then
+        wget -qO "$output" "$url"
+    else
+        print_error "Sistemde 'curl' veya 'wget' bulunamadı!"
+        exit 1
     fi
-  fi
-  echo "$$" >"$LOCKFILE"
-  add_trap "rm -f \"$LOCKFILE\" 2>/dev/null || true"
 }
 
-# ==============================================================================
-# Runner: soft run (never stops script), logs always, optional screen output
-# ==============================================================================
-soft_run() {
-  local rc=0
-  log "+ $*"
-
-  if [[ "$SHOW_OUTPUT" == "1" ]]; then
-    "$@" 2>&1 | tee -a "$LOGFILE"
-    rc=${PIPESTATUS[0]}
-  else
-    "$@" >>"$LOGFILE" 2>&1 || rc=$?
-  fi
-
-  if (( rc != 0 )); then
-    log "⏭ Komut hata verdi ama devam ediyorum (rc=${rc}): $*"
-  fi
-  return 0
-}
-
-soft_run_allow_rcs() {
-  local allow="$1"; shift
-  local rc=0
-  log "+ $*"
-
-  if [[ "$SHOW_OUTPUT" == "1" ]]; then
-    "$@" 2>&1 | tee -a "$LOGFILE"
-    rc=${PIPESTATUS[0]}
-  else
-    "$@" >>"$LOGFILE" 2>&1 || rc=$?
-  fi
-
-  local ok
-  for ok in $allow; do
-    if [[ "$rc" == "$ok" ]]; then
-      if (( rc != 0 )); then
-        log "ℹ Komut rc=${rc} döndü ama izinli kabul edildi: $*"
-      fi
-      return 0
+check_connectivity() {
+    echo -ne "${YELLOW}🌐 Bağlantı kontrol ediliyor... ${NC}"
+    local UA="Mozilla/5.0 (compat; ARCBUpdater/$VERSION)"
+    
+    # 1. Genel İnternet
+    local main_ok=false
+    if command -v curl &> /dev/null; then
+        if curl -s -I -f -L -A "$UA" https://github.com > /dev/null; then main_ok=true; fi
+    elif command -v wget &> /dev/null; then
+        if wget -q --spider --user-agent="$UA" https://github.com; then main_ok=true; fi
     fi
-  done
 
-  log "⏭ Komut rc=${rc} (izinli değil) ama devam ediyorum: $*"
-  return 0
+    if [[ "$main_ok" == "false" ]]; then
+        echo -e "${RED}Erişim Yok!${NC}"
+        return 1
+    fi
+
+    # 2. Raw Endpoint
+    local raw_ok=false
+    if command -v curl &> /dev/null; then
+        if curl -s -I -f -L -A "$UA" "$GITHUB_RAW_URL" > /dev/null; then raw_ok=true; fi
+    elif command -v wget &> /dev/null; then
+        if wget -q --spider --user-agent="$UA" "$GITHUB_RAW_URL"; then raw_ok=true; fi
+    fi
+    
+    if [[ "$raw_ok" == "true" ]]; then
+        echo -e "${GREEN}Bağlı (Full).${NC}"
+        return 0
+    else
+        echo -e "${YELLOW}Kısmi (Raw erişimi yok).${NC}"
+        print_warning "Repo dosyalarına erişilemiyor. Self-update devre dışı."
+        export SELF_UPDATE_DISABLED="true"
+        return 0
+    fi
 }
 
-# ==============================================================================
-# System info helpers
-# ==============================================================================
-os_pretty() {
-  local v=""
-  v="$(grep -E '^PRETTY_NAME=' /etc/os-release 2>/dev/null | head -n1 | cut -d= -f2- | tr -d '"')" || true
-  echo "${v:-Unknown}"
+check_root() {
+    if [[ $EUID -ne 0 ]]; then
+        echo -e "${YELLOW}🔒 Root yetkisi gerekiyor...${NC}"
+        if command -v sudo &> /dev/null; then
+            exec sudo "$0" "$@"
+        else
+            print_error "Sudo yok ve root değilsin."
+            exit 1
+        fi
+    fi
 }
 
-disk_line_root() {
-  LC_C df -Ph / 2>/dev/null | awk 'NR==2{print $2" total, "$3" used, "$4" free ("$5" used)"}' || echo "Unknown"
+setup_logging() {
+    if [ ! -d "$LOG_DIR" ]; then
+        mkdir -p "$LOG_DIR"
+    fi
+    
+    local deleted_count
+    deleted_count=$(find "$LOG_DIR" -name "update_*.log" -type f -mtime +30 -print -delete | wc -l)
+    
+    touch "$LOG_FILE"
+    # umask 0077 olduğu için zaten 600 oluşur ama garanti olsun
+    chmod 600 "$LOG_FILE"
+    
+    if [[ "$deleted_count" -gt 0 ]]; then
+        echo "[$(date '+%F %T')] INFO: $deleted_count adet eski log dosyası temizlendi." >> "$LOG_FILE"
+    fi
 }
 
-uptime_line() {
-  uptime -p 2>/dev/null | sed 's/^up //' || echo "Unknown"
+check_self_update() {
+    if [[ "${SELF_UPDATE_DISABLED:-false}" == "true" ]]; then return; fi
+
+    local REMOTE_FILE="/tmp/guncel_remote"
+    local REMOTE_HASH
+    local LOCAL_HASH
+    
+    if ! download_file "$GITHUB_RAW_URL" "$REMOTE_FILE"; then return; fi
+
+    if ! grep -q "ARCB Wider Updater" "$REMOTE_FILE"; then
+        print_warning "İndirilen dosya geçersiz. Self-update iptal."
+        rm -f "$REMOTE_FILE"
+        return
+    fi
+    if ! head -n 1 "$REMOTE_FILE" | grep -E -q "#!/(usr/)?bin/(env )?bash"; then
+         print_warning "İndirilen dosya geçerli bir bash script değil."
+         rm -f "$REMOTE_FILE"
+         return
+    fi
+
+    REMOTE_HASH=$(sha256sum "$REMOTE_FILE" | awk '{print $1}')
+    LOCAL_HASH=$(sha256sum "$0" | awk '{print $1}')
+
+    if [[ "$REMOTE_HASH" != "$LOCAL_HASH" && -n "$REMOTE_HASH" ]]; then
+        echo -e "\n${YELLOW}💡 Yeni sürüm mevcut!${NC}"
+        if [[ "${AUTO_MODE:-false}" == "true" ]]; then
+             REPLY="e"
+        else
+             read -p "   Güncellemek ister misin? (e/H): " -n 1 -r
+             echo
+        fi
+
+        if [[ ${REPLY:-H} =~ ^[Ee]$ ]]; then
+            print_header "Self-Update Başlatılıyor..."
+            if install -m 0755 "$REMOTE_FILE" "$0"; then
+                print_success "Script güncellendi. Yeniden başlatılıyor..."
+                exec "$0" "$@"
+            else
+                print_error "Güncelleme kopyalanamadı!"
+                exit 1
+            fi
+        fi
+    fi
+    rm -f "$REMOTE_FILE"
 }
 
-disk_all_partitions_warn() {
-  local out=""
-  out="$(LC_C df -h -x tmpfs -x devtmpfs 2>/dev/null | awk 'NR>1{
-    gsub(/%/,"",$5);
-    if($5+0>85) print "⚠ " $6 " partition %" $5 " dolu!";
-  }')" || true
-  if [[ -n "$out" ]]; then
-    log "$out"
-  fi
-}
+wait_for_lock() {
+    local has_checker="false"
+    if command -v fuser &> /dev/null; then has_checker="fuser";
+    elif command -v lsof &> /dev/null; then has_checker="lsof"; fi
 
-# ==============================================================================
-# Interactive / GUI
-# ==============================================================================
-gui_question() {
-  local prompt="$1"
-  if [[ "$NO_GUI" == "1" ]]; then
-    return 1
-  fi
-  if has zenity; then
-    zenity --question --width=520 --text="$prompt" >/dev/null 2>&1
-    return $?
-  fi
-  printf '%s [y/N]: ' "$prompt" >&2
-  local ans=""
-  IFS= read -r ans || true
-  ans="${ans,,}"
-  [[ "$ans" == "y" || "$ans" == "yes" ]]
-}
+    if [[ "$has_checker" == "false" ]]; then
+        print_warning "Kilit kontrol aracı (fuser/lsof) bulunamadı, kontrol atlanıyor."
+        return
+    fi
 
-gui_log() {
-  if [[ "$NO_GUI" == "1" ]]; then
-    return 0
-  fi
-  sync || true; sleep 0.2
-  if has zenity; then
-    zenity --text-info --width=900 --height=600 --title="${APPNAME} - Log" --filename="$LOGFILE" >/dev/null 2>&1 || true
-  elif has less; then
-    less "$LOGFILE" || true
-  else
-    tail -n 200 "$LOGFILE" || true
-  fi
-}
-
-prompt_yes_no_timeout() {
-  local prompt="$1"
-  local timeout_s="${2:-10}"
-
-  printf '%s [y/N] (auto No in %ss): ' "$prompt" "$timeout_s" | tee -a "$LOGFILE"
-  local ans=""
-
-  if IFS= read -r -t "$timeout_s" ans; then
-    echo "$ans" | tee -a "$LOGFILE" >/dev/null
-  else
-    echo | tee -a "$LOGFILE" >/dev/null
-    return 1
-  fi
-
-  ans="${ans,,}"
-  [[ "$ans" == "y" || "$ans" == "yes" ]]
-}
-
-# ==============================================================================
-# Sudo keepalive
-# ==============================================================================
-SUDO_KEEPALIVE_PID=""
-
-start_sudo_keepalive() {
-  if ! has sudo; then return 0; fi
-  if [[ $EUID -eq 0 ]]; then return 0; fi
-
-  sec "Sudo önbelleme"
-  if ! sudo -v; then
-    log "ERR: Sudo parolası girilmedi. Çıkılıyor."
-    exit 1
-  fi
-
-  (
+    local max_retries=15
+    local count=0
+    local lock_files=("/var/lib/dpkg/lock" "/var/lib/dpkg/lock-frontend" "/var/lib/apt/lists/lock" "/var/cache/apt/archives/lock")
+    
     while true; do
-      sudo -n true >/dev/null 2>&1 || exit 0
-      sleep 200
+        local locked=false
+        for lock in "${lock_files[@]}"; do
+            if [[ "$has_checker" == "fuser" ]]; then
+                if fuser "$lock" >/dev/null 2>&1; then locked=true; break; fi
+            elif [[ "$has_checker" == "lsof" ]]; then
+                if lsof "$lock" >/dev/null 2>&1; then locked=true; break; fi
+            fi
+        done
+
+        if [[ "$locked" == "false" ]]; then break; fi
+
+        if [ $count -ge $max_retries ]; then
+            print_error "APT kilitleri kaldırılamadı. Manuel müdahale gerek."
+            exit 1
+        fi
+        
+        echo -e "${YELLOW}⏳ APT kilitli ($has_checker), bekleniyor... ($count/$max_retries)${NC}"
+        sleep 5
+        ((count++))
     done
-  ) &
-  SUDO_KEEPALIVE_PID="$!"
-  add_trap "kill \"$SUDO_KEEPALIVE_PID\" 2>/dev/null || true"
 }
 
-# ==============================================================================
-# Health checks
-# ==============================================================================
-svc_active() {
-  local svc="$1"
-  if has systemctl; then
-    systemctl is-active --quiet "$svc" 2>/dev/null
-    return $?
-  fi
-  return 1
-}
-
-snap_health() {
-  if ! has snap; then return 1; fi
-  if [[ -S /run/snapd.socket ]]; then return 0; fi
-  if svc_active snapd; then return 0; fi
-  return 1
-}
-
-# ==============================================================================
-# Update backends
-# ==============================================================================
-dnf_update_and_cleanup() {
-  if ! has dnf; then return 0; fi
-  sec "DNF: upgrade (refresh)"
-  soft_run sudo dnf -y upgrade --refresh
-  sec "DNF: cleanup"
-  soft_run sudo dnf -y autoremove
-  soft_run sudo dnf -y clean all
-}
-
-apt_update_and_cleanup() {
-  if ! has apt-get; then return 0; fi
-  sec "APT: update & upgrade"
-  soft_run sudo apt-get update
-  soft_run sudo apt-get -y full-upgrade
-  sec "APT: cleanup"
-  soft_run sudo apt-get -y autoremove --purge
-  soft_run sudo apt-get -y autoclean
-}
-
-flatpak_update_and_cleanup() {
-  if ! has flatpak; then return 0; fi
-  sec "Flatpak: update"
-  soft_run flatpak -y update
-  sec "Flatpak: unused remove"
-  soft_run flatpak -y uninstall --unused
-}
-
-snap_refresh() {
-  if ! has snap; then return 0; fi
-  sec "Snap"
-  if snap_health; then
-    soft_run sudo snap refresh
-  else
-    log "⏭ snap atlandı (snapd sağlıklı değil)"
-  fi
-}
-
-fwupd_refresh_and_updates() {
-  if ! has fwupdmgr; then return 0; fi
-  sec "FWUPD"
-  soft_run sudo fwupdmgr refresh --force
-  soft_run_allow_rcs "0 2" sudo fwupdmgr get-updates
-}
-
-# ==============================================================================
-# Optional maintenance
-# ==============================================================================
-journal_vacuum_optional() {
-  if ! has journalctl; then return 0; fi
-  sec "Journal temizliği - opsiyonel"
-  local j_cmd="journalctl --vacuum-size=100M --vacuum-time=7d"
-  log "Komut: $j_cmd"
-  log "Not: Eski loglar silinir (debug geçmişi kısalır)."
-
-  if prompt_yes_no_timeout "Journal loglarını küçülteyim mi?" 10; then
-    # shellcheck disable=SC2086
-    soft_run sudo $j_cmd
-  else
-    log "⏭ Journal temizliği atlandı (timeout veya No)"
-  fi
-}
-
-failed_services() {
-  if ! has systemctl; then return 0; fi
-  sec "Başarısız servisler"
-  if systemctl --failed --no-legend 2>/dev/null | grep -q .; then
-    log "⚠ Başarısız servisler:"
-    systemctl --failed --no-legend 2>/dev/null | tee -a "$LOGFILE" || true
-  else
-    log "✔ Başarısız servis yok"
-  fi
-}
-
-boot_perf() {
-  if ! has systemd-analyze; then return 0; fi
-  sec "Sistem performansı (boot zamanı)"
-  soft_run systemd-analyze
-  log "Top 10 (systemd-analyze blame):"
-  LC_C systemd-analyze blame 2>/dev/null | head -n 10 | tee -a "$LOGFILE" || true
-}
-
-reboot_hint() {
-  local needs_reboot=0
-
-  if has needs-restarting && has sudo; then
-    if ! sudo needs-restarting -r >/dev/null 2>&1; then
-      needs_reboot=1
+create_snapshot() {
+    if command -v timeshift &> /dev/null; then
+        print_header "Sistem Yedekleniyor (Timeshift)"
+        timeshift --create --comments "ARCB-Update-$(date +%F)" --tags D 2>&1 | tee -a "$LOG_FILE"
+        return
     fi
-  fi
 
-  if [[ -f /var/run/reboot-required ]]; then
-    needs_reboot=1
-  fi
+    if command -v snapper &> /dev/null; then
+        print_header "Sistem Yedekleniyor (Snapper)"
+        if snapper create --description "ARCB-Update-$(date +%F)" --cleanup-algorithm number 2>&1 | tee -a "$LOG_FILE"; then
+             print_success "Snapper snapshot oluşturuldu."
+        else
+             print_warning "Snapper snapshot oluşturulamadı."
+        fi
+        return
+    fi
 
-  if (( needs_reboot == 1 )); then
-    log "⚠ REBOOT GEREKİYOR (Kernel/Kritik güncelleme)"
-  fi
+    echo "[$(date '+%F %T')] INFO: Yedekleme aracı bulunamadı." >> "$LOG_FILE"
+    if [[ "${AUTO_MODE:-false}" != "true" ]]; then
+         echo -e "${YELLOW}ℹ️  Timeshift veya Snapper bulunamadı, yedekleme yapılmıyor.${NC}"
+    fi
 }
 
-# ==============================================================================
-# MAIN
-# ==============================================================================
-lock_init
+perform_updates() {
+    local apt_opts=()
+    if [[ "${AUTO_MODE:-false}" == "true" ]]; then
+        export DEBIAN_FRONTEND=noninteractive
+        apt_opts=(-o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold")
+    fi
 
-KERNEL_BEFORE="$(uname -r 2>/dev/null || echo Unknown)"
-HOSTN="$(hostname 2>/dev/null || echo Unknown)"
-USERN="${USER:-$(whoami 2>/dev/null || echo Unknown)}"
-UPTIME_BEFORE="$(uptime_line)"
-DISK_BEFORE="$(disk_line_root)"
+    # A. APT
+    if command -v apt-get &> /dev/null; then
+        wait_for_lock
+        print_header "APT: Güncelleme Başlıyor"
+        apt-get update 2>&1 | tee -a "$LOG_FILE"
+        print_header "APT: Dist-Upgrade"
+        apt-get dist-upgrade -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+        print_header "APT: Temizlik"
+        # FIX: Temizlik komutlarına da noninteractive seçenekleri eklendi
+        apt-get autoremove -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+        apt-get autoclean -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
 
-hr
-log "${APPNAME} v${VERSION} - Tembel ama takıntılı adminin en yakın dostu"
-hr
-log "HOST   : ${HOSTN}"
-log "USER   : ${USERN}"
-log "KERNEL : ${KERNEL_BEFORE}"
-log "UPTIME : ${UPTIME_BEFORE}"
-log "DISK   : ${DISK_BEFORE}"
-log "LOG    : ${LOGFILE}"
-hr
+    # B. DNF
+    elif command -v dnf &> /dev/null; then
+        print_header "DNF: Güncelleme"
+        dnf upgrade --refresh -y 2>&1 | tee -a "$LOG_FILE"
+    fi
 
-start_sudo_keepalive
+    # C. Flatpak
+    if command -v flatpak &> /dev/null; then
+        print_header "Flatpak: Güncelleme"
+        if ! flatpak update -y 2>&1 | tee -a "$LOG_FILE"; then
+            print_warning "Flatpak update hatası."
+        else
+            flatpak uninstall --unused -y 2>&1 | tee -a "$LOG_FILE" || true
+        fi
+    fi
 
-sec "Sistem özeti"
-log "OS     : $(os_pretty)"
-log "CPU    : $(LC_C lscpu 2>/dev/null | awk -F: '/Model name/ {gsub(/^[ \t]+/,"",$2); print $2; exit}' || echo Unknown)"
-log "RAM    : $(LC_C free -h 2>/dev/null | awk '/Mem:/ {print $2" total, "$3" used, "$7" available"}' || echo Unknown)"
-log "ROOTFS : ${DISK_BEFORE}"
-log "DISK   :"
-LC_C df -h 2>/dev/null | tee -a "$LOGFILE" || true
+    # D. Snap
+    if command -v snap &> /dev/null; then
+        print_header "Snap: Güncelleme"
+        if ! snap refresh 2>&1 | tee -a "$LOG_FILE"; then
+            print_warning "Snap refresh hatası."
+        fi
+    fi
+    
+    # E. Firmware
+    if command -v fwupdmgr &> /dev/null; then
+        print_header "Firmware: Kontrol"
+        if [[ "${AUTO_MODE:-false}" == "true" ]]; then
+            # Auto modda sessiz
+            { fwupdmgr refresh --force || true; fwupdmgr update -y || true; } >> "$LOG_FILE" 2>&1
+            echo -e "${GREEN}Tamamlandı (Detaylar log dosyasında).${NC}"
+        else
+            fwupdmgr refresh --force 2>&1 | tee -a "$LOG_FILE" || true
+            fwupdmgr update -y 2>&1 | tee -a "$LOG_FILE" || true
+        fi
+    fi
+}
 
-sec "Araç durumu"
-for tool in apt-get dnf flatpak fwupdmgr zenity systemctl systemd-analyze journalctl snap; do
-  if has "$tool"; then
-    log "✔ $tool"
-  else
-    log "✖ $tool"
-  fi
+# --- MAIN ---
+
+AUTO_MODE="false"
+for arg in "$@"; do
+    case $arg in
+        --auto) AUTO_MODE="true" ;;
+        --help) 
+            echo "ARCB Wider Updater v$VERSION"
+            echo "--------------------------------"
+            echo "Kullanım: guncel [SEÇENEK]"
+            echo ""
+            echo "Seçenekler:"
+            echo "  --auto    : Onay sormadan tam otomatik güncelleme yapar."
+            echo "  --help    : Bu menüyü gösterir."
+            echo ""
+            echo "Log Dosyası: $LOG_DIR/update_YYYYMMDD_HHMMSS.log"
+            exit 0 ;;
+    esac
 done
 
-if has snap; then
-  if snap_health; then
-    log "✔ snap (snapd aktif)"
-  else
-    log "✖ snap (snapd aktif değil)"
-  fi
+check_root "$@"
+setup_logging
+
+if ! check_connectivity; then
+    print_error "İnternet bağlantısı kurulamadı. İşlem iptal."
+    exit 1
 fi
 
-dnf_update_and_cleanup
-apt_update_and_cleanup
-flatpak_update_and_cleanup
-snap_refresh
-fwupd_refresh_and_updates
+check_self_update "$@"
 
-journal_vacuum_optional
-failed_services
-boot_perf
-disk_all_partitions_warn
-
-KERNEL_AFTER="$(uname -r 2>/dev/null || echo Unknown)"
-DISK_AFTER="$(disk_line_root)"
-
-sec "Özet"
-log "✔ Güncelleme tamamlandı."
-log "▶ Kernel (önce): ${KERNEL_BEFORE}"
-log "▶ Kernel (şimdi): ${KERNEL_AFTER}"
-log "▶ Disk (önce)  : ${DISK_BEFORE}"
-log "▶ Disk (şimdi) : ${DISK_AFTER}"
-log "▶ Log          : ${LOGFILE}"
-
-reboot_hint
-hr
-
-if gui_question "Log dosyasını görüntüleyeyim mi?\n\n${LOGFILE}"; then
-  gui_log
+# FIX: Auto modda clear yapma, log akışını bozma
+if [[ "$AUTO_MODE" != "true" ]]; then
+    clear 
 fi
+
+echo -e "${GREEN}##################################################"
+echo -e "   ARCB Wider Updater v$VERSION (Diamond Polish)"
+echo -e "   Log: $LOG_FILE"
+echo -e "   Mod: $( [[ "$AUTO_MODE" == "true" ]] && echo "Otomatik 🤖" || echo "İnteraktif 👤" )"
+echo -e "##################################################${NC}"
+
+create_snapshot
+perform_updates
+
+print_header "SONUÇ"
+print_success "İşlem Tamamlandı."
+echo -e "\n"
