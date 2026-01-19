@@ -215,3 +215,7 @@ v3.0, ARCB Wider Updater’ın:
 bir bakım aracı haline gelmesini hedefler.
 
 > **Tembel ama takıntılı adminler için.**
+
+> Not: v3.0 sadece mimari ve kullanım iyileştirmelerine odaklanır.
+> Rust rewrite, daemon mode vb. büyük mimari değişiklikler bu sürüm kapsamı dışındadır.
+
