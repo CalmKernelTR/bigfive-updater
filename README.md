@@ -1,5 +1,7 @@
 [![CI](https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/ci.yml/badge.svg)](https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/ci.yml)
 
+[![Latest Release](https://img.shields.io/github/v/release/ahm3t0t/arcb-wider-updater?sort=semver)](https://github.com/ahm3t0t/arcb-wider-updater/releases/latest)
+
 
 # ARCB Wider Updater
 
