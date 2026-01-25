@@ -1,5 +1,24 @@
 # Changelog
 
+## [v3.7.0] - 2026-01-25
+
+### Added
+- **Logrotate support:** Automatic log rotation and cleanup
+  - New config file: `/etc/logrotate.d/arcb-wider-updater`
+  - Weekly rotation, keeps 4 weeks of logs
+  - Compresses old logs automatically
+  - Installed automatically via install.sh
+- **Log management documentation:** Added to README (TR/EN)
+
+### Changed
+- VERSION: 3.6.1 → 3.7.0
+- CODENAME: "Configurable" → "Rotated"
+- Manual log cleanup in guncel disabled (logrotate handles it now)
+- install.sh updated to install logrotate config
+
+### Removed
+- Manual 30-day log deletion (replaced by logrotate)
+
 ## [v3.6.0] - 2026-01-25
 
 ### Added

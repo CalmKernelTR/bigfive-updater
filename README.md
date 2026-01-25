@@ -136,6 +136,41 @@ sudo cp /usr/local/bin/guncel.bak /usr/local/bin/guncel
 
 ---
 
+## 📝 Log Yönetimi (v3.7.0)
+
+Log dosyaları `/var/log/arcb-updater/` dizininde saklanır ve `logrotate` ile otomatik yönetilir.
+
+### Logrotate Yapılandırması
+
+Kurulum sırasında `/etc/logrotate.d/arcb-wider-updater` dosyası oluşturulur:
+
+```
+/var/log/arcb-updater/*.log {
+    weekly          # Haftalık rotate
+    rotate 4        # 4 hafta sakla
+    compress        # Eski logları sıkıştır
+    delaycompress   # Son rotate'u sıkıştırma
+    missingok       # Log yoksa hata verme
+    notifempty      # Boş log rotate etme
+    create 0600 root root
+}
+```
+
+### Manuel Log Kontrolü
+
+```bash
+# Log dosyalarını listele
+ls -la /var/log/arcb-updater/
+
+# Son log'u görüntüle
+cat /var/log/arcb-updater/update_*.log | tail -50
+
+# Logrotate'u manuel çalıştır
+sudo logrotate -f /etc/logrotate.d/arcb-wider-updater
+```
+
+---
+
 # ARCB Wider Updater 🛡️ (English)
 
 **Armored, Smart, Multi-Distro Update Tool for Linux Systems.**
@@ -260,4 +295,70 @@ Before each update, the old version is backed up to `/usr/local/bin/guncel.bak`.
 
 ```bash
 sudo cp /usr/local/bin/guncel.bak /usr/local/bin/guncel
+```
+
+## 📝 Log Management (v3.7.0)
+
+Log files are stored in `/var/log/arcb-updater/` and automatically managed by `logrotate`.
+
+### Logrotate Configuration
+
+During installation, `/etc/logrotate.d/arcb-wider-updater` is created:
+
+```
+/var/log/arcb-updater/*.log {
+    weekly          # Rotate weekly
+    rotate 4        # Keep 4 weeks
+    compress        # Compress old logs
+    delaycompress   # Don't compress last rotation
+    missingok       # Don't error if log missing
+    notifempty      # Don't rotate empty logs
+    create 0600 root root
+}
+```
+
+### Manual Log Control
+
+```bash
+# List log files
+ls -la /var/log/arcb-updater/
+
+# View latest log
+cat /var/log/arcb-updater/update_*.log | tail -50
+
+# Manually run logrotate
+sudo logrotate -f /etc/logrotate.d/arcb-wider-updater
+```
+
+## 📝 Log Management (v3.7.0)
+
+Log files are stored in `/var/log/arcb-updater/` and automatically managed by `logrotate`.
+
+### Logrotate Configuration
+
+During installation, `/etc/logrotate.d/arcb-wider-updater` is created:
+
+```
+/var/log/arcb-updater/*.log {
+    weekly          # Rotate weekly
+    rotate 4        # Keep 4 weeks
+    compress        # Compress old logs
+    delaycompress   # Don't compress last rotation
+    missingok       # Don't error if log missing
+    notifempty      # Don't rotate empty logs
+    create 0600 root root
+}
+```
+
+### Manual Log Control
+
+```bash
+# List log files
+ls -la /var/log/arcb-updater/
+
+# View latest log
+cat /var/log/arcb-updater/update_*.log | tail -50
+
+# Manually run logrotate
+sudo logrotate -f /etc/logrotate.d/arcb-wider-updater
 ```
