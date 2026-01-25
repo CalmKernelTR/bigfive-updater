@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ARCB Updater Installer v3.4.2 (Solid Foundation)
-# Sync: v3.4.2 | Feature: Smart Local File Detection (Script Dir > CWD > Web)
+# ARCB Updater Installer v3.4.6 (Solid Foundation)
+# Sync: v3.4.6 | Feature: Smart Local File Detection (Script Dir > CWD > Web)
 
 # 1. HATA YÖNETİMİ
 set -Eeuo pipefail
@@ -81,7 +81,7 @@ download_file() {
     fi
 }
 
-echo -e "\n${BLUE}>>> ARCB Wider Updater Kurulum (v3.4.2)${NC}"
+echo -e "\n${BLUE}>>> ARCB Wider Updater Kurulum (v3.4.6)${NC}"
 
 # İndirme veya Kopyalama Mantığı
 if [[ -n "$SOURCE_FILE" ]]; then
