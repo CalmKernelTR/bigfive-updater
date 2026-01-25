@@ -5,8 +5,8 @@
 #
 
 # --- AYARLAR ---
-VERSION="3.4.4"
-CODENAME="Informative"
+VERSION="3.4.5"
+CODENAME="Stable Output"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -30,7 +30,7 @@ VERBOSE_MODE=false
 QUIET_MODE=false
 AUTO_MODE=false
 
-# Güncelleme sayaçları
+# Güncelleme sayaçları - FIX: Ensure they're always numeric
 APT_COUNT=0
 DNF_COUNT=0
 FLATPAK_COUNT=0
@@ -55,7 +55,7 @@ print_header() {
 }
 
 print_error() {
-    echo -e "${RED}${BOLD}❌ HATA: $1 ${NC}"
+    echo -e "${RED}${BOLD}[X] HATA: $1 ${NC}"
     echo "[$(date '+%F %T')] ERROR: $1" >> "$LOG_FILE"
 }
 
@@ -64,7 +64,7 @@ print_warning() {
         echo "[$(date '+%F %T')] WARN: $1" >> "$LOG_FILE"
         return
     fi
-    echo -e "${YELLOW}⚠️  UYARI: $1 ${NC}"
+    echo -e "${YELLOW}[!] UYARI: $1 ${NC}"
     echo "[$(date '+%F %T')] WARN: $1" >> "$LOG_FILE"
 }
 
@@ -73,7 +73,7 @@ print_success() {
         echo "[$(date '+%F %T')] SUCCESS: $1" >> "$LOG_FILE"
         return
     fi
-    echo -e "${GREEN}${BOLD}✅ $1 ${NC}"
+    echo -e "${GREEN}${BOLD}[+] $1 ${NC}"
     echo "[$(date '+%F %T')] SUCCESS: $1" >> "$LOG_FILE"
 }
 
@@ -83,12 +83,12 @@ print_info() {
         return
     fi
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        echo -e "${BLUE}ℹ️  $1${NC}"
+        echo -e "${BLUE}[i] $1${NC}"
     fi
     echo "[$(date '+%F %T')] INFO: $1" >> "$LOG_FILE"
 }
 
-# --- YENİ: SİSTEM BİLGİSİ BAŞLIK KUTUSU ---
+# --- YENİ: SİSTEM BİLGİSİ BAŞLIK KUTUSU (ASCII VERSION) ---
 print_system_header() {
     local hostname_str
     hostname_str=$(hostname 2>/dev/null || echo "unknown")
@@ -102,12 +102,12 @@ print_system_header() {
     disk_str=$(df -h / 2>/dev/null | awk 'NR==2{print $5}' || echo "N/A")
     
     echo -e "${GREEN}"
-    echo "╔══════════════════════════════════════════╗"
-    printf "║  %-40s ║\n" "ARCB-WIDER-UPDATER v$VERSION"
-    printf "║  %-40s ║\n" "Host: $hostname_str | User: $user_str"
-    printf "║  %-40s ║\n" "Kernel: $kernel_str"
-    printf "║  %-40s ║\n" "RAM: $ram_str | Disk: $disk_str used"
-    echo "╚══════════════════════════════════════════╝"
+    echo "+==========================================+"
+    printf "|  %-40s |\n" "ARCB-WIDER-UPDATER v$VERSION"
+    printf "|  %-40s |\n" "Host: $hostname_str | User: $user_str"
+    printf "|  %-40s |\n" "Kernel: $kernel_str"
+    printf "|  %-40s |\n" "RAM: $ram_str | Disk: $disk_str used"
+    echo "+==========================================+"
     echo -e "${NC}"
     
     # Log'a da yaz
@@ -143,81 +143,88 @@ check_reboot_required() {
     echo "Gerekli değil"
 }
 
-# --- YENİ: FİNAL ÖZET KUTUSU ---
+# --- YENİ: FİNAL ÖZET KUTUSU (ASCII VERSION + FIX) ---
 print_final_summary() {
     local reboot_status
     reboot_status=$(check_reboot_required)
-    local total_updates=$((APT_COUNT + DNF_COUNT + FLATPAK_COUNT + SNAP_COUNT + FWUPD_COUNT))
+    
+    # FIX: Ensure all counters are numeric before arithmetic
+    local apt_c="${APT_COUNT:-0}"
+    local dnf_c="${DNF_COUNT:-0}"
+    local flatpak_c="${FLATPAK_COUNT:-0}"
+    local snap_c="${SNAP_COUNT:-0}"
+    local fwupd_c="${FWUPD_COUNT:-0}"
+    local total_updates=$((apt_c + dnf_c + flatpak_c + snap_c + fwupd_c))
     
     echo -e "\n${GREEN}"
-    echo "╔══════════════════════════════════════════╗"
-    echo "║  ✓ GÜNCELLEME TAMAMLANDI                 ║"
-    echo "╠══════════════════════════════════════════╣"
+    echo "+==========================================+"
+    echo "|  [+] GÜNCELLEME TAMAMLANDI               |"
+    echo "+------------------------------------------+"
     
     # APT veya DNF
     if command -v apt-get &> /dev/null; then
-        if [[ $APT_COUNT -gt 0 ]]; then
-            printf "║  APT: %-33s ║\n" "$APT_COUNT paket güncellendi"
+        if [[ $apt_c -gt 0 ]]; then
+            printf "|  APT: %-33s |\n" "$apt_c paket güncellendi"
         else
-            printf "║  APT: %-33s ║\n" "Güncel"
+            printf "|  APT: %-33s |\n" "Güncel"
         fi
     fi
     
     if command -v dnf &> /dev/null; then
-        if [[ $DNF_COUNT -gt 0 ]]; then
-            printf "║  DNF: %-33s ║\n" "$DNF_COUNT paket güncellendi"
+        if [[ $dnf_c -gt 0 ]]; then
+            printf "|  DNF: %-33s |\n" "$dnf_c paket güncellendi"
         else
-            printf "║  DNF: %-33s ║\n" "Güncel"
+            printf "|  DNF: %-33s |\n" "Güncel"
         fi
     fi
     
     # Flatpak
     if command -v flatpak &> /dev/null; then
-        if [[ $FLATPAK_COUNT -gt 0 ]]; then
-            printf "║  Flatpak: %-29s ║\n" "$FLATPAK_COUNT uygulama güncellendi"
+        if [[ $flatpak_c -gt 0 ]]; then
+            printf "|  Flatpak: %-29s |\n" "$flatpak_c uygulama güncellendi"
         else
-            printf "║  Flatpak: %-29s ║\n" "Güncel"
+            printf "|  Flatpak: %-29s |\n" "Güncel"
         fi
     fi
     
     # Snap
     if command -v snap &> /dev/null; then
-        if [[ $SNAP_COUNT -gt 0 ]]; then
-            printf "║  Snap: %-32s ║\n" "$SNAP_COUNT paket güncellendi"
+        if [[ $snap_c -gt 0 ]]; then
+            printf "|  Snap: %-32s |\n" "$snap_c paket güncellendi"
         else
-            printf "║  Snap: %-32s ║\n" "Güncel"
+            printf "|  Snap: %-32s |\n" "Güncel"
         fi
     fi
     
     # Firmware
     if command -v fwupdmgr &> /dev/null; then
-        if [[ $FWUPD_COUNT -gt 0 ]]; then
-            printf "║  Firmware: %-28s ║\n" "$FWUPD_COUNT güncelleme"
+        if [[ $fwupd_c -gt 0 ]]; then
+            printf "|  Firmware: %-28s |\n" "$fwupd_c güncelleme"
         else
-            printf "║  Firmware: %-28s ║\n" "Güncel"
+            printf "|  Firmware: %-28s |\n" "Güncel"
         fi
     fi
     
-    echo "╠══════════════════════════════════════════╣"
+    echo "+------------------------------------------+"
     
     # Snapshot bilgisi
     if [[ -n "$SNAPSHOT_NAME" ]]; then
-        printf "║  Snapshot: %-28s ║\n" "$SNAPSHOT_NAME"
+        printf "|  Snapshot: %-28s |\n" "$SNAPSHOT_NAME"
     else
-        printf "║  Snapshot: %-28s ║\n" "Oluşturulmadı"
+        printf "|  Snapshot: %-28s |\n" "Oluşturulmadı"
     fi
     
     # Reboot durumu
     if [[ "$reboot_status" == "Gerekli" ]]; then
-        printf "║  Reboot: %-30s ║\n" "⚠️  Gerekli"
+        printf "|  Reboot: %-30s |\n" "[!] Gerekli"
     else
-        printf "║  Reboot: %-30s ║\n" "Gerekli değil"
+        printf "|  Reboot: %-30s |\n" "Gerekli değil"
     fi
     
     # Log yolu
-    printf "║  Log: %-33s ║\n" "$LOG_FILE"
+    printf "|  Log: %-33s |\n" "$LOG_FILE"
     
-    echo "╚══════════════════════════════════════════╝"
+    echo "+==========================================+"
     echo -e "${NC}"
     
     # Log'a da yaz
@@ -225,11 +232,11 @@ print_final_summary() {
         echo "=================================================="
         echo "POST-UPDATE SUMMARY"
         echo "Total Updates: $total_updates"
-        [[ $APT_COUNT -gt 0 ]] && echo "APT: $APT_COUNT packages"
-        [[ $DNF_COUNT -gt 0 ]] && echo "DNF: $DNF_COUNT packages"
-        [[ $FLATPAK_COUNT -gt 0 ]] && echo "Flatpak: $FLATPAK_COUNT apps"
-        [[ $SNAP_COUNT -gt 0 ]] && echo "Snap: $SNAP_COUNT packages"
-        [[ $FWUPD_COUNT -gt 0 ]] && echo "Firmware: $FWUPD_COUNT updates"
+        [[ $apt_c -gt 0 ]] && echo "APT: $apt_c packages"
+        [[ $dnf_c -gt 0 ]] && echo "DNF: $dnf_c packages"
+        [[ $flatpak_c -gt 0 ]] && echo "Flatpak: $flatpak_c apps"
+        [[ $snap_c -gt 0 ]] && echo "Snap: $snap_c packages"
+        [[ $fwupd_c -gt 0 ]] && echo "Firmware: $fwupd_c updates"
         echo "Snapshot: ${SNAPSHOT_NAME:-None}"
         echo "Reboot Required: $reboot_status"
         echo "=================================================="
@@ -279,7 +286,7 @@ download_file() {
 
 check_connectivity() {
     if [[ "$QUIET_MODE" != "true" ]]; then
-        echo -ne "${YELLOW}🌐 Bağlantı kontrol ediliyor... ${NC}"
+        echo -ne "${YELLOW}[~] Bağlantı kontrol ediliyor... ${NC}"
     fi
     local UA="Mozilla/5.0 (compat; ARCBUpdater/$VERSION)"
     
@@ -307,7 +314,7 @@ check_connectivity() {
 
 check_root() {
     if [[ $EUID -ne 0 ]]; then
-        echo -e "${YELLOW}🔒 Root yetkisi gerekiyor...${NC}"
+        echo -e "${YELLOW}[*] Root yetkisi gerekiyor...${NC}"
         if command -v sudo &> /dev/null; then
             exec sudo -E "$0" "$@"
         else
@@ -335,7 +342,7 @@ check_self_update() {
     LOCAL_HASH=$(sha256sum "$0" | awk '{print $1}')
 
     if [[ "$REMOTE_HASH" != "$LOCAL_HASH" && -n "$REMOTE_HASH" ]]; then
-        echo -e "\n${YELLOW}💡 Yeni sürüm mevcut!${NC}"
+        echo -e "\n${YELLOW}[!] Yeni sürüm mevcut!${NC}"
         if [[ "${AUTO_MODE:-false}" == "true" ]]; then
              REPLY="e"
         else
@@ -385,7 +392,7 @@ wait_for_lock() {
             exit 1
         fi
         
-        echo -e "${YELLOW}⏳ APT kilitli ($has_checker), bekleniyor... ($count/$max_retries)${NC}"
+        echo -e "${YELLOW}[~] APT kilitli ($has_checker), bekleniyor... ($count/$max_retries)${NC}"
         sleep 5
         ((count++))
     done
@@ -439,10 +446,10 @@ perform_updates() {
         fi
         
         print_header "APT: Dist-Upgrade"
-        # Güncelleme sayısını al
+        # Güncelleme sayısını al - FIX: Ensure numeric result
         local apt_upgradable
         apt_upgradable=$(apt-get -s dist-upgrade 2>/dev/null | grep -c "^Inst " || echo "0")
-        APT_COUNT=$apt_upgradable
+        APT_COUNT=${apt_upgradable:-0}
         
         if [[ "$VERBOSE_MODE" == "true" ]]; then
             apt-get dist-upgrade -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
@@ -464,10 +471,10 @@ perform_updates() {
     elif command -v dnf &> /dev/null; then
         print_header "DNF: Güncelleme"
         
-        # Güncelleme sayısını al
+        # Güncelleme sayısını al - FIX: Ensure numeric result
         local dnf_upgradable
         dnf_upgradable=$(dnf check-update --quiet 2>/dev/null | grep -c "^[a-zA-Z]" || echo "0")
-        DNF_COUNT=$dnf_upgradable
+        DNF_COUNT=${dnf_upgradable:-0}
         
         if [[ "$VERBOSE_MODE" == "true" ]]; then
             dnf upgrade --refresh -y 2>&1 | tee -a "$LOG_FILE"
@@ -481,10 +488,10 @@ perform_updates() {
     if command -v flatpak &> /dev/null; then
         print_header "Flatpak: Güncelleme"
         
-        # Güncelleme sayısını al
+        # Güncelleme sayısını al - FIX: Ensure numeric result
         local flatpak_upgradable
         flatpak_upgradable=$(flatpak remote-ls --updates 2>/dev/null | wc -l || echo "0")
-        FLATPAK_COUNT=$flatpak_upgradable
+        FLATPAK_COUNT=${flatpak_upgradable:-0}
         
         if [[ "$VERBOSE_MODE" == "true" ]]; then
             flatpak update -y 2>&1 | tee -a "$LOG_FILE" || print_warning "Flatpak hata verdi."
@@ -500,10 +507,10 @@ perform_updates() {
     if command -v snap &> /dev/null; then
         print_header "Snap: Güncelleme"
         
-        # Snap güncelleme sayısını al (snap refresh --list)
+        # Snap güncelleme sayısını al - FIX: Ensure numeric result
         local snap_upgradable
         snap_upgradable=$(snap refresh --list 2>/dev/null | tail -n +2 | wc -l || echo "0")
-        SNAP_COUNT=$snap_upgradable
+        SNAP_COUNT=${snap_upgradable:-0}
         
         if [[ "$VERBOSE_MODE" == "true" ]]; then
             snap refresh 2>&1 | tee -a "$LOG_FILE" || print_warning "Snap hata verdi."
@@ -517,10 +524,10 @@ perform_updates() {
     if command -v fwupdmgr &> /dev/null; then
         print_header "Firmware: Kontrol"
         
-        # Firmware güncelleme sayısını al
+        # Firmware güncelleme sayısını al - FIX: Ensure numeric result
         local fwupd_upgradable
         fwupd_upgradable=$(fwupdmgr get-updates 2>/dev/null | grep -c "New version" || echo "0")
-        FWUPD_COUNT=$fwupd_upgradable
+        FWUPD_COUNT=${fwupd_upgradable:-0}
         
         if [[ "${AUTO_MODE:-false}" == "true" ]]; then
             { fwupdmgr refresh --force || true; fwupdmgr update -y || true; } >> "$LOG_FILE" 2>&1

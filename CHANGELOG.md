@@ -1,4 +1,11 @@
 # Changelog
+## [v3.4.5] - 2026-01-25
+
+### Fixed
+- Fixed arithmetic syntax error on line 150 (strict mode compatibility)
+- Fixed Unicode box drawing characters for terminal compatibility
+- Replaced emoji characters with ASCII symbols for SSH/minimal systems
+
 
 All notable changes to this project will be documented in this file.
 
