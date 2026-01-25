@@ -5,7 +5,7 @@
 #
 
 # --- AYARLAR ---
-VERSION="3.7.0"
+VERSION="3.7.1"
 CODENAME="Rotated"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"

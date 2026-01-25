@@ -1,5 +1,10 @@
 # Changelog
 
+## [3.7.1] - 2026-01-25
+### Fixed
+- Fixed install.sh color codes and first character display issue
+- Changed echo -e to printf with ANSI-C quoting for reliable output
+
 ## [v3.7.0] - 2026-01-25
 
 ### Added
