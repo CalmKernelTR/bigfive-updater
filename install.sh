@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# ARCB Updater Installer v3.7.0 (Rotated)
-# Sync: v3.7.0 | Feature: Logrotate Support
+# ARCB Updater Installer v3.7.1 (Hotfix)
+# Sync: v3.7.1 | Fix: Color codes and echo display issues
 
 # 1. HATA YÖNETİMİ
 set -Eeuo pipefail
 
-# Renkler
-RED='\033'
-GREEN='\033'
-BLUE='\033'
-YELLOW='\033'
-BOLD='\033'
-NC='\033'
+# Renkler (printf uyumlu - $'...' ANSI-C quoting)
+RED=$'\033[0;31m'
+GREEN=$'\033[0;32m'
+BLUE=$'\033[0;34m'
+YELLOW=$'\033[1;33m'
+BOLD=$'\033[1m'
+NC=$'\033[0m'
 
 INSTALL_PATH="/usr/local/bin/guncel"
 REPO_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -45,12 +45,12 @@ trap 'rm -f "$TEMP_FILE" "$TEMP_LOGROTATE"' EXIT
 # --- ROOT VE ORTAM KONTROLÜ ---
 if [[ $EUID -ne 0 ]]; then
     if [[ -t 0 ]]; then
-        echo -e "${YELLOW}🔒 Root yetkisi gerekiyor, sudo isteniyor...${NC}"
+        printf "%s🔒 Root yetkisi gerekiyor, sudo isteniyor...%s\n" "$YELLOW" "$NC"
         exec sudo -E "$0" "$@"
     else
-        echo -e "${RED}❌ Bu script root yetkisi gerektirir.${NC}"
-        echo -e "${RED}Lütfen komutu başına 'sudo' ekleyerek çalıştırın:${NC}"
-        echo -e "${BLUE}   curl -fsSL https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/install.sh | sudo bash${NC}"
+        printf "%s❌ Bu script root yetkisi gerektirir.%s\n" "$RED" "$NC"
+        printf "%sLütfen komutu başına 'sudo' ekleyerek çalıştırın:%s\n" "$RED" "$NC"
+        printf "%s   curl -fsSL https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/install.sh | sudo bash%s\n" "$BLUE" "$NC"
         exit 1
     fi
 fi
@@ -60,13 +60,13 @@ download_file() {
     local output="$2"
     local downloaded=false
     
-    echo -e "➡️  İndiriliyor: $url"
+    printf "➡️  İndiriliyor: %s\n" "$url"
 
     if command -v curl &> /dev/null; then
         if curl -fsSL "$url" -o "$output"; then
             downloaded=true
         else
-            echo -e "${RED}⚠️  Curl başarısız, Wget deneniyor...${NC}"
+            printf "%s⚠️  Curl başarısız, Wget deneniyor...%s\n" "$RED" "$NC"
         fi
     fi
 
@@ -77,17 +77,17 @@ download_file() {
     fi
 
     if [ "$downloaded" = "false" ]; then
-        echo -e "${RED}❌ İndirme yapılamadı! (Bağlantı yok veya URL hatalı)${NC}"
+        printf "%s❌ İndirme yapılamadı! (Bağlantı yok veya URL hatalı)%s\n" "$RED" "$NC"
         exit 1
     fi
 }
 
-echo -e "\n${BLUE}>>> ARCB Wider Updater Kurulum (v3.7.0)${NC}"
+printf "\n%s>>> ARCB Wider Updater Kurulum (v3.7.1)%s\n" "$BLUE" "$NC"
 
 # İndirme veya Kopyalama Mantığı
 if [[ -n "$SOURCE_FILE" ]]; then
-    echo -e "📂 Kaynak Bulundu: ${YELLOW}$SOURCE_TYPE${NC}"
-    echo "   Yol: $SOURCE_FILE"
+    printf "📂 Kaynak Bulundu: %s%s%s\n" "$YELLOW" "$SOURCE_TYPE" "$NC"
+    printf "   Yol: %s\n" "$SOURCE_FILE"
     cp "$SOURCE_FILE" "$TEMP_FILE"
 else
     # Yerel dosya yoksa indir
@@ -96,17 +96,17 @@ fi
 
 # 3. DOĞRULAMA (Güvenlik)
 if [ ! -s "$TEMP_FILE" ]; then
-    echo -e "${RED}❌ Kurulacak dosya boş!${NC}"
+    printf "%s❌ Kurulacak dosya boş!%s\n" "$RED" "$NC"
     exit 1
 fi
 
 if ! head -n 1 "$TEMP_FILE" | grep -E -q "#!/(usr/)?bin/(env )?bash"; then
-    echo -e "${RED}❌ Dosya geçerli bir Bash scripti değil!${NC}"
+    printf "%s❌ Dosya geçerli bir Bash scripti değil!%s\n" "$RED" "$NC"
     exit 1
 fi
 
 if ! grep -q "ARCB Wider Updater" "$TEMP_FILE"; then
-    echo -e "${RED}❌ Dosya imza doğrulaması başarısız!${NC}"
+    printf "%s❌ Dosya imza doğrulaması başarısız!%s\n" "$RED" "$NC"
     exit 1
 fi
 
@@ -114,53 +114,53 @@ fi
 if [ -f "$INSTALL_PATH" ]; then
     # Önce basit .bak yedek (rollback için)
     if cp "$INSTALL_PATH" "${INSTALL_PATH}.bak"; then
-        echo -e "📦 Rollback yedeği: ${YELLOW}${INSTALL_PATH}.bak${NC}"
+        printf "📦 Rollback yedeği: %s%s%s\n" "$YELLOW" "${INSTALL_PATH}.bak" "$NC"
     fi
     # Tarihli yedek de al (arşiv için)
     BACKUP_NAME="${INSTALL_PATH}.bak_$(date +%Y%m%d_%H%M%S)"
     cp "$INSTALL_PATH" "$BACKUP_NAME"
-    echo -e "📦 Arşiv yedeği: ${YELLOW}$(basename "$BACKUP_NAME")${NC}"
+    printf "📦 Arşiv yedeği: %s%s%s\n" "$YELLOW" "$(basename "$BACKUP_NAME")" "$NC"
 fi
 
 if install -m 0755 -o root -g root "$TEMP_FILE" "$INSTALL_PATH"; then
     INSTALLED_VERSION=$(sed -n 's/^VERSION="\([^"]*\)".*/\1/p' "$INSTALL_PATH" | head -n1)
-    echo -e "${GREEN}✅ Kurulum Başarılı! (v${INSTALLED_VERSION:-Bilinmiyor})${NC}"
+    printf "%s✅ Kurulum Başarılı! (v%s)%s\n" "$GREEN" "${INSTALLED_VERSION:-Bilinmiyor}" "$NC"
 else
-    echo -e "${RED}❌ Kurulum sırasında yazma hatası oluştu!${NC}"
+    printf "%s❌ Kurulum sırasında yazma hatası oluştu!%s\n" "$RED" "$NC"
     # Rollback attempt
     if [ -f "${INSTALL_PATH}.bak" ]; then
-        echo -e "${YELLOW}Yedekten geri yükleme deneniyor...${NC}"
+        printf "%sYedekten geri yükleme deneniyor...%s\n" "$YELLOW" "$NC"
         if cp "${INSTALL_PATH}.bak" "$INSTALL_PATH"; then
-            echo -e "${GREEN}Geri yükleme başarılı.${NC}"
+            printf "%sGeri yükleme başarılı.%s\n" "$GREEN" "$NC"
         fi
     fi
     exit 1
 fi
 
 # 5. LOGROTATE CONFIG KURULUMU (v3.7.0)
-echo -e "\n${BLUE}>>> Logrotate Yapılandırması${NC}"
+printf "\n%s>>> Logrotate Yapılandırması%s\n" "$BLUE" "$NC"
 
 # Logrotate kurulu mu kontrol et
 if command -v logrotate &> /dev/null; then
     # Yerel dosya var mı?
     if [[ -f "$LOCAL_LOGROTATE_FILE" ]]; then
         cp "$LOCAL_LOGROTATE_FILE" "$TEMP_LOGROTATE"
-        echo -e "📂 Logrotate config: ${YELLOW}Local${NC}"
+        printf "📂 Logrotate config: %sLocal%s\n" "$YELLOW" "$NC"
     else
         download_file "$LOGROTATE_REPO_URL" "$TEMP_LOGROTATE"
     fi
     
     if install -m 0644 -o root -g root "$TEMP_LOGROTATE" "$LOGROTATE_DEST"; then
-        echo -e "${GREEN}✅ Logrotate config kuruldu: ${LOGROTATE_DEST}${NC}"
-        echo -e "${BLUE}ℹ️  Log dosyaları haftalık rotate edilecek, 4 hafta saklanacak.${NC}"
+        printf "%s✅ Logrotate config kuruldu: %s%s\n" "$GREEN" "$LOGROTATE_DEST" "$NC"
+        printf "%sℹ️  Log dosyaları haftalık rotate edilecek, 4 hafta saklanacak.%s\n" "$BLUE" "$NC"
     else
-        echo -e "${YELLOW}⚠️  Logrotate config kurulamadı (opsiyonel).${NC}"
+        printf "%s⚠️  Logrotate config kurulamadı (opsiyonel).%s\n" "$YELLOW" "$NC"
     fi
 else
-    echo -e "${YELLOW}⚠️  Logrotate bulunamadı. Log rotation için: apt install logrotate${NC}"
+    printf "%s⚠️  Logrotate bulunamadı. Log rotation için: apt install logrotate%s\n" "$YELLOW" "$NC"
 fi
 
-echo "--------------------------------------------------"
-echo -e "${BLUE}ℹ️  Not: flock bağımlılığı util-linux paketi ile gelir (genelde kurulu).${NC}"
-echo -e "Komut: ${BOLD}guncel${NC} [--auto] [--skip ...] [--only ...] [--help]"
-echo -e "Loglar: ${BOLD}/var/log/arcb-updater/${NC} (logrotate ile yönetilir)"
+printf "%s\n" "--------------------------------------------------"
+printf "%sℹ️  Not: flock bağımlılığı util-linux paketi ile gelir (genelde kurulu).%s\n" "$BLUE" "$NC"
+printf "Komut: %sguncel%s [--auto] [--skip ...] [--only ...] [--help]\n" "$BOLD" "$NC"
+printf "Loglar: %s/var/log/arcb-updater/%s (logrotate ile yönetilir)\n" "$BOLD" "$NC"
