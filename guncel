@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# ARCB Wider Updater v3.4.2 - Solid Foundation
+# ARCB Wider Updater v3.4.3 - Security Hardened
 # GitHub: https://github.com/ahm3t0t/arcb-wider-updater
 #
 
 # --- AYARLAR ---
-VERSION="3.4.2"
-CODENAME="Solid Foundation"
+VERSION="3.4.3"
+CODENAME="Security Hardened"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -131,7 +131,7 @@ check_root() {
 check_self_update() {
     if [[ "${SELF_UPDATE_DISABLED:-false}" == "true" ]]; then return; fi
 
-    local REMOTE_FILE="/tmp/guncel_remote"
+    local REMOTE_FILE; REMOTE_FILE="$(mktemp /tmp/guncel_remote_XXXXXX)"
     local REMOTE_HASH
     local LOCAL_HASH
     
