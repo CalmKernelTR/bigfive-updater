@@ -20,7 +20,11 @@ Debian (Zorin OS, Ubuntu) ve RHEL (Fedora) tabanlı sistemlerde; Snapshot (Yedek
     * Sistem paketleri, Flatpak, Snap ve `fwupdmgr` (Firmware) güncellemeleri.
 * **Ironclad Güvenlik:**
     * "Strict Mode" (`set -Eeuo pipefail`) ile hata toleransı sıfır.
-* **Bilgilendirici Özet (v3.4.6):**
+* **Bilgilendirici Özet (v3.5.0):**
+* **Eşzamanlı Çalışma Kilidi (v3.5.0):**
+    * `flock` ile cron ve manuel çalıştırma çakışmasını önler.
+* **DNF Kilit Bekleme (v3.5.0):**
+    * DNF/YUM/RPM işlemleri için akıllı bekleme mekanizması.
     * Başlangıçta sistem bilgileri (host, kernel, RAM, disk).
     * Sonunda detaylı özet (kaç paket güncellendi, reboot gerekli mi).
 * **Akıllı Installer:**
@@ -74,7 +78,11 @@ Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks
     * System packages, Flatpak, Snap and `fwupdmgr` (Firmware) updates.
 * **Ironclad Security:**
     * Zero error tolerance with "Strict Mode" (`set -Eeuo pipefail`).
-* **Informative Summary (v3.4.6):**
+* **Informative Summary (v3.5.0):**
+* **Concurrent Execution Lock (v3.5.0):**
+    * Prevents cron and manual execution conflicts using `flock`.
+* **DNF Lock Retry (v3.5.0):**
+    * Smart waiting mechanism for DNF/YUM/RPM operations.
     * System info at start (host, kernel, RAM, disk).
     * Detailed summary at end (packages updated, reboot required).
 * **Smart Installer:**

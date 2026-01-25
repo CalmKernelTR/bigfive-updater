@@ -5,8 +5,8 @@
 #
 
 # --- AYARLAR ---
-VERSION="3.4.6"
-CODENAME="Colorful"
+VERSION="3.5.0"
+CODENAME="Locked & Loaded"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -404,6 +404,21 @@ wait_for_lock() {
     done
 }
 
+wait_for_dnf_lock() {
+    local max_attempts=30
+    local attempt=0
+    while [ $attempt -lt $max_attempts ]; do
+        if ! pgrep -x "dnf|yum|rpm" > /dev/null 2>&1; then
+            return 0
+        fi
+        print_warning "DNF kilidi bekleniyor... ($((attempt+1))/$max_attempts)"
+        sleep 10
+        ((attempt++))
+    done
+    print_error "DNF kilidi zaman aşımı!"
+    return 1
+}
+
 create_snapshot() {
     if command -v timeshift &> /dev/null; then
         print_header "Sistem Yedekleniyor (Timeshift)"
@@ -475,6 +490,11 @@ perform_updates() {
         print_info "APT: $APT_COUNT paket güncellendi."
 
     elif command -v dnf &> /dev/null; then
+        # DNF kilidi kontrolü
+        if ! wait_for_dnf_lock; then
+            print_error "DNF kilidi alınamadı, DNF güncellemesi atlanıyor."
+            return
+        fi
         print_header "DNF: Güncelleme"
         
         # Güncelleme sayısını al - FIX: Ensure numeric result
@@ -590,6 +610,14 @@ if [[ "$VERBOSE_MODE" == "true" && "$QUIET_MODE" == "true" ]]; then
 fi
 
 check_root "$@"
+
+# --- FLOCK: Eşzamanlı çalışma kilidi ---
+LOCK_FILE="/var/lock/arcb-wider-updater.lock"
+exec 9>"$LOCK_FILE"
+if ! flock -n 9; then
+    print_error "Başka bir güncelleme işlemi zaten çalışıyor."
+    exit 1
+fi
 setup_logging
 
 if ! check_connectivity; then

@@ -1,5 +1,20 @@
 # Changelog
 
+## [v3.5.0] - 2026-01-25
+
+### Added
+- Concurrent execution lock using `flock` (prevents cron + manual conflicts)
+- DNF lock retry mechanism with `wait_for_dnf_lock()` function
+  - Uses `pgrep` to check for running dnf/yum/rpm processes
+  - Max 30 attempts with 10 second intervals
+  - Gracefully skips DNF update if lock cannot be acquired
+
+### Changed
+- CODENAME: "Colorful" → "Locked & Loaded"
+
+### Notes
+- `flock` is typically included with `util-linux` package (pre-installed on most systems)
+
 ## [v3.4.6] - 2026-01-25
 
 ### Fixed
