@@ -1,20 +1,22 @@
 #!/usr/bin/env bash
-# ARCB Updater Installer v3.6.0 (Configurable)
-# Sync: v3.6.0 | Feature: Smart Local File Detection + .bak Backup
+# ARCB Updater Installer v3.7.0 (Rotated)
+# Sync: v3.7.0 | Feature: Logrotate Support
 
 # 1. HATA YÖNETİMİ
 set -Eeuo pipefail
 
 # Renkler
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[0;33m'
-BOLD='\033[1m'
-NC='\033[0m'
+RED='\033'
+GREEN='\033'
+BLUE='\033'
+YELLOW='\033'
+BOLD='\033'
+NC='\033'
 
 INSTALL_PATH="/usr/local/bin/guncel"
 REPO_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
+LOGROTATE_REPO_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/logrotate.d/arcb-wider-updater"
+LOGROTATE_DEST="/etc/logrotate.d/arcb-wider-updater"
 
 # --- SMART LOCAL FILE DETECTION ---
 # 1. Scriptin kendi bulunduğu dizini bul (Pipe ile gelmiyorsa)
@@ -23,6 +25,7 @@ SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}" )" &> /dev/null && p
 # 2. Adaylar:
 LOCAL_REPO_FILE="$SCRIPT_DIR/guncel"
 LOCAL_CWD_FILE="./guncel"
+LOCAL_LOGROTATE_FILE="$SCRIPT_DIR/logrotate.d/arcb-wider-updater"
 
 # 3. Kaynak Belirleme
 SOURCE_FILE=""
@@ -36,7 +39,8 @@ fi
 
 # 2. TEMP DOSYA
 TEMP_FILE="$(mktemp /tmp/guncel_install_XXXXXX)"
-trap 'rm -f "$TEMP_FILE"' EXIT
+TEMP_LOGROTATE="$(mktemp /tmp/logrotate_install_XXXXXX)"
+trap 'rm -f "$TEMP_FILE" "$TEMP_LOGROTATE"' EXIT
 
 # --- ROOT VE ORTAM KONTROLÜ ---
 if [[ $EUID -ne 0 ]]; then
@@ -78,7 +82,7 @@ download_file() {
     fi
 }
 
-echo -e "\n${BLUE}>>> ARCB Wider Updater Kurulum (v3.6.0)${NC}"
+echo -e "\n${BLUE}>>> ARCB Wider Updater Kurulum (v3.7.0)${NC}"
 
 # İndirme veya Kopyalama Mantığı
 if [[ -n "$SOURCE_FILE" ]]; then
@@ -121,9 +125,6 @@ fi
 if install -m 0755 -o root -g root "$TEMP_FILE" "$INSTALL_PATH"; then
     INSTALLED_VERSION=$(sed -n 's/^VERSION="\([^"]*\)".*/\1/p' "$INSTALL_PATH" | head -n1)
     echo -e "${GREEN}✅ Kurulum Başarılı! (v${INSTALLED_VERSION:-Bilinmiyor})${NC}"
-    echo -e "${BLUE}ℹ️  Not: flock bağımlılığı util-linux paketi ile gelir (genelde kurulu).${NC}"
-    echo "--------------------------------------------------"
-    echo -e "Komut: ${BOLD}guncel${NC} [--auto] [--skip ...] [--only ...] [--help]"
 else
     echo -e "${RED}❌ Kurulum sırasında yazma hatası oluştu!${NC}"
     # Rollback attempt
@@ -135,3 +136,31 @@ else
     fi
     exit 1
 fi
+
+# 5. LOGROTATE CONFIG KURULUMU (v3.7.0)
+echo -e "\n${BLUE}>>> Logrotate Yapılandırması${NC}"
+
+# Logrotate kurulu mu kontrol et
+if command -v logrotate &> /dev/null; then
+    # Yerel dosya var mı?
+    if [[ -f "$LOCAL_LOGROTATE_FILE" ]]; then
+        cp "$LOCAL_LOGROTATE_FILE" "$TEMP_LOGROTATE"
+        echo -e "📂 Logrotate config: ${YELLOW}Local${NC}"
+    else
+        download_file "$LOGROTATE_REPO_URL" "$TEMP_LOGROTATE"
+    fi
+    
+    if install -m 0644 -o root -g root "$TEMP_LOGROTATE" "$LOGROTATE_DEST"; then
+        echo -e "${GREEN}✅ Logrotate config kuruldu: ${LOGROTATE_DEST}${NC}"
+        echo -e "${BLUE}ℹ️  Log dosyaları haftalık rotate edilecek, 4 hafta saklanacak.${NC}"
+    else
+        echo -e "${YELLOW}⚠️  Logrotate config kurulamadı (opsiyonel).${NC}"
+    fi
+else
+    echo -e "${YELLOW}⚠️  Logrotate bulunamadı. Log rotation için: apt install logrotate${NC}"
+fi
+
+echo "--------------------------------------------------"
+echo -e "${BLUE}ℹ️  Not: flock bağımlılığı util-linux paketi ile gelir (genelde kurulu).${NC}"
+echo -e "Komut: ${BOLD}guncel${NC} [--auto] [--skip ...] [--only ...] [--help]"
+echo -e "Loglar: ${BOLD}/var/log/arcb-updater/${NC} (logrotate ile yönetilir)"

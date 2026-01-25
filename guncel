@@ -5,8 +5,8 @@
 #
 
 # --- AYARLAR ---
-VERSION="3.6.1"
-CODENAME="Configurable Fix"
+VERSION="3.7.0"
+CODENAME="Rotated"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -293,7 +293,9 @@ setup_logging() {
     fi
     
     local deleted_count
-    deleted_count=$(find "$LOG_DIR" -name "update_*.log" -type f -mtime +30 -print -delete | wc -l)
+    # Logrotate handles log cleanup now
+    # deleted_count=$(find "$LOG_DIR" -name "update_*.log" -type f -mtime +30 -print -delete | wc -l)
+    deleted_count=0
     
     touch "$LOG_FILE"
     chmod 600 "$LOG_FILE"

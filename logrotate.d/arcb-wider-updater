@@ -1,0 +1,9 @@
+/var/log/arcb-updater/*.log {
+    weekly
+    rotate 4
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0600 root root
+}
