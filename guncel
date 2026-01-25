@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# ARCB Wider Updater v3.6.0 - Configurable
+# ARCB Wider Updater v3.6.1 - Configurable Fix
 # GitHub: https://github.com/ahm3t0t/arcb-wider-updater
 #
 
 # --- AYARLAR ---
-VERSION="3.6.0"
-CODENAME="Configurable"
+VERSION="3.6.1"
+CODENAME="Configurable Fix"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -22,7 +22,7 @@ umask 0077
 # Renkler
 RED='\033[0;31m'
 GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
+YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 BOLD='\033[1m'
 NC='\033[0m'
@@ -47,6 +47,9 @@ FLATPAK_COUNT=0
 SNAP_COUNT=0
 FWUPD_COUNT=0
 SNAPSHOT_NAME=""
+
+# v3.6.1 FIX: Orijinal argümanları sakla (check_root için)
+ORIGINAL_ARGS=("$@")
 
 # --- YENİ v3.6.0: CONFIG DOSYASI YÜKLEME ---
 load_config() {
@@ -359,7 +362,8 @@ check_root() {
     if [[ $EUID -ne 0 ]]; then
         echo -e "${YELLOW}[*] Root yetkisi gerekiyor...${NC}"
         if command -v sudo &> /dev/null; then
-            exec sudo -E "$0" "$@"
+            # v3.6.1 FIX: Orijinal argümanları kullan
+            exec sudo -E "$0" "${ORIGINAL_ARGS[@]}"
         else
             print_error "Sudo yok ve root değilsin."
             exit 1
@@ -429,7 +433,7 @@ check_self_update() {
             
             if install -m 0755 "$REMOTE_FILE" "$0"; then
                 print_success "Script güncellendi. Yeniden başlatılıyor..."
-                exec "$0" "$@"
+                exec "$0" "${ORIGINAL_ARGS[@]}"
             else
                 print_error "Güncelleme kopyalanamadı!"
                 # Rollback attempt
@@ -598,15 +602,34 @@ perform_updates() {
         else
             print_header "DNF: Güncelleme"
             
-            local dnf_upgradable
-            dnf_upgradable=$(dnf check-update --quiet 2>/dev/null | grep -c "^[a-zA-Z]" || echo "0")
-            DNF_COUNT=${dnf_upgradable:-0}
+            # v3.6.1 FIX: DNF sayacını güncelleme çıktısından al
+            local dnf_temp
+            dnf_temp=$(mktemp)
             
             if [[ "$VERBOSE_MODE" == "true" ]]; then
-                dnf upgrade --refresh -y 2>&1 | tee -a "$LOG_FILE"
+                dnf upgrade --refresh -y 2>&1 | tee -a "$LOG_FILE" | tee "$dnf_temp"
             else
-                dnf upgrade --refresh -y >> "$LOG_FILE" 2>&1
+                dnf upgrade --refresh -y 2>&1 | tee "$dnf_temp" >> "$LOG_FILE"
             fi
+            
+            # v3.6.1 FIX: Parse DNF output for actual upgraded count
+            # Look for "Upgrading:" line in Transaction Summary or count upgraded packages
+            DNF_COUNT=$(grep -E "^Upgrading:" "$dnf_temp" 2>/dev/null | grep -oP '\d+' | head -1 || echo "0")
+            if [[ -z "$DNF_COUNT" || "$DNF_COUNT" == "0" ]]; then
+                # Alternative: count "Upgrading <package>" lines
+                DNF_COUNT=$(grep -cE "^\s*Upgrading\s+[a-zA-Z]" "$dnf_temp" 2>/dev/null || echo "0")
+            fi
+            if [[ -z "$DNF_COUNT" || "$DNF_COUNT" == "0" ]]; then
+                # Alternative: look for "Upgraded:" in summary
+                DNF_COUNT=$(grep -oP "Upgraded:\s*\K\d+" "$dnf_temp" 2>/dev/null || echo "0")
+            fi
+            if [[ -z "$DNF_COUNT" || "$DNF_COUNT" == "0" ]]; then
+                # Alternative: count lines with version upgrade pattern (x.x.x -> y.y.y)
+                DNF_COUNT=$(grep -cE "→|->|\s+[0-9]+\.[0-9]+.*\s+[0-9]+\.[0-9]+" "$dnf_temp" 2>/dev/null || echo "0")
+            fi
+            
+            rm -f "$dnf_temp"
+            DNF_COUNT=${DNF_COUNT:-0}
             
             print_info "DNF: $DNF_COUNT paket güncellendi."
         fi
@@ -616,17 +639,36 @@ perform_updates() {
     if command -v flatpak &> /dev/null && [[ "$SKIP_FLATPAK" != "true" ]] && should_run_backend "flatpak"; then
         print_header "Flatpak: Güncelleme"
         
+        # v3.6.1 FIX: Flatpak sayacını güncelleme ÖNCE al
         local flatpak_upgradable
         flatpak_upgradable=$(flatpak remote-ls --updates 2>/dev/null | wc -l || echo "0")
-        FLATPAK_COUNT=${flatpak_upgradable:-0}
+        
+        local flatpak_temp
+        flatpak_temp=$(mktemp)
         
         if [[ "$VERBOSE_MODE" == "true" ]]; then
-            flatpak update -y 2>&1 | tee -a "$LOG_FILE" || print_warning "Flatpak hata verdi."
+            flatpak update -y 2>&1 | tee -a "$LOG_FILE" | tee "$flatpak_temp" || print_warning "Flatpak hata verdi."
             flatpak uninstall --unused -y 2>&1 | tee -a "$LOG_FILE" || true
         else
-            flatpak update -y >> "$LOG_FILE" 2>&1 || print_warning "Flatpak hata verdi."
+            flatpak update -y 2>&1 | tee "$flatpak_temp" >> "$LOG_FILE" || print_warning "Flatpak hata verdi."
             flatpak uninstall --unused -y >> "$LOG_FILE" 2>&1 || true
         fi
+        
+        # v3.6.1 FIX: Check if "Nothing to do" in output - means no updates
+        if grep -qi "Nothing to do" "$flatpak_temp" 2>/dev/null; then
+            FLATPAK_COUNT=0
+        else
+            # Count actual updates from output or use pre-count
+            local flatpak_updated
+            flatpak_updated=$(grep -cE "^[0-9]+\.\s" "$flatpak_temp" 2>/dev/null || echo "0")
+            if [[ "$flatpak_updated" -gt 0 ]]; then
+                FLATPAK_COUNT=$flatpak_updated
+            else
+                FLATPAK_COUNT=${flatpak_upgradable:-0}
+            fi
+        fi
+        
+        rm -f "$flatpak_temp"
         
         print_info "Flatpak: $FLATPAK_COUNT uygulama güncellendi."
     fi
@@ -750,7 +792,7 @@ if [[ "$VERBOSE_MODE" == "true" && "$QUIET_MODE" == "true" ]]; then
     exit 1
 fi
 
-check_root "$@"
+check_root
 
 # --- FLOCK: Eşzamanlı çalışma kilidi ---
 LOCK_FILE="/var/lock/arcb-wider-updater.lock"
@@ -766,7 +808,7 @@ if ! check_connectivity; then
     exit 1
 fi
 
-check_self_update "$@"
+check_self_update
 
 if [[ "$AUTO_MODE" != "true" && "$QUIET_MODE" != "true" ]]; then clear; fi
 
