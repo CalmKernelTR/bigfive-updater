@@ -16,5 +16,4 @@ git clone git@github.com:ahm3t0t/arcb-wider-updater.git
 cd arcb-wider-updater
 chmod +x guncel install.sh
 ./guncel
-./guncel --gui
-
+```
