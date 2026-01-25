@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# ARCB Wider Updater v3.4.3 - Security Hardened
+# ARCB Wider Updater v3.4.4 - Informative
 # GitHub: https://github.com/ahm3t0t/arcb-wider-updater
 #
 
 # --- AYARLAR ---
-VERSION="3.4.3"
-CODENAME="Security Hardened"
+VERSION="3.4.4"
+CODENAME="Informative"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -18,12 +18,25 @@ set -Eeuo pipefail
 umask 0077
 
 # Renkler
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-BOLD='\033[1m'
-NC='\033[0m'
+RED='\033'
+GREEN='\033'
+YELLOW='\033'
+BLUE='\033'
+BOLD='\033'
+NC='\033'
+
+# --- YENİ: MODLAR VE SAYAÇLAR ---
+VERBOSE_MODE=false
+QUIET_MODE=false
+AUTO_MODE=false
+
+# Güncelleme sayaçları
+APT_COUNT=0
+DNF_COUNT=0
+FLATPAK_COUNT=0
+SNAP_COUNT=0
+FWUPD_COUNT=0
+SNAPSHOT_NAME=""
 
 # --- TRAP & LOGGING ---
 finish_logging() {
@@ -35,6 +48,7 @@ finish_logging() {
 trap finish_logging EXIT
 
 print_header() {
+    if [[ "$QUIET_MODE" == "true" ]]; then return; fi
     echo -e "\n${BLUE}${BOLD}>>> $1 ${NC}"
     echo -e "${BLUE}--------------------------------------------------${NC}"
     echo "[$(date '+%F %T')] >>> $1" >> "$LOG_FILE"
@@ -46,13 +60,180 @@ print_error() {
 }
 
 print_warning() {
+    if [[ "$QUIET_MODE" == "true" ]]; then
+        echo "[$(date '+%F %T')] WARN: $1" >> "$LOG_FILE"
+        return
+    fi
     echo -e "${YELLOW}⚠️  UYARI: $1 ${NC}"
     echo "[$(date '+%F %T')] WARN: $1" >> "$LOG_FILE"
 }
 
 print_success() {
+    if [[ "$QUIET_MODE" == "true" ]]; then
+        echo "[$(date '+%F %T')] SUCCESS: $1" >> "$LOG_FILE"
+        return
+    fi
     echo -e "${GREEN}${BOLD}✅ $1 ${NC}"
     echo "[$(date '+%F %T')] SUCCESS: $1" >> "$LOG_FILE"
+}
+
+print_info() {
+    if [[ "$QUIET_MODE" == "true" ]]; then
+        echo "[$(date '+%F %T')] INFO: $1" >> "$LOG_FILE"
+        return
+    fi
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+        echo -e "${BLUE}ℹ️  $1${NC}"
+    fi
+    echo "[$(date '+%F %T')] INFO: $1" >> "$LOG_FILE"
+}
+
+# --- YENİ: SİSTEM BİLGİSİ BAŞLIK KUTUSU ---
+print_system_header() {
+    local hostname_str
+    hostname_str=$(hostname 2>/dev/null || echo "unknown")
+    local user_str
+    user_str=$(whoami 2>/dev/null || echo "unknown")
+    local kernel_str
+    kernel_str=$(uname -r 2>/dev/null || echo "unknown")
+    local ram_str
+    ram_str=$(free -h 2>/dev/null | awk '/^Mem:/{print $2}' || echo "N/A")
+    local disk_str
+    disk_str=$(df -h / 2>/dev/null | awk 'NR==2{print $5}' || echo "N/A")
+    
+    echo -e "${GREEN}"
+    echo "╔══════════════════════════════════════════╗"
+    printf "║  %-40s ║\n" "ARCB-WIDER-UPDATER v$VERSION"
+    printf "║  %-40s ║\n" "Host: $hostname_str | User: $user_str"
+    printf "║  %-40s ║\n" "Kernel: $kernel_str"
+    printf "║  %-40s ║\n" "RAM: $ram_str | Disk: $disk_str used"
+    echo "╚══════════════════════════════════════════╝"
+    echo -e "${NC}"
+    
+    # Log'a da yaz
+    {
+        echo "=================================================="
+        echo "PRE-UPDATE SYSTEM INFO"
+        echo "Version    : $VERSION ($CODENAME)"
+        echo "Hostname   : $hostname_str"
+        echo "User       : $user_str"
+        echo "Kernel     : $kernel_str"
+        echo "RAM        : $ram_str"
+        echo "Disk Usage : $disk_str"
+        echo "=================================================="
+    } >> "$LOG_FILE"
+}
+
+# --- YENİ: REBOOT GEREKLİ Mİ KONTROLÜ ---
+check_reboot_required() {
+    # Debian/Ubuntu: /var/run/reboot-required dosyası
+    if [[ -f "/var/run/reboot-required" ]]; then
+        echo "Gerekli"
+        return
+    fi
+    
+    # Fedora/RHEL: needs-restarting komutu
+    if command -v needs-restarting &> /dev/null; then
+        if ! needs-restarting -r &> /dev/null; then
+            echo "Gerekli"
+            return
+        fi
+    fi
+    
+    echo "Gerekli değil"
+}
+
+# --- YENİ: FİNAL ÖZET KUTUSU ---
+print_final_summary() {
+    local reboot_status
+    reboot_status=$(check_reboot_required)
+    local total_updates=$((APT_COUNT + DNF_COUNT + FLATPAK_COUNT + SNAP_COUNT + FWUPD_COUNT))
+    
+    echo -e "\n${GREEN}"
+    echo "╔══════════════════════════════════════════╗"
+    echo "║  ✓ GÜNCELLEME TAMAMLANDI                 ║"
+    echo "╠══════════════════════════════════════════╣"
+    
+    # APT veya DNF
+    if command -v apt-get &> /dev/null; then
+        if [[ $APT_COUNT -gt 0 ]]; then
+            printf "║  APT: %-33s ║\n" "$APT_COUNT paket güncellendi"
+        else
+            printf "║  APT: %-33s ║\n" "Güncel"
+        fi
+    fi
+    
+    if command -v dnf &> /dev/null; then
+        if [[ $DNF_COUNT -gt 0 ]]; then
+            printf "║  DNF: %-33s ║\n" "$DNF_COUNT paket güncellendi"
+        else
+            printf "║  DNF: %-33s ║\n" "Güncel"
+        fi
+    fi
+    
+    # Flatpak
+    if command -v flatpak &> /dev/null; then
+        if [[ $FLATPAK_COUNT -gt 0 ]]; then
+            printf "║  Flatpak: %-29s ║\n" "$FLATPAK_COUNT uygulama güncellendi"
+        else
+            printf "║  Flatpak: %-29s ║\n" "Güncel"
+        fi
+    fi
+    
+    # Snap
+    if command -v snap &> /dev/null; then
+        if [[ $SNAP_COUNT -gt 0 ]]; then
+            printf "║  Snap: %-32s ║\n" "$SNAP_COUNT paket güncellendi"
+        else
+            printf "║  Snap: %-32s ║\n" "Güncel"
+        fi
+    fi
+    
+    # Firmware
+    if command -v fwupdmgr &> /dev/null; then
+        if [[ $FWUPD_COUNT -gt 0 ]]; then
+            printf "║  Firmware: %-28s ║\n" "$FWUPD_COUNT güncelleme"
+        else
+            printf "║  Firmware: %-28s ║\n" "Güncel"
+        fi
+    fi
+    
+    echo "╠══════════════════════════════════════════╣"
+    
+    # Snapshot bilgisi
+    if [[ -n "$SNAPSHOT_NAME" ]]; then
+        printf "║  Snapshot: %-28s ║\n" "$SNAPSHOT_NAME"
+    else
+        printf "║  Snapshot: %-28s ║\n" "Oluşturulmadı"
+    fi
+    
+    # Reboot durumu
+    if [[ "$reboot_status" == "Gerekli" ]]; then
+        printf "║  Reboot: %-30s ║\n" "⚠️  Gerekli"
+    else
+        printf "║  Reboot: %-30s ║\n" "Gerekli değil"
+    fi
+    
+    # Log yolu
+    printf "║  Log: %-33s ║\n" "$LOG_FILE"
+    
+    echo "╚══════════════════════════════════════════╝"
+    echo -e "${NC}"
+    
+    # Log'a da yaz
+    {
+        echo "=================================================="
+        echo "POST-UPDATE SUMMARY"
+        echo "Total Updates: $total_updates"
+        [[ $APT_COUNT -gt 0 ]] && echo "APT: $APT_COUNT packages"
+        [[ $DNF_COUNT -gt 0 ]] && echo "DNF: $DNF_COUNT packages"
+        [[ $FLATPAK_COUNT -gt 0 ]] && echo "Flatpak: $FLATPAK_COUNT apps"
+        [[ $SNAP_COUNT -gt 0 ]] && echo "Snap: $SNAP_COUNT packages"
+        [[ $FWUPD_COUNT -gt 0 ]] && echo "Firmware: $FWUPD_COUNT updates"
+        echo "Snapshot: ${SNAPSHOT_NAME:-None}"
+        echo "Reboot Required: $reboot_status"
+        echo "=================================================="
+    } >> "$LOG_FILE"
 }
 
 setup_logging() {
@@ -73,6 +254,8 @@ setup_logging() {
         echo "User       : $(whoami)"
         echo "Hostname   : $(hostname)"
         echo "Mode       : $([[ "${AUTO_MODE:-false}" == "true" ]] && echo "AUTO" || echo "INTERACTIVE")"
+        echo "Verbose    : $VERBOSE_MODE"
+        echo "Quiet      : $QUIET_MODE"
         echo "=================================================="
         if [[ "$deleted_count" -gt 0 ]]; then
             echo "INFO: $deleted_count adet eski log dosyası temizlendi."
@@ -95,7 +278,9 @@ download_file() {
 }
 
 check_connectivity() {
-    echo -ne "${YELLOW}🌐 Bağlantı kontrol ediliyor... ${NC}"
+    if [[ "$QUIET_MODE" != "true" ]]; then
+        echo -ne "${YELLOW}🌐 Bağlantı kontrol ediliyor... ${NC}"
+    fi
     local UA="Mozilla/5.0 (compat; ARCBUpdater/$VERSION)"
     
     local raw_ok=false
@@ -106,10 +291,14 @@ check_connectivity() {
     fi
     
     if [[ "$raw_ok" == "true" ]]; then
-        echo -e "${GREEN}Bağlı.${NC}"
+        if [[ "$QUIET_MODE" != "true" ]]; then
+            echo -e "${GREEN}Bağlı.${NC}"
+        fi
         return 0
     else
-        echo -e "${YELLOW}Kısmi (Repo erişimi yok).${NC}"
+        if [[ "$QUIET_MODE" != "true" ]]; then
+            echo -e "${YELLOW}Kısmi (Repo erişimi yok).${NC}"
+        fi
         print_warning "Repo dosyalarına erişilemiyor. Self-update devre dışı."
         export SELF_UPDATE_DISABLED="true"
         return 0
@@ -205,16 +394,24 @@ wait_for_lock() {
 create_snapshot() {
     if command -v timeshift &> /dev/null; then
         print_header "Sistem Yedekleniyor (Timeshift)"
-        timeshift --create --comments "ARCB-Update-$(date +%F)" --tags D 2>&1 | tee -a "$LOG_FILE"
+        SNAPSHOT_NAME="ARCB-Update-$(date +%F)"
+        if [[ "$VERBOSE_MODE" == "true" ]]; then
+            timeshift --create --comments "$SNAPSHOT_NAME" --tags D 2>&1 | tee -a "$LOG_FILE"
+        else
+            timeshift --create --comments "$SNAPSHOT_NAME" --tags D >> "$LOG_FILE" 2>&1
+            print_success "Timeshift snapshot oluşturuldu."
+        fi
         return
     fi
 
     if command -v snapper &> /dev/null; then
         print_header "Sistem Yedekleniyor (Snapper)"
-        if snapper create --description "ARCB-Update-$(date +%F)" --cleanup-algorithm number 2>&1 | tee -a "$LOG_FILE"; then
+        SNAPSHOT_NAME="ARCB-Update-$(date +%F)"
+        if snapper create --description "$SNAPSHOT_NAME" --cleanup-algorithm number >> "$LOG_FILE" 2>&1; then
              print_success "Snapper snapshot oluşturuldu."
         else
              print_warning "Snapper snapshot oluşturulamadı."
+             SNAPSHOT_NAME=""
         fi
         return
     fi
@@ -234,60 +431,150 @@ perform_updates() {
     if command -v apt-get &> /dev/null; then
         wait_for_lock
         print_header "APT: Güncelleme Başlıyor"
-        apt-get update 2>&1 | tee -a "$LOG_FILE"
+        
+        if [[ "$VERBOSE_MODE" == "true" ]]; then
+            apt-get update 2>&1 | tee -a "$LOG_FILE"
+        else
+            apt-get update >> "$LOG_FILE" 2>&1
+        fi
+        
         print_header "APT: Dist-Upgrade"
-        apt-get dist-upgrade -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+        # Güncelleme sayısını al
+        local apt_upgradable
+        apt_upgradable=$(apt-get -s dist-upgrade 2>/dev/null | grep -c "^Inst " || echo "0")
+        APT_COUNT=$apt_upgradable
+        
+        if [[ "$VERBOSE_MODE" == "true" ]]; then
+            apt-get dist-upgrade -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+        else
+            apt-get dist-upgrade -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
+        fi
+        
         print_header "APT: Temizlik"
-        apt-get autoremove -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
-        apt-get autoclean -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+        if [[ "$VERBOSE_MODE" == "true" ]]; then
+            apt-get autoremove -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+            apt-get autoclean -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+        else
+            apt-get autoremove -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
+            apt-get autoclean -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
+        fi
+        
+        print_info "APT: $APT_COUNT paket güncellendi."
 
     elif command -v dnf &> /dev/null; then
         print_header "DNF: Güncelleme"
-        dnf upgrade --refresh -y 2>&1 | tee -a "$LOG_FILE"
+        
+        # Güncelleme sayısını al
+        local dnf_upgradable
+        dnf_upgradable=$(dnf check-update --quiet 2>/dev/null | grep -c "^[a-zA-Z]" || echo "0")
+        DNF_COUNT=$dnf_upgradable
+        
+        if [[ "$VERBOSE_MODE" == "true" ]]; then
+            dnf upgrade --refresh -y 2>&1 | tee -a "$LOG_FILE"
+        else
+            dnf upgrade --refresh -y >> "$LOG_FILE" 2>&1
+        fi
+        
+        print_info "DNF: $DNF_COUNT paket güncellendi."
     fi
 
     if command -v flatpak &> /dev/null; then
         print_header "Flatpak: Güncelleme"
-        flatpak update -y 2>&1 | tee -a "$LOG_FILE" || print_warning "Flatpak hata verdi."
-        flatpak uninstall --unused -y 2>&1 | tee -a "$LOG_FILE" || true
+        
+        # Güncelleme sayısını al
+        local flatpak_upgradable
+        flatpak_upgradable=$(flatpak remote-ls --updates 2>/dev/null | wc -l || echo "0")
+        FLATPAK_COUNT=$flatpak_upgradable
+        
+        if [[ "$VERBOSE_MODE" == "true" ]]; then
+            flatpak update -y 2>&1 | tee -a "$LOG_FILE" || print_warning "Flatpak hata verdi."
+            flatpak uninstall --unused -y 2>&1 | tee -a "$LOG_FILE" || true
+        else
+            flatpak update -y >> "$LOG_FILE" 2>&1 || print_warning "Flatpak hata verdi."
+            flatpak uninstall --unused -y >> "$LOG_FILE" 2>&1 || true
+        fi
+        
+        print_info "Flatpak: $FLATPAK_COUNT uygulama güncellendi."
     fi
 
     if command -v snap &> /dev/null; then
         print_header "Snap: Güncelleme"
-        snap refresh 2>&1 | tee -a "$LOG_FILE" || print_warning "Snap hata verdi."
+        
+        # Snap güncelleme sayısını al (snap refresh --list)
+        local snap_upgradable
+        snap_upgradable=$(snap refresh --list 2>/dev/null | tail -n +2 | wc -l || echo "0")
+        SNAP_COUNT=$snap_upgradable
+        
+        if [[ "$VERBOSE_MODE" == "true" ]]; then
+            snap refresh 2>&1 | tee -a "$LOG_FILE" || print_warning "Snap hata verdi."
+        else
+            snap refresh >> "$LOG_FILE" 2>&1 || print_warning "Snap hata verdi."
+        fi
+        
+        print_info "Snap: $SNAP_COUNT paket güncellendi."
     fi
     
     if command -v fwupdmgr &> /dev/null; then
         print_header "Firmware: Kontrol"
+        
+        # Firmware güncelleme sayısını al
+        local fwupd_upgradable
+        fwupd_upgradable=$(fwupdmgr get-updates 2>/dev/null | grep -c "New version" || echo "0")
+        FWUPD_COUNT=$fwupd_upgradable
+        
         if [[ "${AUTO_MODE:-false}" == "true" ]]; then
             { fwupdmgr refresh --force || true; fwupdmgr update -y || true; } >> "$LOG_FILE" 2>&1
-            echo -e "${GREEN}Tamamlandı (Detaylar log dosyasında).${NC}"
+            if [[ "$QUIET_MODE" != "true" ]]; then
+                echo -e "${GREEN}Tamamlandı (Detaylar log dosyasında).${NC}"
+            fi
         else
-            fwupdmgr refresh --force 2>&1 | tee -a "$LOG_FILE" || true
-            fwupdmgr update -y 2>&1 | tee -a "$LOG_FILE" || true
+            if [[ "$VERBOSE_MODE" == "true" ]]; then
+                fwupdmgr refresh --force 2>&1 | tee -a "$LOG_FILE" || true
+                fwupdmgr update -y 2>&1 | tee -a "$LOG_FILE" || true
+            else
+                fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
+                fwupdmgr update -y >> "$LOG_FILE" 2>&1 || true
+            fi
         fi
+        
+        print_info "Firmware: $FWUPD_COUNT güncelleme."
     fi
 }
 
-AUTO_MODE="false"
+show_help() {
+    echo -e "${BOLD}ARCB Wider Updater v$VERSION ($CODENAME)${NC}"
+    echo "--------------------------------------------------"
+    echo "Kullanım: guncel [SEÇENEK]"
+    echo ""
+    echo "Seçenekler:"
+    echo "  --auto      Otomatik mod (Onay sormadan günceller)"
+    echo "  --verbose   Detaylı çıktı modu (Tüm komut çıktılarını gösterir)"
+    echo "  --quiet     Sessiz mod (Sadece hata ve özet gösterir)"
+    echo "  --help      Bu yardım mesajını gösterir"
+    echo ""
+    echo "Örnekler:"
+    echo "  guncel            -> İnteraktif (Önerilen)"
+    echo "  guncel --auto     -> Cron / Zamanlanmış görevler"
+    echo "  guncel --verbose  -> Detaylı çıktı ile güncelleme"
+    echo "  guncel --quiet    -> Sessiz güncelleme (sadece özet)"
+    exit 0
+}
+
+# --- ARGUMENT PARSING ---
 for arg in "$@"; do
     case $arg in
         --auto) AUTO_MODE="true" ;;
-        --help)
-        echo -e "${BOLD}ARCB Wider Updater v$VERSION ($CODENAME)${NC}"
-        echo "--------------------------------------------------"
-        echo "Kullanım: guncel [SEÇENEK]"
-        echo ""
-        echo "Seçenekler:"
-        echo "  --auto    Otomatik mod (Onay sormadan günceller)"
-        echo "  --help    Bu yardım mesajını gösterir"
-        echo ""
-        echo "Örnek:"
-        echo "  guncel          -> İnteraktif (Önerilen)"
-        echo "  guncel --auto   -> Cron / Zamanlanmış görevler"
-        exit 0 ;;
+        --verbose) VERBOSE_MODE="true" ;;
+        --quiet) QUIET_MODE="true" ;;
+        --help) show_help ;;
     esac
 done
+
+# Verbose ve quiet aynı anda kullanılamaz
+if [[ "$VERBOSE_MODE" == "true" && "$QUIET_MODE" == "true" ]]; then
+    echo -e "${RED}HATA: --verbose ve --quiet aynı anda kullanılamaz.${NC}"
+    exit 1
+fi
 
 check_root "$@"
 setup_logging
@@ -299,17 +586,20 @@ fi
 
 check_self_update "$@"
 
-if [[ "$AUTO_MODE" != "true" ]]; then clear; fi
+if [[ "$AUTO_MODE" != "true" && "$QUIET_MODE" != "true" ]]; then clear; fi
 
-echo -e "${GREEN}##################################################"
-echo -e "   ARCB Wider Updater v$VERSION ($CODENAME)"
-echo -e "   Log: $LOG_FILE"
-echo -e "   Mod: $( [[ "$AUTO_MODE" == "true" ]] && echo "Otomatik 🤖" || echo "İnteraktif 👤" )"
-echo -e "##################################################${NC}"
+# Başlangıç özeti
+print_system_header
+
+if [[ "$QUIET_MODE" != "true" ]]; then
+    echo -e "${BLUE}   Log: $LOG_FILE${NC}"
+    echo -e "${BLUE}   Mod: $( [[ "$AUTO_MODE" == "true" ]] && echo "Otomatik 🤖" || echo "İnteraktif 👤" )${NC}"
+    [[ "$VERBOSE_MODE" == "true" ]] && echo -e "${BLUE}   Verbose: Aktif${NC}"
+    echo ""
+fi
 
 create_snapshot
 perform_updates
 
-print_header "SONUÇ"
-print_success "İşlem Tamamlandı."
-echo -e "\n"
+# Bitiş özeti
+print_final_summary

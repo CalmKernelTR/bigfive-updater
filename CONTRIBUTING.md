@@ -17,3 +17,21 @@ cd arcb-wider-updater
 chmod +x guncel install.sh
 ./guncel
 ```
+
+## Command Line Options
+
+The script supports the following flags:
+
+| Flag | Description |
+|------|-------------|
+| `--auto` | Automatic mode - no prompts, ideal for cron jobs |
+| `--verbose` | Verbose mode - shows all command outputs |
+| `--quiet` | Quiet mode - shows only errors and final summary |
+| `--help` | Display help message |
+
+## Testing
+
+When testing new features:
+- Test with `--verbose` to see all output
+- Test with `--quiet` to ensure errors are still visible
+- Test on both Debian and Fedora based systems if possible
