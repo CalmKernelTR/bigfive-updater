@@ -1,5 +1,34 @@
 # Changelog
 
+## [v3.6.0] - 2026-01-25
+
+### Added
+- **--skip/--only flags:** Selective backend execution
+  - `--skip snapshot,flatpak,snap,fwupd,dnf` to skip specific backends
+  - `--only system,flatpak,fwupd` to run only specified backends
+  - Example: `guncel --skip flatpak,snap` or `guncel --only dnf`
+- **Config file support:** `/etc/arcb-wider-updater.conf`
+  - Define default modes, skip settings, and colors
+  - Command line arguments override config settings
+- **SHA256 verification during self-update:**
+  - Downloads `SHA256SUMS` from GitHub Releases
+  - Cancels update if hash doesn't match
+  - Provides security against tampered downloads
+- **.bak backup mechanism:**
+  - Creates `/usr/local/bin/guncel.bak` before self-update
+  - Enables easy rollback: `sudo cp /usr/local/bin/guncel.bak /usr/local/bin/guncel`
+  - install.sh also creates .bak backup
+
+### Changed
+- VERSION: 3.5.0 → 3.6.0
+- CODENAME: "Locked & Loaded" → "Configurable"
+- Argument parsing now uses while loop with shift for proper --skip/--only handling
+- Updated --help output with new options and examples
+
+### Security
+- SHA256 hash verification prevents installation of tampered scripts
+- Automatic rollback on failed updates
+
 ## [v3.5.0] - 2026-01-25
 
 ### Added

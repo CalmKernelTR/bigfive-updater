@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ARCB Updater Installer v3.5.0 (Solid Foundation)
-# Sync: v3.5.0 | Feature: Smart Local File Detection (Script Dir > CWD > Web)
+# ARCB Updater Installer v3.6.0 (Configurable)
+# Sync: v3.6.0 | Feature: Smart Local File Detection + .bak Backup
 
 # 1. HATA YÖNETİMİ
 set -Eeuo pipefail
@@ -9,7 +9,7 @@ set -Eeuo pipefail
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
+YELLOW='\033[0;33m'
 BOLD='\033[1m'
 NC='\033[0m'
 
@@ -18,13 +18,10 @@ REPO_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/gunc
 
 # --- SMART LOCAL FILE DETECTION ---
 # 1. Scriptin kendi bulunduğu dizini bul (Pipe ile gelmiyorsa)
-# ${BASH_SOURCE[0]} pipe modunda boş veya hatalı olabilir, bu yüzden hata bastırıyoruz.
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]:-$0}" )" &> /dev/null && pwd )" || true
 
 # 2. Adaylar:
-# - Repo Modu: Scriptin hemen yanındaki dosya (En güvenilir)
 LOCAL_REPO_FILE="$SCRIPT_DIR/guncel"
-# - Dev Modu: Şu an bulunduğumuz klasördeki dosya (Ergonomik)
 LOCAL_CWD_FILE="./guncel"
 
 # 3. Kaynak Belirleme
@@ -81,7 +78,7 @@ download_file() {
     fi
 }
 
-echo -e "\n${BLUE}>>> ARCB Wider Updater Kurulum (v3.5.0)${NC}"
+echo -e "\n${BLUE}>>> ARCB Wider Updater Kurulum (v3.6.0)${NC}"
 
 # İndirme veya Kopyalama Mantığı
 if [[ -n "$SOURCE_FILE" ]]; then
@@ -109,11 +106,16 @@ if ! grep -q "ARCB Wider Updater" "$TEMP_FILE"; then
     exit 1
 fi
 
-# 4. KURULUM VE YEDEKLEME
+# 4. KURULUM VE YEDEKLEME (v3.6.0: Basit .bak yedek)
 if [ -f "$INSTALL_PATH" ]; then
+    # Önce basit .bak yedek (rollback için)
+    if cp "$INSTALL_PATH" "${INSTALL_PATH}.bak"; then
+        echo -e "📦 Rollback yedeği: ${YELLOW}${INSTALL_PATH}.bak${NC}"
+    fi
+    # Tarihli yedek de al (arşiv için)
     BACKUP_NAME="${INSTALL_PATH}.bak_$(date +%Y%m%d_%H%M%S)"
     cp "$INSTALL_PATH" "$BACKUP_NAME"
-    echo -e "📦 Eski sürüm yedeklendi: ${YELLOW}$(basename "$BACKUP_NAME")${NC}"
+    echo -e "📦 Arşiv yedeği: ${YELLOW}$(basename "$BACKUP_NAME")${NC}"
 fi
 
 if install -m 0755 -o root -g root "$TEMP_FILE" "$INSTALL_PATH"; then
@@ -121,8 +123,15 @@ if install -m 0755 -o root -g root "$TEMP_FILE" "$INSTALL_PATH"; then
     echo -e "${GREEN}✅ Kurulum Başarılı! (v${INSTALLED_VERSION:-Bilinmiyor})${NC}"
     echo -e "${BLUE}ℹ️  Not: flock bağımlılığı util-linux paketi ile gelir (genelde kurulu).${NC}"
     echo "--------------------------------------------------"
-    echo -e "Komut: ${BOLD}guncel${NC} [--auto] [--help]"
+    echo -e "Komut: ${BOLD}guncel${NC} [--auto] [--skip ...] [--only ...] [--help]"
 else
     echo -e "${RED}❌ Kurulum sırasında yazma hatası oluştu!${NC}"
+    # Rollback attempt
+    if [ -f "${INSTALL_PATH}.bak" ]; then
+        echo -e "${YELLOW}Yedekten geri yükleme deneniyor...${NC}"
+        if cp "${INSTALL_PATH}.bak" "$INSTALL_PATH"; then
+            echo -e "${GREEN}Geri yükleme başarılı.${NC}"
+        fi
+    fi
     exit 1
 fi

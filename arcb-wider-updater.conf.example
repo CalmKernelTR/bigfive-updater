@@ -1,0 +1,79 @@
+# /etc/arcb-wider-updater.conf
+# ARCB Wider Updater Yapılandırma Dosyası / Configuration File
+# v3.6.0 "Configurable"
+#
+# Bu dosyayı /etc/arcb-wider-updater.conf olarak kopyalayın.
+# Copy this file to /etc/arcb-wider-updater.conf
+#
+# Komut satırı argümanları bu ayarları override eder.
+# Command line arguments override these settings.
+
+# ============================================
+# MODLAR / MODES
+# ============================================
+
+# Varsayılan verbose modu (true/false)
+# Default verbose mode
+CONFIG_VERBOSE=false
+
+# Varsayılan quiet modu (true/false)
+# Default quiet mode
+CONFIG_QUIET=false
+
+# Varsayılan auto modu (true/false)
+# Default auto mode (no prompts)
+CONFIG_AUTO=false
+
+# ============================================
+# BACKEND ATLAMA / SKIP BACKENDS
+# ============================================
+
+# Snapshot oluşturmayı atla (true/false)
+# Skip snapshot creation (Timeshift/Snapper)
+CONFIG_SKIP_SNAPSHOT=false
+
+# Flatpak güncellemelerini atla (true/false)
+# Skip Flatpak updates
+CONFIG_SKIP_FLATPAK=false
+
+# Snap güncellemelerini atla (true/false)
+# Skip Snap updates
+CONFIG_SKIP_SNAP=false
+
+# Firmware güncellemelerini atla (true/false)
+# Skip firmware updates (fwupdmgr)
+CONFIG_SKIP_FWUPD=false
+
+# Sistem paket yöneticisini atla - APT/DNF (true/false)
+# Skip system package manager (APT/DNF)
+CONFIG_SKIP_DNF=false
+
+# ============================================
+# RENKLER / COLORS (Opsiyonel / Optional)
+# ============================================
+# ANSI escape kodları kullanın
+# Use ANSI escape codes
+#
+# CONFIG_COLOR_RED='\033[0;31m'
+# CONFIG_COLOR_GREEN='\033[0;32m'
+# CONFIG_COLOR_YELLOW='\033[0;33m'
+# CONFIG_COLOR_BLUE='\033[0;34m'
+
+# ============================================
+# ÖRNEKLER / EXAMPLES
+# ============================================
+#
+# Sadece sistem paketlerini güncelle (Flatpak, Snap, Firmware atla):
+# Only update system packages (skip Flatpak, Snap, Firmware):
+#   CONFIG_SKIP_FLATPAK=true
+#   CONFIG_SKIP_SNAP=true
+#   CONFIG_SKIP_FWUPD=true
+#
+# Cron için sessiz ve otomatik mod:
+# Silent and automatic mode for cron:
+#   CONFIG_QUIET=true
+#   CONFIG_AUTO=true
+#
+# Snapshot'sız hızlı güncelleme:
+# Quick update without snapshot:
+#   CONFIG_SKIP_SNAPSHOT=true
