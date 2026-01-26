@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.1] - 2026-01-26
+### Fixed
+- **DNF Lock Check:** Fixed broken `pgrep -x "dnf|yum|rpm"` pattern that was searching for literal string instead of alternatives
+  - Now correctly uses: `! pgrep -x dnf && ! pgrep -x yum && ! pgrep -x rpm`
+
+### Changed
+- **SKIP_DNF → SKIP_PKG_MANAGER:** Renamed flag for semantic clarity
+  - Old `SKIP_DNF` was misleading as it affected both APT and DNF
+  - New `SKIP_PKG_MANAGER` clearly indicates it skips all package managers
+  - Updated `--skip dnf|apt|system` option documentation
+- VERSION: 3.9.0 → 3.9.1
+
 ## [3.9.0] - 2026-01-26
 ### Added
 - **BATS Test Infrastructure:** Comprehensive unit test suite using Bash Automated Testing System

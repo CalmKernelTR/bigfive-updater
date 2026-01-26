@@ -5,7 +5,7 @@
 #
 
 # --- AYARLAR ---
-VERSION="3.9.0"
+VERSION="3.9.1"
 CODENAME="Tested"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
@@ -38,7 +38,7 @@ SKIP_SNAPSHOT=false
 SKIP_FLATPAK=false
 SKIP_SNAP=false
 SKIP_FWUPD=false
-SKIP_DNF=false
+SKIP_PKG_MANAGER=false
 ONLY_MODE=""
 
 # Güncelleme sayaçları - FIX: Ensure they're always numeric
@@ -65,7 +65,7 @@ load_config() {
         SKIP_FLATPAK="${CONFIG_SKIP_FLATPAK:-$SKIP_FLATPAK}"
         SKIP_SNAP="${CONFIG_SKIP_SNAP:-$SKIP_SNAP}"
         SKIP_FWUPD="${CONFIG_SKIP_FWUPD:-$SKIP_FWUPD}"
-        SKIP_DNF="${CONFIG_SKIP_DNF:-$SKIP_DNF}"
+        SKIP_PKG_MANAGER="${CONFIG_SKIP_PKG_MANAGER:-$SKIP_PKG_MANAGER}"
         # Renk ayarları (opsiyonel)
         RED="${CONFIG_COLOR_RED:-$RED}"
         GREEN="${CONFIG_COLOR_GREEN:-$GREEN}"
@@ -326,7 +326,7 @@ setup_logging() {
         echo "Dry-Run    : $DRY_RUN"
         echo "Verbose    : $VERBOSE_MODE"
         echo "Quiet      : $QUIET_MODE"
-        echo "Skip       : snapshot=$SKIP_SNAPSHOT flatpak=$SKIP_FLATPAK snap=$SKIP_SNAP fwupd=$SKIP_FWUPD dnf=$SKIP_DNF"
+        echo "Skip       : snapshot=$SKIP_SNAPSHOT flatpak=$SKIP_FLATPAK snap=$SKIP_SNAP fwupd=$SKIP_FWUPD pkg_manager=$SKIP_PKG_MANAGER"
         echo "Only Mode  : ${ONLY_MODE:-none}"
         echo "=================================================="
         if [[ "$deleted_count" -gt 0 ]]; then
@@ -506,7 +506,7 @@ wait_for_dnf_lock() {
     local max_attempts=30
     local attempt=0
     while [ $attempt -lt $max_attempts ]; do
-        if ! pgrep -x "dnf|yum|rpm" > /dev/null 2>&1; then
+        if ! pgrep -x dnf >/dev/null && ! pgrep -x yum >/dev/null && ! pgrep -x rpm >/dev/null; then
             return 0
         fi
         print_warning "DNF kilidi bekleniyor... ($((attempt+1))/$max_attempts)"
@@ -593,7 +593,7 @@ perform_dry_run_check() {
     print_header "[DRY-RUN] Mevcut Güncellemeler Kontrol Ediliyor"
     
     # APT
-    if command -v apt-get &> /dev/null && [[ "$SKIP_DNF" != "true" ]] && should_run_backend "apt"; then
+    if command -v apt-get &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "apt"; then
         print_dry_run "APT: Güncellenebilir paketler listeleniyor..."
         printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         apt-get update -qq >> "$LOG_FILE" 2>&1 || true
@@ -610,7 +610,7 @@ perform_dry_run_check() {
     fi
     
     # DNF
-    if command -v dnf &> /dev/null && [[ "$SKIP_DNF" != "true" ]] && should_run_backend "dnf"; then
+    if command -v dnf &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "dnf"; then
         print_dry_run "DNF: Güncellenebilir paketler listeleniyor..."
         printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         local dnf_list
@@ -690,7 +690,7 @@ perform_updates() {
     fi
 
     # APT Güncellemesi
-    if command -v apt-get &> /dev/null && [[ "$SKIP_DNF" != "true" ]] && should_run_backend "apt"; then
+    if command -v apt-get &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "apt"; then
         wait_for_lock
         print_header "APT: Güncelleme Başlıyor"
         
@@ -722,7 +722,7 @@ perform_updates() {
         
         print_info "APT: $APT_COUNT paket güncellendi."
 
-    elif command -v dnf &> /dev/null && [[ "$SKIP_DNF" != "true" ]] && should_run_backend "dnf"; then
+    elif command -v dnf &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "dnf"; then
         if ! wait_for_dnf_lock; then
             print_error "DNF kilidi alınamadı, DNF güncellemesi atlanıyor."
         else
@@ -907,7 +907,7 @@ while [[ $# -gt 0 ]]; do
                         flatpak) SKIP_FLATPAK=true ;;
                         snap) SKIP_SNAP=true ;;
                         fwupd) SKIP_FWUPD=true ;;
-                        dnf|apt|system) SKIP_DNF=true ;;
+                        dnf|apt|system) SKIP_PKG_MANAGER=true ;;  # Paket yöneticisini (APT/DNF) atla
                         *) printf '%sUyarı: Bilinmeyen skip değeri: %s%s\n' "${YELLOW}" "$item" "${NC}" ;;
                     esac
                 done
