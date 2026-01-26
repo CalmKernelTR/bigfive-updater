@@ -5,8 +5,8 @@
 #
 
 # --- AYARLAR ---
-VERSION="3.8.2"
-CODENAME="Documented"
+VERSION="3.9.0"
+CODENAME="Tested"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"

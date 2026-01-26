@@ -67,6 +67,27 @@ This project uses two separate version systems:
 
 ---
 
+## 🧪 Testing / Test
+
+Bu proje [BATS](https://github.com/bats-core/bats-core) (Bash Automated Testing System) kullanır.
+
+This project uses [BATS](https://github.com/bats-core/bats-core) for testing.
+
+```bash
+# BATS kurulumu / Install BATS
+sudo apt-get install bats  # Debian/Ubuntu
+# veya / or
+brew install bats-core     # macOS
+
+# Testleri çalıştır / Run tests
+bats tests/*.bats
+
+# Verbose çıktı / Verbose output
+bats --tap tests/*.bats
+```
+
+---
+
 ## 🤝 Contributing / Katkıda Bulunma
 
 Katkıda bulunmak için [CONTRIBUTING.md](CONTRIBUTING.md) dosyasını inceleyin.

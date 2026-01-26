@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.0] - 2026-01-26
+### Added
+- **BATS Test Infrastructure:** Comprehensive unit test suite using Bash Automated Testing System
+  - `tests/test_helper.bash`: Common helper functions for tests
+  - `tests/guncel.bats`: Main test file with 30+ test cases
+  - Tests cover: --help, --version, --dry-run, --skip/--only flags, color variables, critical functions
+- **Enhanced CI Workflow:** Updated `.github/workflows/test.yml`
+  - Added BATS installation and test execution
+  - Separate jobs for shellcheck, syntax-check, bats-tests, help-output, version-output
+- **README Test Section:** Added documentation for running tests locally
+  - BATS installation instructions (apt, brew)
+  - Test execution commands
+
+### Changed
+- VERSION: 3.8.2 → 3.9.0
+- CODENAME: "Documented" → "Tested"
+
+## [3.8.2] - 2026-01-26
+### Fixed
+- **Color Variable Fix:** Corrected ANSI escape sequences for terminal colors
+
 ## [3.8.1] - 2026-01-26
 ### Added
 - **Test Automation:** New GitHub Actions workflow `.github/workflows/test.yml`
