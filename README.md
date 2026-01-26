@@ -65,6 +65,9 @@ guncel --verbose
 # Sessiz Mod (Sadece hata ve özet gösterir)
 guncel --quiet
 
+# Kuru Çalıştırma (v3.8.0) - Güncellemeleri listele, uygulama
+guncel --dry-run
+
 # Seçici Güncelleme (v3.6.0)
 guncel --skip flatpak,snap      # Flatpak ve Snap'i atla
 guncel --skip snapshot          # Snapshot oluşturmayı atla
@@ -79,6 +82,7 @@ guncel --only flatpak,fwupd     # Sadece Flatpak ve Firmware
 | `--auto` | Otomatik mod - soru sormaz, cron için ideal |
 | `--verbose` | Detaylı mod - tüm komut çıktılarını gösterir |
 | `--quiet` | Sessiz mod - sadece hata ve özet gösterir |
+| `--dry-run` | Kuru çalıştırma - güncellemeleri listeler, uygulamaz |
 | `--skip <backend>` | Belirtilen backend'leri atla (virgülle ayır) |
 | `--only <backend>` | Sadece belirtilen backend'leri çalıştır |
 | `--help` | Yardım mesajını gösterir |

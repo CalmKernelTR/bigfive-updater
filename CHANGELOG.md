@@ -1,5 +1,27 @@
 # Changelog
 
+## [3.8.0] - 2026-01-26
+### Added
+- **GitHub Actions Release Automation:** Automatic release creation on tag push
+  - New workflow: `.github/workflows/release.yml`
+  - Trigger: `push tags v*`
+  - Automatically generates `SHA256SUMS` for `guncel` and `install.sh`
+  - Creates GitHub Release with checksums attached
+- **--dry-run mode:** Preview updates without applying them
+  - Shows available updates for APT, DNF, Flatpak, Snap, and Firmware
+  - Uses native list commands: `apt list --upgradable`, `flatpak remote-ls --updates`, etc.
+  - No changes made to system - safe for testing
+
+### Changed
+- VERSION: 3.7.2 → 3.8.0
+- CODENAME: "Rotated" → "Automated"
+- Updated --help with --dry-run option and examples
+- Self-update skipped in dry-run mode
+
+### Notes
+- Release automation requires no additional setup - uses built-in GITHUB_TOKEN
+- To create a release: `git tag v3.8.0 && git push origin v3.8.0`
+
 ## [3.7.2] - 2026-01-26
 ### Fixed
 - **Hotfix:** Fixed Flatpak counter newline bug causing syntax error on Zorin OS 18
