@@ -1,96 +1,59 @@
-# Rust Migration Roadmap (ARCB Wider Updater)
+# 🗺️ ARCB Wider Updater - Yol Haritası
 
-Goal: keep the **UX and behavior** of `guncel` but migrate to a safer, testable, distributable Rust CLI.
+> Shell script olarak geliştirmeye devam ediyoruz.
 
-## Phase 0 — Freeze current behavior (now)
-- Document current features and expected output
-- Decide which OS families are supported:
-  - Debian/Ubuntu (APT)
-  - Fedora/RHEL-like (DNF)
-- Define "optional" tools: flatpak, snap, fwupd, zenity
+---
 
-Deliverables:
-- Stable README
-- CI lint green
-- Minimal issue templates
+## ✅ Tamamlanan Sürümler
 
-## Phase 1 — Extract a spec from the Bash script
-Create a "behavior spec" without implementation details:
-- Commands run (per PM)
-- Logging format
-- GUI behavior:
-  - --gui uses zenity when available
-  - otherwise fallback to terminal prompts
-- Tool detection + optional installation prompts
-- Kernel prune rules (APT):
-  - keep running + one previous
+### v3.x Serisi - Stabilite & Altyapı
+- [x] Renk ve karakter düzeltmeleri
+- [x] DNF/APT lock mekanizması
+- [x] `--dry-run` modu
+- [x] `--skip` ve `--only` flag'leri
+- [x] Config dosyası desteği
+- [x] Logrotate entegrasyonu
+- [x] Release automation (GitHub Actions)
+- [x] BATS unit test altyapısı (32 test)
+- [x] Çoklu dil dokümantasyonu (TR/EN)
 
-Deliverables:
-- SPEC.md (inputs/outputs, flow)
-- A small sample log in docs/
+### v4.0.0 "Polished" - Temizlik & Tutarlılık
+- [x] CODENAME kurulum mesajında
+- [x] Header temizliği (DRY)
+- [x] Help mesajı tutarlılığı
+- [x] Dokümantasyon güncellemesi
 
-## Phase 2 — Rust CLI skeleton
-Build a Rust CLI that:
-- Detects OS and package manager
-- Implements the same flow but can run in "dry-run" mode
+---
 
-Suggested crates:
-- clap (CLI args)
-- anyhow or eyre (error handling)
-- chrono (timestamps)
-- sysinfo (system summary)
-- which (tool detection)
-- serde + toml/yaml (optional config later)
+## 🔜 Planlanan Özellikler
 
-Deliverables:
-- `arcb-wider-updater` binary (new name TBD)
-- `--dry-run` and `--version`
-- Basic logging to file
+### v4.1.0 - Güvenlik & Topluluk
+- [ ] GPG imzalı release'ler
+- [ ] FUNDING.yml (GitHub Sponsors)
+- [ ] SECURITY.md (güvenlik politikası)
 
-## Phase 3 — Implement update backends
-Implement per-manager modules:
-- apt: update/upgrade/full-upgrade/cleanup
-- dnf: upgrade --refresh / autoremove / clean
-Optional modules:
-- flatpak update + unused uninstall
-- snap refresh
-- fwupd refresh + get-updates
+### v4.2.0 - Kullanıcı Deneyimi
+- [ ] `--json` çıktı formatı (otomasyon için)
+- [ ] Desktop notification desteği (notify-send)
+- [ ] Systemd timer şablonu
 
-Deliverables:
-- Same behavior as Bash (no GUI yet)
-- Integration tests using mocks
+### v4.3.0 - Gelişmiş Özellikler
+- [ ] Paralel güncelleme (APT + Flatpak aynı anda)
+- [ ] Güncelleme geçmişi raporu
+- [ ] E-posta/webhook bildirimleri
 
-## Phase 4 — GUI strategy
-Decide approach:
-- Option A: Keep zenity as external tool (simple, minimal deps)
-- Option B: Native TUI/GUI (more work)
-Recommended: Option A initially (call zenity if exists).
+---
 
-Deliverables:
-- `--gui` parity with Bash
-- Fallback prompts if no zenity
+## 💡 Değerlendirilen Fikirler
 
-## Phase 5 — Packaging & distribution
-- Provide prebuilt binaries via GitHub Releases
-- Consider:
-  - .deb / .rpm packaging
-  - Homebrew formula (optional)
-- Installer script can shift to downloading release binaries (more stable than raw main)
+| Fikir | Durum | Not |
+|-------|-------|-----|
+| Rust migration | ❌ Ertelendi | Bash yeterli, karmaşıklık gereksiz |
+| Web UI | ❌ Kapsam dışı | CLI odaklı kalıyoruz |
+| Plugin sistemi | 🤔 Belirsiz | Gerekirse v5.x |
 
-Deliverables:
-- Release artifacts
-- Updated install.sh to fetch latest release
+---
 
-## Phase 6 — Deprecation plan for Bash
-- Keep Bash `guncel` as "legacy" for a while
-- Eventually point users to Rust binary
+## 🤝 Katkıda Bulunma
 
-Deliverables:
-- Migration note in README
-- Legacy support window
-
-## Success criteria
-- CLI does not run hidden commands
-- Logs are readable and consistent
-- Safe defaults + graceful degradation
-- Tests exist for core flow
+Önerileriniz için [Issue](https://github.com/ahm3t0t/arcb-wider-updater/issues) açabilirsiniz.
