@@ -1,5 +1,41 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [3.8.1] - 2026-01-26
+### Added
+- **Test Automation:** New GitHub Actions workflow `.github/workflows/test.yml`
+  - ShellCheck lint for `guncel` and `install.sh`
+  - Bash syntax validation (`bash -n`)
+  - `--help` output verification
+  - Triggered on push and pull_request
+- **README Split:** Separated documentation into language-specific files
+  - `README.md` → Short overview with links to both languages
+  - `README.tr.md` → Full Turkish documentation
+  - `README.en.md` → Full English documentation
+- **Version System Documentation:** Added explanation of dual versioning
+  - `guncel`: SemVer (3.x.x) - Updated with every feature/fix
+  - `install.sh`: Night-Vx.x.x - Updated only when install logic changes
+
+### Fixed
+- **fwupd Exit Code Handling:** `fwupdmgr get-updates` returns exit code 2 for "No updatable devices"
+  - This is now treated as success (not an error)
+  - Prevents false error messages on systems without updatable firmware
+  - Both dry-run and actual update modes handle this correctly
+
+### Changed
+- VERSION: 3.8.0 → 3.8.1
+- CODENAME: "Automated" → "Documented"
+- **CONTRIBUTING.md:** Expanded with comprehensive guidelines
+  - Code style: ShellCheck rules, 4-space indent, POSIX compatibility
+  - Commit message format: `type(scope): description`
+  - Version management: SemVer explanation, dual version system
+  - Test scenarios: shellcheck, bash -n, --dry-run, --help
+  - PR process: branch naming, review checklist
+
 ## [Night-V1.0.0] - 2026-01-26 (install.sh)
 ### Changed
 - **install.sh artık ayrı versiyon sistemi kullanıyor**
@@ -124,12 +160,6 @@
 - Fixed arithmetic syntax error on line 150 (strict mode compatibility)
 - Fixed Unicode box drawing characters for terminal compatibility
 - Replaced emoji characters with ASCII symbols for SSH/minimal systems
-
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [3.4.4] - 2026-01-25
 

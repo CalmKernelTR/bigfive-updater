@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# ARCB Wider Updater v3.8.0 - Automated
+# ARCB Wider Updater v3.8.1 - Documented
 # GitHub: https://github.com/ahm3t0t/arcb-wider-updater
 #
 
 # --- AYARLAR ---
-VERSION="3.8.0"
-CODENAME="Automated"
+VERSION="3.8.1"
+CODENAME="Documented"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -20,12 +20,12 @@ set -Eeuo pipefail
 umask 0077
 
 # Renkler
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-BOLD='\033[1m'
-NC='\033[0m'
+RED='\033'
+GREEN='\033'
+YELLOW='\033'
+BLUE='\033'
+BOLD='\033'
+NC='\033'
 
 # --- YENİ: MODLAR VE SAYAÇLAR ---
 VERBOSE_MODE=false
@@ -657,14 +657,15 @@ perform_dry_run_check() {
         echo ""
     fi
     
-    # Firmware
+    # Firmware - v3.8.1 FIX: "No updatable devices" durumunda exit 0
     if command -v fwupdmgr &> /dev/null && [[ "$SKIP_FWUPD" != "true" ]] && should_run_backend "fwupd"; then
         print_dry_run "Firmware: Mevcut güncellemeler kontrol ediliyor..."
         echo -e "${BLUE}--------------------------------------------------${NC}"
         fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
-        local fwupd_list
-        fwupd_list=$(fwupdmgr get-updates 2>/dev/null || true)
-        if [[ -n "$fwupd_list" && ! "$fwupd_list" =~ "No upgrades" ]]; then
+        local fwupd_list fwupd_exit_code
+        fwupd_list=$(fwupdmgr get-updates 2>&1) || fwupd_exit_code=$?
+        # fwupdmgr returns exit code 2 for "No updatable devices" - this is not an error
+        if [[ -n "$fwupd_list" && ! "$fwupd_list" =~ "No upgrades" && ! "$fwupd_list" =~ "No updatable devices" ]]; then
             echo "$fwupd_list"
             FWUPD_COUNT=$(echo "$fwupd_list" | grep -c "New version" | tr -cd '0-9' || echo "0")
         else
@@ -818,27 +819,39 @@ perform_updates() {
         print_info "Snap: $SNAP_COUNT paket güncellendi."
     fi
     
-    # Firmware Güncellemesi
+    # Firmware Güncellemesi - v3.8.1 FIX: "No updatable devices" durumunda exit 0
     if command -v fwupdmgr &> /dev/null && [[ "$SKIP_FWUPD" != "true" ]] && should_run_backend "fwupd"; then
         print_header "Firmware: Kontrol"
         
-        local fwupd_upgradable
-        fwupd_upgradable=$(fwupdmgr get-updates 2>/dev/null | grep -c "New version" | tr -cd '0-9')
-        fwupd_upgradable=${fwupd_upgradable:-0}
-        FWUPD_COUNT=${fwupd_upgradable:-0}
+        local fwupd_output fwupd_exit_code=0
+        fwupd_output=$(fwupdmgr get-updates 2>&1) || fwupd_exit_code=$?
         
-        if [[ "${AUTO_MODE:-false}" == "true" ]]; then
-            { fwupdmgr refresh --force || true; fwupdmgr update -y || true; } >> "$LOG_FILE" 2>&1
-            if [[ "$QUIET_MODE" != "true" ]]; then
-                echo -e "${GREEN}Tamamlandı (Detaylar log dosyasında).${NC}"
-            fi
+        # fwupdmgr returns exit code 2 for "No updatable devices" - this is not an error
+        if [[ $fwupd_exit_code -eq 2 ]] || [[ "$fwupd_output" =~ "No updatable devices" ]]; then
+            print_info "Firmware: Güncellenebilir cihaz bulunamadı."
+            FWUPD_COUNT=0
+        elif [[ $fwupd_exit_code -ne 0 ]]; then
+            print_warning "Firmware kontrolü başarısız (exit code: $fwupd_exit_code)"
+            FWUPD_COUNT=0
         else
-            if [[ "$VERBOSE_MODE" == "true" ]]; then
-                fwupdmgr refresh --force 2>&1 | tee -a "$LOG_FILE" || true
-                fwupdmgr update -y 2>&1 | tee -a "$LOG_FILE" || true
+            local fwupd_upgradable
+            fwupd_upgradable=$(echo "$fwupd_output" | grep -c "New version" | tr -cd '0-9' || echo "0")
+            fwupd_upgradable=${fwupd_upgradable:-0}
+            FWUPD_COUNT=${fwupd_upgradable:-0}
+            
+            if [[ "${AUTO_MODE:-false}" == "true" ]]; then
+                { fwupdmgr refresh --force || true; fwupdmgr update -y || true; } >> "$LOG_FILE" 2>&1
+                if [[ "$QUIET_MODE" != "true" ]]; then
+                    echo -e "${GREEN}Tamamlandı (Detaylar log dosyasında).${NC}"
+                fi
             else
-                fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
-                fwupdmgr update -y >> "$LOG_FILE" 2>&1 || true
+                if [[ "$VERBOSE_MODE" == "true" ]]; then
+                    fwupdmgr refresh --force 2>&1 | tee -a "$LOG_FILE" || true
+                    fwupdmgr update -y 2>&1 | tee -a "$LOG_FILE" || true
+                else
+                    fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
+                    fwupdmgr update -y >> "$LOG_FILE" 2>&1 || true
+                fi
             fi
         fi
         
