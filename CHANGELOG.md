@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] - 2026-01-26
+### Changed
+- **Header Simplified:** Removed version info from script header comment, keeping only project name and GitHub URL
+- **VERSION:** 3.9.1 → 4.0.0
+- **CODENAME:** "Tested" → "Polished"
+- **Help Text Updated:** `--skip` option now shows `system` as a value alongside `dnf` and `apt`
+  - New format: `Değerler: snapshot, flatpak, snap, fwupd, system (veya dnf, apt)`
+
+### Improved
+- **install.sh:** Now displays CODENAME alongside version after successful installation
+  - New format: `✅ Kurulum Başarılı! (v4.0.0 - Polished)`
+
+### Documentation
+- Updated all README files (README.md, README.tr.md, README.en.md) with v4.0.0 version info
+- Updated BATS tests to expect v4.0.0 and "Polished" codename
+
 ## [3.9.1] - 2026-01-26
 ### Fixed
 - **DNF Lock Check:** Fixed broken `pgrep -x "dnf|yum|rpm"` pattern that was searching for literal string instead of alternatives

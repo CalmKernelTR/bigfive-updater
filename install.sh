@@ -124,7 +124,8 @@ fi
 
 if install -m 0755 -o root -g root "$TEMP_FILE" "$INSTALL_PATH"; then
     INSTALLED_VERSION=$(sed -n 's/^VERSION="\([^"]*\)".*/\1/p' "$INSTALL_PATH" | head -n1)
-    printf "%s✅ Kurulum Başarılı! (v%s)%s\n" "$GREEN" "${INSTALLED_VERSION:-Bilinmiyor}" "$NC"
+    INSTALLED_CODENAME=$(sed -n 's/^CODENAME="\([^"]*\)".*/\1/p' "$INSTALL_PATH" | head -n1)
+    printf "%s✅ Kurulum Başarılı! (v%s - %s)%s\n" "$GREEN" "${INSTALLED_VERSION:-Bilinmiyor}" "${INSTALLED_CODENAME:-}" "$NC"
 else
     printf "%s❌ Kurulum sırasında yazma hatası oluştu!%s\n" "$RED" "$NC"
     # Rollback attempt
