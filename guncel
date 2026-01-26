@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #
-# ARCB Wider Updater v3.8.1 - Documented
+# ARCB Wider Updater v3.8.2 - Documented
 # GitHub: https://github.com/ahm3t0t/arcb-wider-updater
 #
 
 # --- AYARLAR ---
-VERSION="3.8.1"
+VERSION="3.8.2"
 CODENAME="Documented"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
@@ -19,13 +19,13 @@ set -Eeuo pipefail
 # GÜVENLİK: Log ve temp dosyalar sadece root okusun
 umask 0077
 
-# Renkler
-RED='\033'
-GREEN='\033'
-YELLOW='\033'
-BLUE='\033'
-BOLD='\033'
-NC='\033'
+# Renkler (ANSI-C quoting ile)
+RED=$'\033[0;31m'
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[0;33m'
+BLUE=$'\033[0;34m'
+BOLD=$'\033[1m'
+NC=$'\033[0m'
 
 # --- YENİ: MODLAR VE SAYAÇLAR ---
 VERBOSE_MODE=false
@@ -88,13 +88,13 @@ trap finish_logging EXIT
 
 print_header() {
     if [[ "$QUIET_MODE" == "true" ]]; then return; fi
-    echo -e "\n${BLUE}${BOLD}>>> $1 ${NC}"
-    echo -e "${BLUE}--------------------------------------------------${NC}"
+    printf '\n%s>>> %s %s\n' "${BLUE}${BOLD}" "$1" "${NC}"
+    printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
     echo "[$(date '+%F %T')] >>> $1" >> "$LOG_FILE"
 }
 
 print_error() {
-    echo -e "${RED}${BOLD}[X] HATA: $1 ${NC}"
+    printf '%s[X] HATA: %s %s\n' "${RED}${BOLD}" "$1" "${NC}"
     echo "[$(date '+%F %T')] ERROR: $1" >> "$LOG_FILE"
 }
 
@@ -103,7 +103,7 @@ print_warning() {
         echo "[$(date '+%F %T')] WARN: $1" >> "$LOG_FILE"
         return
     fi
-    echo -e "${YELLOW}[!] UYARI: $1 ${NC}"
+    printf '%s[!] UYARI: %s %s\n' "${YELLOW}" "$1" "${NC}"
     echo "[$(date '+%F %T')] WARN: $1" >> "$LOG_FILE"
 }
 
@@ -112,7 +112,7 @@ print_success() {
         echo "[$(date '+%F %T')] SUCCESS: $1" >> "$LOG_FILE"
         return
     fi
-    echo -e "${GREEN}${BOLD}[+] $1 ${NC}"
+    printf '%s[+] %s %s\n' "${GREEN}${BOLD}" "$1" "${NC}"
     echo "[$(date '+%F %T')] SUCCESS: $1" >> "$LOG_FILE"
 }
 
@@ -122,14 +122,14 @@ print_info() {
         return
     fi
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        echo -e "${BLUE}[i] $1${NC}"
+        printf '%s[i] %s%s\n' "${BLUE}" "$1" "${NC}"
     fi
     echo "[$(date '+%F %T')] INFO: $1" >> "$LOG_FILE"
 }
 
 # --- v3.8.0: DRY-RUN MESAJI ---
 print_dry_run() {
-    echo -e "${YELLOW}[DRY-RUN] $1${NC}"
+    printf '%s[DRY-RUN] %s%s\n' "${YELLOW}" "$1" "${NC}"
     echo "[$(date '+%F %T')] DRY-RUN: $1" >> "$LOG_FILE"
 }
 
@@ -146,13 +146,13 @@ print_system_header() {
     local disk_str
     disk_str=$(df -h / 2>/dev/null | awk 'NR==2{print $5}' || echo "N/A")
     
-    echo -e "${GREEN}========================================${NC}"
-    echo -e "${GREEN}  ARCB-WIDER-UPDATER v${VERSION}${NC}"
-    [[ "$DRY_RUN" == "true" ]] && echo -e "${YELLOW}  [DRY-RUN MODE]${NC}"
-    echo -e "${GREEN}  Host: ${hostname_str} | User: ${user_str}${NC}"
-    echo -e "${GREEN}  Kernel: ${kernel_str}${NC}"
-    echo -e "${GREEN}  RAM: ${ram_str} | Disk: ${disk_str} used${NC}"
-    echo -e "${GREEN}========================================${NC}"
+    printf '%s========================================%s\n' "${GREEN}" "${NC}"
+    printf '%s  ARCB-WIDER-UPDATER v%s%s\n' "${GREEN}" "${VERSION}" "${NC}"
+    [[ "$DRY_RUN" == "true" ]] && printf '%s  [DRY-RUN MODE]%s\n' "${YELLOW}" "${NC}"
+    printf '%s  Host: %s | User: %s%s\n' "${GREEN}" "${hostname_str}" "${user_str}" "${NC}"
+    printf '%s  Kernel: %s%s\n' "${GREEN}" "${kernel_str}" "${NC}"
+    printf '%s  RAM: %s | Disk: %s used%s\n' "${GREEN}" "${ram_str}" "${disk_str}" "${NC}"
+    printf '%s========================================%s\n' "${GREEN}" "${NC}"
     
     # Log'a da yaz
     {
@@ -211,80 +211,80 @@ print_final_summary() {
     local total_updates=$((apt_c + dnf_c + flatpak_c + snap_c + fwupd_c))
     
     echo ""
-    echo -e "${GREEN}========================================${NC}"
+    printf '%s========================================%s\n' "${GREEN}" "${NC}"
     if [[ "$DRY_RUN" == "true" ]]; then
-        echo -e "${YELLOW}  [DRY-RUN] GÜNCELLEME ÖNİZLEMESİ${NC}"
+        printf '%s  [DRY-RUN] GÜNCELLEME ÖNİZLEMESİ%s\n' "${YELLOW}" "${NC}"
     else
-        echo -e "${GREEN}  [+] GÜNCELLEME TAMAMLANDI${NC}"
+        printf '%s  [+] GÜNCELLEME TAMAMLANDI%s\n' "${GREEN}" "${NC}"
     fi
-    echo -e "${GREEN}----------------------------------------${NC}"
+    printf '%s----------------------------------------%s\n' "${GREEN}" "${NC}"
     
     # APT veya DNF
     if command -v apt-get &> /dev/null; then
         if [[ $apt_c -gt 0 ]]; then
-            echo -e "${GREEN}  APT: ${apt_c} paket $([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")${NC}"
+            printf '%s  APT: %s paket %s%s\n' "${GREEN}" "${apt_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
         else
-            echo -e "${GREEN}  APT: Güncel${NC}"
+            printf '%s  APT: Güncel%s\n' "${GREEN}" "${NC}"
         fi
     fi
     
     if command -v dnf &> /dev/null; then
         if [[ $dnf_c -gt 0 ]]; then
-            echo -e "${GREEN}  DNF: ${dnf_c} paket $([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")${NC}"
+            printf '%s  DNF: %s paket %s%s\n' "${GREEN}" "${dnf_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
         else
-            echo -e "${GREEN}  DNF: Güncel${NC}"
+            printf '%s  DNF: Güncel%s\n' "${GREEN}" "${NC}"
         fi
     fi
     
     # Flatpak
     if command -v flatpak &> /dev/null; then
         if [[ $flatpak_c -gt 0 ]]; then
-            echo -e "${GREEN}  Flatpak: ${flatpak_c} uygulama $([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")${NC}"
+            printf '%s  Flatpak: %s uygulama %s%s\n' "${GREEN}" "${flatpak_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
         else
-            echo -e "${GREEN}  Flatpak: Güncel${NC}"
+            printf '%s  Flatpak: Güncel%s\n' "${GREEN}" "${NC}"
         fi
     fi
     
     # Snap
     if command -v snap &> /dev/null; then
         if [[ $snap_c -gt 0 ]]; then
-            echo -e "${GREEN}  Snap: ${snap_c} paket $([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")${NC}"
+            printf '%s  Snap: %s paket %s%s\n' "${GREEN}" "${snap_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
         else
-            echo -e "${GREEN}  Snap: Güncel${NC}"
+            printf '%s  Snap: Güncel%s\n' "${GREEN}" "${NC}"
         fi
     fi
     
     # Firmware
     if command -v fwupdmgr &> /dev/null; then
         if [[ $fwupd_c -gt 0 ]]; then
-            echo -e "${GREEN}  Firmware: ${fwupd_c} $([[ "$DRY_RUN" == "true" ]] && echo "güncelleme mevcut" || echo "güncelleme")${NC}"
+            printf '%s  Firmware: %s %s%s\n' "${GREEN}" "${fwupd_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncelleme mevcut" || echo "güncelleme")" "${NC}"
         else
-            echo -e "${GREEN}  Firmware: Güncel${NC}"
+            printf '%s  Firmware: Güncel%s\n' "${GREEN}" "${NC}"
         fi
     fi
     
-    echo -e "${GREEN}----------------------------------------${NC}"
+    printf '%s----------------------------------------%s\n' "${GREEN}" "${NC}"
     
     # Snapshot bilgisi
     if [[ -n "$SNAPSHOT_NAME" ]]; then
-        echo -e "${GREEN}  Snapshot: ${SNAPSHOT_NAME}${NC}"
+        printf '%s  Snapshot: %s%s\n' "${GREEN}" "${SNAPSHOT_NAME}" "${NC}"
     elif [[ "$DRY_RUN" == "true" ]]; then
-        echo -e "${YELLOW}  Snapshot: [DRY-RUN] Oluşturulmayacak${NC}"
+        printf '%s  Snapshot: [DRY-RUN] Oluşturulmayacak%s\n' "${YELLOW}" "${NC}"
     else
-        echo -e "${GREEN}  Snapshot: Oluşturulmadı${NC}"
+        printf '%s  Snapshot: Oluşturulmadı%s\n' "${GREEN}" "${NC}"
     fi
     
     # Reboot durumu
     if [[ "$reboot_status" == "Gerekli" ]]; then
-        echo -e "${YELLOW}  Reboot: [!] Gerekli${NC}"
+        printf '%s  Reboot: [!] Gerekli%s\n' "${YELLOW}" "${NC}"
     else
-        echo -e "${GREEN}  Reboot: Gerekli değil${NC}"
+        printf '%s  Reboot: Gerekli değil%s\n' "${GREEN}" "${NC}"
     fi
     
     # Log yolu
-    echo -e "${BLUE}  Log: ${LOG_FILE}${NC}"
+    printf '%s  Log: %s%s\n' "${BLUE}" "${LOG_FILE}" "${NC}"
     
-    echo -e "${GREEN}========================================${NC}"
+    printf '%s========================================%s\n' "${GREEN}" "${NC}"
     
     # Log'a da yaz
     {
@@ -351,7 +351,7 @@ download_file() {
 
 check_connectivity() {
     if [[ "$QUIET_MODE" != "true" ]]; then
-        echo -ne "${YELLOW}[~] Bağlantı kontrol ediliyor... ${NC}"
+        printf '%s[~] Bağlantı kontrol ediliyor... %s' "${YELLOW}" "${NC}"
     fi
     local UA="Mozilla/5.0 (compat; ARCBUpdater/$VERSION)"
     
@@ -364,12 +364,12 @@ check_connectivity() {
     
     if [[ "$raw_ok" == "true" ]]; then
         if [[ "$QUIET_MODE" != "true" ]]; then
-            echo -e "${GREEN}Bağlı.${NC}"
+            printf '%sBağlı.%s\n' "${GREEN}" "${NC}"
         fi
         return 0
     else
         if [[ "$QUIET_MODE" != "true" ]]; then
-            echo -e "${YELLOW}Kısmi (Repo erişimi yok).${NC}"
+            printf '%sKısmi (Repo erişimi yok).%s\n' "${YELLOW}" "${NC}"
         fi
         print_warning "Repo dosyalarına erişilemiyor. Self-update devre dışı."
         export SELF_UPDATE_DISABLED="true"
@@ -379,7 +379,7 @@ check_connectivity() {
 
 check_root() {
     if [[ $EUID -ne 0 ]]; then
-        echo -e "${YELLOW}[*] Root yetkisi gerekiyor...${NC}"
+        printf '%s[*] Root yetkisi gerekiyor...%s\n' "${YELLOW}" "${NC}"
         if command -v sudo &> /dev/null; then
             # v3.6.1 FIX: Orijinal argümanları kullan
             exec sudo -E "$0" "${ORIGINAL_ARGS[@]}"
@@ -414,7 +414,7 @@ check_self_update() {
     LOCAL_HASH=$(sha256sum "$0" | awk '{print $1}')
 
     if [[ "$REMOTE_HASH" != "$LOCAL_HASH" && -n "$REMOTE_HASH" ]]; then
-        echo -e "\n${YELLOW}[!] Yeni sürüm mevcut!${NC}"
+        printf '\n%s[!] Yeni sürüm mevcut!%s\n' "${YELLOW}" "${NC}"
         
         # SHA256 doğrulama (v3.6.0)
         if download_file "$GITHUB_SHA256_URL" "$TEMP_SHA256" 2>/dev/null; then
@@ -496,7 +496,7 @@ wait_for_lock() {
             exit 1
         fi
         
-        echo -e "${YELLOW}[~] APT kilitli ($has_checker), bekleniyor... ($count/$max_retries)${NC}"
+        printf '%s[~] APT kilitli (%s), bekleniyor... (%s/%s)%s\n' "${YELLOW}" "$has_checker" "$count" "$max_retries" "${NC}"
         sleep 5
         ((count++))
     done
@@ -595,7 +595,7 @@ perform_dry_run_check() {
     # APT
     if command -v apt-get &> /dev/null && [[ "$SKIP_DNF" != "true" ]] && should_run_backend "apt"; then
         print_dry_run "APT: Güncellenebilir paketler listeleniyor..."
-        echo -e "${BLUE}--------------------------------------------------${NC}"
+        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         apt-get update -qq >> "$LOG_FILE" 2>&1 || true
         local apt_list
         apt_list=$(apt list --upgradable 2>/dev/null | grep -v "Listing..." || true)
@@ -603,7 +603,7 @@ perform_dry_run_check() {
             echo "$apt_list"
             APT_COUNT=$(echo "$apt_list" | wc -l | tr -cd '0-9')
         else
-            echo -e "${GREEN}  Tüm paketler güncel.${NC}"
+            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
             APT_COUNT=0
         fi
         echo ""
@@ -612,14 +612,14 @@ perform_dry_run_check() {
     # DNF
     if command -v dnf &> /dev/null && [[ "$SKIP_DNF" != "true" ]] && should_run_backend "dnf"; then
         print_dry_run "DNF: Güncellenebilir paketler listeleniyor..."
-        echo -e "${BLUE}--------------------------------------------------${NC}"
+        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         local dnf_list
         dnf_list=$(dnf check-update 2>/dev/null | grep -v "^$" | grep -v "Last metadata" || true)
         if [[ -n "$dnf_list" ]]; then
             echo "$dnf_list"
             DNF_COUNT=$(echo "$dnf_list" | wc -l | tr -cd '0-9')
         else
-            echo -e "${GREEN}  Tüm paketler güncel.${NC}"
+            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
             DNF_COUNT=0
         fi
         echo ""
@@ -628,14 +628,14 @@ perform_dry_run_check() {
     # Flatpak
     if command -v flatpak &> /dev/null && [[ "$SKIP_FLATPAK" != "true" ]] && should_run_backend "flatpak"; then
         print_dry_run "Flatpak: Güncellenebilir uygulamalar listeleniyor..."
-        echo -e "${BLUE}--------------------------------------------------${NC}"
+        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         local flatpak_list
         flatpak_list=$(flatpak remote-ls --updates 2>/dev/null || true)
         if [[ -n "$flatpak_list" ]]; then
             echo "$flatpak_list"
             FLATPAK_COUNT=$(echo "$flatpak_list" | wc -l | tr -cd '0-9')
         else
-            echo -e "${GREEN}  Tüm uygulamalar güncel.${NC}"
+            printf '%s  Tüm uygulamalar güncel.%s\n' "${GREEN}" "${NC}"
             FLATPAK_COUNT=0
         fi
         echo ""
@@ -644,14 +644,14 @@ perform_dry_run_check() {
     # Snap
     if command -v snap &> /dev/null && [[ "$SKIP_SNAP" != "true" ]] && should_run_backend "snap"; then
         print_dry_run "Snap: Güncellenebilir paketler listeleniyor..."
-        echo -e "${BLUE}--------------------------------------------------${NC}"
+        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         local snap_list
         snap_list=$(snap refresh --list 2>/dev/null | tail -n +2 || true)
         if [[ -n "$snap_list" ]]; then
             echo "$snap_list"
             SNAP_COUNT=$(echo "$snap_list" | wc -l | tr -cd '0-9')
         else
-            echo -e "${GREEN}  Tüm paketler güncel.${NC}"
+            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
             SNAP_COUNT=0
         fi
         echo ""
@@ -660,7 +660,7 @@ perform_dry_run_check() {
     # Firmware - v3.8.1 FIX: "No updatable devices" durumunda exit 0
     if command -v fwupdmgr &> /dev/null && [[ "$SKIP_FWUPD" != "true" ]] && should_run_backend "fwupd"; then
         print_dry_run "Firmware: Mevcut güncellemeler kontrol ediliyor..."
-        echo -e "${BLUE}--------------------------------------------------${NC}"
+        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
         local fwupd_list fwupd_exit_code
         fwupd_list=$(fwupdmgr get-updates 2>&1) || fwupd_exit_code=$?
@@ -669,7 +669,7 @@ perform_dry_run_check() {
             echo "$fwupd_list"
             FWUPD_COUNT=$(echo "$fwupd_list" | grep -c "New version" | tr -cd '0-9' || echo "0")
         else
-            echo -e "${GREEN}  Firmware güncel.${NC}"
+            printf '%s  Firmware güncel.%s\n' "${GREEN}" "${NC}"
             FWUPD_COUNT=0
         fi
         echo ""
@@ -842,7 +842,7 @@ perform_updates() {
             if [[ "${AUTO_MODE:-false}" == "true" ]]; then
                 { fwupdmgr refresh --force || true; fwupdmgr update -y || true; } >> "$LOG_FILE" 2>&1
                 if [[ "$QUIET_MODE" != "true" ]]; then
-                    echo -e "${GREEN}Tamamlandı (Detaylar log dosyasında).${NC}"
+                    printf '%sTamamlandı (Detaylar log dosyasında).%s\n' "${GREEN}" "${NC}"
                 fi
             else
                 if [[ "$VERBOSE_MODE" == "true" ]]; then
@@ -860,7 +860,7 @@ perform_updates() {
 }
 
 show_help() {
-    echo -e "${BOLD}ARCB Wider Updater v$VERSION ($CODENAME)${NC}"
+    printf '%sARCB Wider Updater v%s (%s)%s\n' "${BOLD}" "$VERSION" "$CODENAME" "${NC}"
     echo "--------------------------------------------------"
     echo "Kullanım: guncel [SEÇENEK]"
     echo ""
@@ -908,12 +908,12 @@ while [[ $# -gt 0 ]]; do
                         snap) SKIP_SNAP=true ;;
                         fwupd) SKIP_FWUPD=true ;;
                         dnf|apt|system) SKIP_DNF=true ;;
-                        *) echo -e "${YELLOW}Uyarı: Bilinmeyen skip değeri: $item${NC}" ;;
+                        *) printf '%sUyarı: Bilinmeyen skip değeri: %s%s\n' "${YELLOW}" "$item" "${NC}" ;;
                     esac
                 done
                 shift 2
             else
-                echo -e "${RED}HATA: --skip için değer gerekli (örn: --skip flatpak,snap)${NC}"
+                printf '%sHATA: --skip için değer gerekli (örn: --skip flatpak,snap)%s\n' "${RED}" "${NC}"
                 exit 1
             fi
             ;;
@@ -922,18 +922,18 @@ while [[ $# -gt 0 ]]; do
                 ONLY_MODE="$2"
                 shift 2
             else
-                echo -e "${RED}HATA: --only için değer gerekli (örn: --only system)${NC}"
+                printf '%sHATA: --only için değer gerekli (örn: --only system)%s\n' "${RED}" "${NC}"
                 exit 1
             fi
             ;;
         --help) show_help ;;
-        *) echo -e "${YELLOW}Uyarı: Bilinmeyen argüman: $1${NC}"; shift ;;
+        *) printf '%sUyarı: Bilinmeyen argüman: %s%s\n' "${YELLOW}" "$1" "${NC}"; shift ;;
     esac
 done
 
 # Verbose ve quiet aynı anda kullanılamaz
 if [[ "$VERBOSE_MODE" == "true" && "$QUIET_MODE" == "true" ]]; then
-    echo -e "${RED}HATA: --verbose ve --quiet aynı anda kullanılamaz.${NC}"
+    printf '%sHATA: --verbose ve --quiet aynı anda kullanılamaz.%s\n' "${RED}" "${NC}"
     exit 1
 fi
 
@@ -961,11 +961,11 @@ if [[ "$AUTO_MODE" != "true" && "$QUIET_MODE" != "true" ]]; then clear; fi
 print_system_header
 
 if [[ "$QUIET_MODE" != "true" ]]; then
-    echo -e "${BLUE}   Log: $LOG_FILE${NC}"
-    echo -e "${BLUE}   Mod: $( [[ "$AUTO_MODE" == "true" ]] && echo "Otomatik 🤖" || echo "İnteraktif 👤" )${NC}"
-    [[ "$VERBOSE_MODE" == "true" ]] && echo -e "${BLUE}   Verbose: Aktif${NC}"
-    [[ "$DRY_RUN" == "true" ]] && echo -e "${YELLOW}   Dry-Run: Aktif (Değişiklik yapılmayacak)${NC}"
-    [[ -n "$ONLY_MODE" ]] && echo -e "${BLUE}   Only: $ONLY_MODE${NC}"
+    printf '%s   Log: %s%s\n' "${BLUE}" "$LOG_FILE" "${NC}"
+    printf '%s   Mod: %s%s\n' "${BLUE}" "$( [[ "$AUTO_MODE" == "true" ]] && echo "Otomatik 🤖" || echo "İnteraktif 👤" )" "${NC}"
+    [[ "$VERBOSE_MODE" == "true" ]] && printf '%s   Verbose: Aktif%s\n' "${BLUE}" "${NC}"
+    [[ "$DRY_RUN" == "true" ]] && printf '%s   Dry-Run: Aktif (Değişiklik yapılmayacak)%s\n' "${YELLOW}" "${NC}"
+    [[ -n "$ONLY_MODE" ]] && printf '%s   Only: %s%s\n' "${BLUE}" "$ONLY_MODE" "${NC}"
     echo ""
 fi
 
