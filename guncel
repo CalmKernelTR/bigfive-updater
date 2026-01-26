@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# ARCB Wider Updater v3.6.1 - Configurable Fix
+# ARCB Wider Updater v3.8.0 - Automated
 # GitHub: https://github.com/ahm3t0t/arcb-wider-updater
 #
 
 # --- AYARLAR ---
-VERSION="3.7.2"
-CODENAME="Rotated"
+VERSION="3.8.0"
+CODENAME="Automated"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -31,6 +31,7 @@ NC='\033[0m'
 VERBOSE_MODE=false
 QUIET_MODE=false
 AUTO_MODE=false
+DRY_RUN=false
 
 # --- YENİ v3.6.0: SKIP/ONLY BAYRAKLARI ---
 SKIP_SNAPSHOT=false
@@ -126,6 +127,12 @@ print_info() {
     echo "[$(date '+%F %T')] INFO: $1" >> "$LOG_FILE"
 }
 
+# --- v3.8.0: DRY-RUN MESAJI ---
+print_dry_run() {
+    echo -e "${YELLOW}[DRY-RUN] $1${NC}"
+    echo "[$(date '+%F %T')] DRY-RUN: $1" >> "$LOG_FILE"
+}
+
 # --- SİSTEM BİLGİSİ BAŞLIK KUTUSU ---
 print_system_header() {
     local hostname_str
@@ -141,6 +148,7 @@ print_system_header() {
     
     echo -e "${GREEN}========================================${NC}"
     echo -e "${GREEN}  ARCB-WIDER-UPDATER v${VERSION}${NC}"
+    [[ "$DRY_RUN" == "true" ]] && echo -e "${YELLOW}  [DRY-RUN MODE]${NC}"
     echo -e "${GREEN}  Host: ${hostname_str} | User: ${user_str}${NC}"
     echo -e "${GREEN}  Kernel: ${kernel_str}${NC}"
     echo -e "${GREEN}  RAM: ${ram_str} | Disk: ${disk_str} used${NC}"
@@ -151,6 +159,7 @@ print_system_header() {
         echo "=================================================="
         echo "PRE-UPDATE SYSTEM INFO"
         echo "Version    : $VERSION ($CODENAME)"
+        echo "Dry-Run    : $DRY_RUN"
         echo "Hostname   : $hostname_str"
         echo "User       : $user_str"
         echo "Kernel     : $kernel_str"
@@ -203,13 +212,17 @@ print_final_summary() {
     
     echo ""
     echo -e "${GREEN}========================================${NC}"
-    echo -e "${GREEN}  [+] GÜNCELLEME TAMAMLANDI${NC}"
+    if [[ "$DRY_RUN" == "true" ]]; then
+        echo -e "${YELLOW}  [DRY-RUN] GÜNCELLEME ÖNİZLEMESİ${NC}"
+    else
+        echo -e "${GREEN}  [+] GÜNCELLEME TAMAMLANDI${NC}"
+    fi
     echo -e "${GREEN}----------------------------------------${NC}"
     
     # APT veya DNF
     if command -v apt-get &> /dev/null; then
         if [[ $apt_c -gt 0 ]]; then
-            echo -e "${GREEN}  APT: ${apt_c} paket güncellendi${NC}"
+            echo -e "${GREEN}  APT: ${apt_c} paket $([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")${NC}"
         else
             echo -e "${GREEN}  APT: Güncel${NC}"
         fi
@@ -217,7 +230,7 @@ print_final_summary() {
     
     if command -v dnf &> /dev/null; then
         if [[ $dnf_c -gt 0 ]]; then
-            echo -e "${GREEN}  DNF: ${dnf_c} paket güncellendi${NC}"
+            echo -e "${GREEN}  DNF: ${dnf_c} paket $([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")${NC}"
         else
             echo -e "${GREEN}  DNF: Güncel${NC}"
         fi
@@ -226,7 +239,7 @@ print_final_summary() {
     # Flatpak
     if command -v flatpak &> /dev/null; then
         if [[ $flatpak_c -gt 0 ]]; then
-            echo -e "${GREEN}  Flatpak: ${flatpak_c} uygulama güncellendi${NC}"
+            echo -e "${GREEN}  Flatpak: ${flatpak_c} uygulama $([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")${NC}"
         else
             echo -e "${GREEN}  Flatpak: Güncel${NC}"
         fi
@@ -235,7 +248,7 @@ print_final_summary() {
     # Snap
     if command -v snap &> /dev/null; then
         if [[ $snap_c -gt 0 ]]; then
-            echo -e "${GREEN}  Snap: ${snap_c} paket güncellendi${NC}"
+            echo -e "${GREEN}  Snap: ${snap_c} paket $([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")${NC}"
         else
             echo -e "${GREEN}  Snap: Güncel${NC}"
         fi
@@ -244,7 +257,7 @@ print_final_summary() {
     # Firmware
     if command -v fwupdmgr &> /dev/null; then
         if [[ $fwupd_c -gt 0 ]]; then
-            echo -e "${GREEN}  Firmware: ${fwupd_c} güncelleme${NC}"
+            echo -e "${GREEN}  Firmware: ${fwupd_c} $([[ "$DRY_RUN" == "true" ]] && echo "güncelleme mevcut" || echo "güncelleme")${NC}"
         else
             echo -e "${GREEN}  Firmware: Güncel${NC}"
         fi
@@ -255,6 +268,8 @@ print_final_summary() {
     # Snapshot bilgisi
     if [[ -n "$SNAPSHOT_NAME" ]]; then
         echo -e "${GREEN}  Snapshot: ${SNAPSHOT_NAME}${NC}"
+    elif [[ "$DRY_RUN" == "true" ]]; then
+        echo -e "${YELLOW}  Snapshot: [DRY-RUN] Oluşturulmayacak${NC}"
     else
         echo -e "${GREEN}  Snapshot: Oluşturulmadı${NC}"
     fi
@@ -275,6 +290,7 @@ print_final_summary() {
     {
         echo "=================================================="
         echo "POST-UPDATE SUMMARY"
+        echo "Dry-Run: $DRY_RUN"
         echo "Total Updates: $total_updates"
         [[ $apt_c -gt 0 ]] && echo "APT: $apt_c packages"
         [[ $dnf_c -gt 0 ]] && echo "DNF: $dnf_c packages"
@@ -307,6 +323,7 @@ setup_logging() {
         echo "User       : $(whoami)"
         echo "Hostname   : $(hostname)"
         echo "Mode       : $([[ "${AUTO_MODE:-false}" == "true" ]] && echo "AUTO" || echo "INTERACTIVE")"
+        echo "Dry-Run    : $DRY_RUN"
         echo "Verbose    : $VERBOSE_MODE"
         echo "Quiet      : $QUIET_MODE"
         echo "Skip       : snapshot=$SKIP_SNAPSHOT flatpak=$SKIP_FLATPAK snap=$SKIP_SNAP fwupd=$SKIP_FWUPD dnf=$SKIP_DNF"
@@ -376,6 +393,7 @@ check_root() {
 # --- YENİ v3.6.0: SHA256 DOĞRULAMA İLE SELF-UPDATE ---
 check_self_update() {
     if [[ "${SELF_UPDATE_DISABLED:-false}" == "true" ]]; then return; fi
+    if [[ "$DRY_RUN" == "true" ]]; then return; fi
 
     local REMOTE_FILE; REMOTE_FILE="$(mktemp /tmp/guncel_remote_XXXXXX)"
     local TEMP_SHA256; TEMP_SHA256="$(mktemp /tmp/guncel_sha256_XXXXXX)"
@@ -511,6 +529,18 @@ create_snapshot() {
         return
     fi
     
+    # v3.8.0: Dry-run modunda snapshot oluşturma
+    if [[ "$DRY_RUN" == "true" ]]; then
+        if command -v timeshift &> /dev/null; then
+            print_dry_run "Timeshift snapshot oluşturulacak: ARCB-Update-$(date +%F)"
+        elif command -v snapper &> /dev/null; then
+            print_dry_run "Snapper snapshot oluşturulacak: ARCB-Update-$(date +%F)"
+        else
+            print_dry_run "Yedekleme aracı (Timeshift/Snapper) bulunamadı"
+        fi
+        return
+    fi
+    
     if command -v timeshift &> /dev/null; then
         print_header "Sistem Yedekleniyor (Timeshift)"
         SNAPSHOT_NAME="ARCB-Update-$(date +%F)"
@@ -558,7 +588,100 @@ should_run_backend() {
     return 0
 }
 
+# --- v3.8.0: DRY-RUN GÜNCELLEME LİSTELEME ---
+perform_dry_run_check() {
+    print_header "[DRY-RUN] Mevcut Güncellemeler Kontrol Ediliyor"
+    
+    # APT
+    if command -v apt-get &> /dev/null && [[ "$SKIP_DNF" != "true" ]] && should_run_backend "apt"; then
+        print_dry_run "APT: Güncellenebilir paketler listeleniyor..."
+        echo -e "${BLUE}--------------------------------------------------${NC}"
+        apt-get update -qq >> "$LOG_FILE" 2>&1 || true
+        local apt_list
+        apt_list=$(apt list --upgradable 2>/dev/null | grep -v "Listing..." || true)
+        if [[ -n "$apt_list" ]]; then
+            echo "$apt_list"
+            APT_COUNT=$(echo "$apt_list" | wc -l | tr -cd '0-9')
+        else
+            echo -e "${GREEN}  Tüm paketler güncel.${NC}"
+            APT_COUNT=0
+        fi
+        echo ""
+    fi
+    
+    # DNF
+    if command -v dnf &> /dev/null && [[ "$SKIP_DNF" != "true" ]] && should_run_backend "dnf"; then
+        print_dry_run "DNF: Güncellenebilir paketler listeleniyor..."
+        echo -e "${BLUE}--------------------------------------------------${NC}"
+        local dnf_list
+        dnf_list=$(dnf check-update 2>/dev/null | grep -v "^$" | grep -v "Last metadata" || true)
+        if [[ -n "$dnf_list" ]]; then
+            echo "$dnf_list"
+            DNF_COUNT=$(echo "$dnf_list" | wc -l | tr -cd '0-9')
+        else
+            echo -e "${GREEN}  Tüm paketler güncel.${NC}"
+            DNF_COUNT=0
+        fi
+        echo ""
+    fi
+    
+    # Flatpak
+    if command -v flatpak &> /dev/null && [[ "$SKIP_FLATPAK" != "true" ]] && should_run_backend "flatpak"; then
+        print_dry_run "Flatpak: Güncellenebilir uygulamalar listeleniyor..."
+        echo -e "${BLUE}--------------------------------------------------${NC}"
+        local flatpak_list
+        flatpak_list=$(flatpak remote-ls --updates 2>/dev/null || true)
+        if [[ -n "$flatpak_list" ]]; then
+            echo "$flatpak_list"
+            FLATPAK_COUNT=$(echo "$flatpak_list" | wc -l | tr -cd '0-9')
+        else
+            echo -e "${GREEN}  Tüm uygulamalar güncel.${NC}"
+            FLATPAK_COUNT=0
+        fi
+        echo ""
+    fi
+    
+    # Snap
+    if command -v snap &> /dev/null && [[ "$SKIP_SNAP" != "true" ]] && should_run_backend "snap"; then
+        print_dry_run "Snap: Güncellenebilir paketler listeleniyor..."
+        echo -e "${BLUE}--------------------------------------------------${NC}"
+        local snap_list
+        snap_list=$(snap refresh --list 2>/dev/null | tail -n +2 || true)
+        if [[ -n "$snap_list" ]]; then
+            echo "$snap_list"
+            SNAP_COUNT=$(echo "$snap_list" | wc -l | tr -cd '0-9')
+        else
+            echo -e "${GREEN}  Tüm paketler güncel.${NC}"
+            SNAP_COUNT=0
+        fi
+        echo ""
+    fi
+    
+    # Firmware
+    if command -v fwupdmgr &> /dev/null && [[ "$SKIP_FWUPD" != "true" ]] && should_run_backend "fwupd"; then
+        print_dry_run "Firmware: Mevcut güncellemeler kontrol ediliyor..."
+        echo -e "${BLUE}--------------------------------------------------${NC}"
+        fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
+        local fwupd_list
+        fwupd_list=$(fwupdmgr get-updates 2>/dev/null || true)
+        if [[ -n "$fwupd_list" && ! "$fwupd_list" =~ "No upgrades" ]]; then
+            echo "$fwupd_list"
+            FWUPD_COUNT=$(echo "$fwupd_list" | grep -c "New version" | tr -cd '0-9' || echo "0")
+        else
+            echo -e "${GREEN}  Firmware güncel.${NC}"
+            FWUPD_COUNT=0
+        fi
+        echo ""
+    fi
+}
+
 perform_updates() {
+    # v3.8.0: Dry-run modunda sadece listele
+    if [[ "$DRY_RUN" == "true" ]]; then
+        perform_dry_run_check
+        return
+    fi
+    
     local apt_opts=()
     if [[ "${AUTO_MODE:-false}" == "true" ]]; then
         export DEBIAN_FRONTEND=noninteractive
@@ -732,6 +855,7 @@ show_help() {
     echo "  --auto              Otomatik mod (Onay sormadan günceller)"
     echo "  --verbose           Detaylı çıktı modu (Tüm komut çıktılarını gösterir)"
     echo "  --quiet             Sessiz mod (Sadece hata ve özet gösterir)"
+    echo "  --dry-run           Kuru çalıştırma (Ne yapılacağını göster, yapma)"
     echo "  --skip <backend>    Belirtilen backend'leri atla (virgülle ayır)"
     echo "                      Değerler: snapshot, flatpak, snap, fwupd, dnf, apt"
     echo "  --only <backend>    Sadece belirtilen backend'leri çalıştır (virgülle ayır)"
@@ -743,6 +867,7 @@ show_help() {
     echo "  guncel --auto                 -> Cron / Zamanlanmış görevler"
     echo "  guncel --verbose              -> Detaylı çıktı ile güncelleme"
     echo "  guncel --quiet                -> Sessiz güncelleme (sadece özet)"
+    echo "  guncel --dry-run              -> Güncellemeleri listele (uygulamadan)"
     echo "  guncel --skip flatpak,snap    -> Flatpak ve Snap atla"
     echo "  guncel --only system          -> Sadece sistem paketleri (APT/DNF)"
     echo "  guncel --only flatpak,fwupd   -> Sadece Flatpak ve Firmware"
@@ -759,6 +884,7 @@ while [[ $# -gt 0 ]]; do
         --auto) AUTO_MODE="true"; shift ;;
         --verbose) VERBOSE_MODE="true"; shift ;;
         --quiet) QUIET_MODE="true"; shift ;;
+        --dry-run) DRY_RUN="true"; shift ;;
         --skip)
             if [[ -n "${2:-}" && ! "$2" =~ ^-- ]]; then
                 IFS=',' read -ra SKIP_ITEMS <<< "$2"
@@ -825,6 +951,7 @@ if [[ "$QUIET_MODE" != "true" ]]; then
     echo -e "${BLUE}   Log: $LOG_FILE${NC}"
     echo -e "${BLUE}   Mod: $( [[ "$AUTO_MODE" == "true" ]] && echo "Otomatik 🤖" || echo "İnteraktif 👤" )${NC}"
     [[ "$VERBOSE_MODE" == "true" ]] && echo -e "${BLUE}   Verbose: Aktif${NC}"
+    [[ "$DRY_RUN" == "true" ]] && echo -e "${YELLOW}   Dry-Run: Aktif (Değişiklik yapılmayacak)${NC}"
     [[ -n "$ONLY_MODE" ]] && echo -e "${BLUE}   Only: $ONLY_MODE${NC}"
     echo ""
 fi
