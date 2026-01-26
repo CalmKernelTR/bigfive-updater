@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.7.2] - 2026-01-26
+### Fixed
+- **Hotfix:** Fixed Flatpak counter newline bug causing syntax error on Zorin OS 18
+  - `wc -l` output sometimes contains newline characters that break arithmetic expressions
+  - Added `tr -cd '0-9'` sanitization to all counter variables (flatpak, snap, fwupd)
+  - Fixes: `[[: 0\n0: syntax error in expression` on line 666
+
 ## [3.7.1] - 2026-01-25
 ### Fixed
 - Fixed install.sh color codes and first character display issue

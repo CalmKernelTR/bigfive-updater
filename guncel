@@ -5,7 +5,7 @@
 #
 
 # --- AYARLAR ---
-VERSION="3.7.1"
+VERSION="3.7.2"
 CODENAME="Rotated"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
@@ -643,7 +643,8 @@ perform_updates() {
         
         # v3.6.1 FIX: Flatpak sayacını güncelleme ÖNCE al
         local flatpak_upgradable
-        flatpak_upgradable=$(flatpak remote-ls --updates 2>/dev/null | wc -l || echo "0")
+        flatpak_upgradable=$(flatpak remote-ls --updates 2>/dev/null | wc -l | tr -cd '0-9')
+        flatpak_upgradable=${flatpak_upgradable:-0}
         
         local flatpak_temp
         flatpak_temp=$(mktemp)
@@ -662,7 +663,8 @@ perform_updates() {
         else
             # Count actual updates from output or use pre-count
             local flatpak_updated
-            flatpak_updated=$(grep -cE "^[0-9]+\.\s" "$flatpak_temp" 2>/dev/null || echo "0")
+            flatpak_updated=$(grep -cE "^[0-9]+\.\s" "$flatpak_temp" 2>/dev/null | tr -cd '0-9')
+            flatpak_updated=${flatpak_updated:-0}
             if [[ "$flatpak_updated" -gt 0 ]]; then
                 FLATPAK_COUNT=$flatpak_updated
             else
@@ -680,7 +682,8 @@ perform_updates() {
         print_header "Snap: Güncelleme"
         
         local snap_upgradable
-        snap_upgradable=$(snap refresh --list 2>/dev/null | tail -n +2 | wc -l || echo "0")
+        snap_upgradable=$(snap refresh --list 2>/dev/null | tail -n +2 | wc -l | tr -cd '0-9')
+        snap_upgradable=${snap_upgradable:-0}
         SNAP_COUNT=${snap_upgradable:-0}
         
         if [[ "$VERBOSE_MODE" == "true" ]]; then
@@ -697,7 +700,8 @@ perform_updates() {
         print_header "Firmware: Kontrol"
         
         local fwupd_upgradable
-        fwupd_upgradable=$(fwupdmgr get-updates 2>/dev/null | grep -c "New version" || echo "0")
+        fwupd_upgradable=$(fwupdmgr get-updates 2>/dev/null | grep -c "New version" | tr -cd '0-9')
+        fwupd_upgradable=${fwupd_upgradable:-0}
         FWUPD_COUNT=${fwupd_upgradable:-0}
         
         if [[ "${AUTO_MODE:-false}" == "true" ]]; then
