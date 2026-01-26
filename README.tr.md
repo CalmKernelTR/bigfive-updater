@@ -23,8 +23,8 @@ Debian (Zorin OS, Ubuntu) ve RHEL (Fedora) tabanlı sistemlerde; Snapshot (Yedek
     * Sistem paketleri, Flatpak, Snap ve `fwupdmgr` (Firmware) güncellemeleri.
 * **Ironclad Güvenlik:**
     * "Strict Mode" (`set -Eeuo pipefail`) ile hata toleransı sıfır.
-* **Seçici Güncelleme (v3.6.0):**
-    * `--skip` ile belirli backend'leri atlayın.
+* **Seçici Güncelleme (v3.6.0+):**
+    * `--skip` ile belirli backend'leri atlayın (`--skip system` dahil).
     * `--only` ile sadece istediğiniz backend'leri çalıştırın.
 * **Kuru Çalıştırma (v3.8.0):**
     * `--dry-run` ile güncellemeleri önizleyin, uygulamadan.
@@ -53,7 +53,7 @@ Bu proje **iki ayrı versiyon sistemi** kullanır:
 
 | Bileşen | Format | Güncel | Güncelleme Sıklığı |
 |---------|--------|--------|--------------------|
-| `guncel` (ana script) | SemVer (3.x.x) | v3.8.1 | Her özellik/fix'te |
+| `guncel` (ana script) | SemVer (x.x.x) | v4.0.0 | Her özellik/fix'te |
 | `install.sh` (kurulum) | Night-Vx.x.x | Night-V1.0.0 | Sadece kurulum mantığı değiştiğinde |
 
 **Neden ayrı sistemler?**

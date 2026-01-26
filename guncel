@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# ARCB Wider Updater v3.9.1 - Tested
+# ARCB Wider Updater
 # GitHub: https://github.com/ahm3t0t/arcb-wider-updater
 #
 
 # --- AYARLAR ---
-VERSION="3.9.1"
-CODENAME="Tested"
+VERSION="4.0.0"
+CODENAME="Polished"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -870,7 +870,7 @@ show_help() {
     echo "  --quiet             Sessiz mod (Sadece hata ve özet gösterir)"
     echo "  --dry-run           Kuru çalıştırma (Ne yapılacağını göster, yapma)"
     echo "  --skip <backend>    Belirtilen backend'leri atla (virgülle ayır)"
-    echo "                      Değerler: snapshot, flatpak, snap, fwupd, dnf, apt"
+    echo "                      Değerler: snapshot, flatpak, snap, fwupd, system (veya dnf, apt)"
     echo "  --only <backend>    Sadece belirtilen backend'leri çalıştır (virgülle ayır)"
     echo "                      Değerler: system, flatpak, snap, fwupd, dnf, apt"
     echo "  --help              Bu yardım mesajını gösterir"

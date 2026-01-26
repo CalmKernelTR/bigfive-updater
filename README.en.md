@@ -23,8 +23,8 @@ Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks
     * System packages, Flatpak, Snap and `fwupdmgr` (Firmware) updates.
 * **Ironclad Security:**
     * Zero error tolerance with "Strict Mode" (`set -Eeuo pipefail`).
-* **Selective Updates (v3.6.0):**
-    * `--skip` to skip specific backends.
+* **Selective Updates (v3.6.0+):**
+    * `--skip` to skip specific backends (including `--skip system`).
     * `--only` to run only specified backends.
 * **Dry-Run Mode (v3.8.0):**
     * `--dry-run` to preview updates without applying.
@@ -53,7 +53,7 @@ This project uses **two separate version systems**:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (3.x.x) | v3.8.1 | Every feature/fix |
+| `guncel` (main script) | SemVer (x.x.x) | v4.0.0 | Every feature/fix |
 | `install.sh` (installer) | Night-Vx.x.x | Night-V1.0.0 | Only when install logic changes |
 
 **Why separate systems?**

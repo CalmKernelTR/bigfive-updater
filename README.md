@@ -46,7 +46,7 @@ This project uses two separate version systems:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (3.x.x) | v3.8.1 | Her özellik/fix'te / Every feature/fix |
+| `guncel` (main script) | SemVer (x.x.x) | v4.0.0 | Her özellik/fix'te / Every feature/fix |
 | `install.sh` (installer) | Night-Vx.x.x | Night-V1.0.0 | Sadece kurulum değiştiğinde / Only when install logic changes |
 
 **Neden ayrı? / Why separate?**
@@ -59,7 +59,7 @@ This project uses two separate version systems:
 
 - ✅ Multi-Distro: Debian/Ubuntu/Zorin (APT) + Fedora/RHEL (DNF)
 - ✅ Full Coverage: System packages, Flatpak, Snap, Firmware
-- ✅ Selective Updates: `--skip` and `--only` flags
+- ✅ Selective Updates: `--skip` and `--only` flags (including `--skip system`)
 - ✅ Dry-Run Mode: Preview without applying
 - ✅ Config File: `/etc/arcb-wider-updater.conf`
 - ✅ SHA256 Verification: Secure self-updates
