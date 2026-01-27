@@ -1,10 +1,35 @@
-# Usage
-guncel              # Interactive Mode (Detailed output)
-guncel --verbose    # Verbose Mode (shows all command outputs)
-guncel --quiet      # Quiet Mode (only errors and summary)
-guncel --auto       # Automatic Mode (no prompts)
-guncel --dry-run    # Dry-Run Mode (lists updates without applying)
-guncel --help       # Display help message
+# ARCB Wider Updater 🛡️
+
+[![CI Status](https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/ci.yml/badge.svg)](https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/ci.yml)
+[![Tests](https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/test.yml/badge.svg)](https://github.com/ahm3t0t/arcb-wider-updater/actions/workflows/test.yml)
+[![Latest Release](https://img.shields.io/github/v/release/ahm3t0t/arcb-wider-updater?sort=semver&label=Version)](https://github.com/ahm3t0t/arcb-wider-updater/releases)
+[![License](https://img.shields.io/github/license/ahm3t0t/arcb-wider-updater)](https://github.com/ahm3t0t/arcb-wider-updater/blob/main/LICENSE)
+![GitHub last commit](https://img.shields.io/github/last-commit/ahm3t0t/arcb-wider-updater)
+![GitHub code size](https://img.shields.io/github/languages/code-size/ahm3t0t/arcb-wider-updater)
+
+**Linux sistemleri için Zırhlı, Akıllı ve Çoklu-Dağıtım (Multi-Distro) Güncelleme Aracı.**
+
+**Armored, Smart, Multi-Distro Update Tool for Linux Systems.**
+
+> *Tembel ama takıntılı adminin en yakın dostu.*
+> **One command. One updater. Zero nonsense.**
+
+---
+
+## 🌐 Documentation / Dokümantasyon
+
+| Language | Link |
+|----------|------|
+| 🇹🇷 Türkçe | [README.tr.md](README.tr.md) |
+| 🇬🇧 English | [README.en.md](README.en.md) |
+
+---
+
+## 🚀 Quick Start / Hızlı Başlangıç
+
+```bash
+# Installation / Kurulum
+curl -fsSL https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/install.sh | sudo bash
 ```
 ```bash
 # Usage / Kullanım
