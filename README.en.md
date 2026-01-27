@@ -12,6 +12,20 @@
 
 Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks with a single command on Debian (Zorin OS, Ubuntu) and RHEL (Fedora) based systems.
 
+## 📑 Table of Contents
+
+- Features
+- Version System
+- Installation
+- Usage
+- Command Line Options
+- Config File
+- SHA256 Verification
+- Rollback
+- Log Management
+- Contributing
+- License
+
 ---
 
 ## 🚀 Features
