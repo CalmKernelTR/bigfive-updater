@@ -34,7 +34,8 @@ curl -fsSL https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/ins
 ```bash
 # Usage / Kullanım
 guncel              # Interactive mode / İnteraktif mod
-guncel --verbose    # Show details mode / Detayları gçsterme modu
+guncel --verbose    # Show details / Detayları göster
+guncel --quiet      # Quiet mode / Sessiz mod
 guncel --auto       # Automatic mode / Otomatik mod
 guncel --dry-run    # Preview updates / Güncellemeleri önizle
 guncel --help       # Help / Yardım
