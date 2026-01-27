@@ -12,6 +12,20 @@
 
 Debian (Zorin OS, Ubuntu) ve RHEL (Fedora) tabanlı sistemlerde; Snapshot (Yedek), Repo Güncellemesi, Flatpak/Snap ve Firmware kontrolünü tek komutla, güvenli bir şekilde yapar.
 
+## 📑 İçindekiler
+
+- Özellikler
+- Sürüm Sistemi
+- Kurulum
+- Kullanım
+- Komut Satırı Seçenekleri
+- Config Dosyası
+- SHA256 Doğrulama
+- Rollback
+- Log Yönetimi
+- Katkıda Bulunma
+- Lisans
+
 ---
 
 ## 🚀 Özellikler
