@@ -5,8 +5,8 @@
 #
 
 # --- AYARLAR ---
-VERSION="5.0.0"
-CODENAME="BigFour"
+VERSION="5.2.0"
+CODENAME="BigFive"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -49,6 +49,7 @@ APT_COUNT=0
 DNF_COUNT=0
 PACMAN_COUNT=0
 ZYPPER_COUNT=0
+APK_COUNT=0
 FLATPAK_COUNT=0
 SNAP_COUNT=0
 FWUPD_COUNT=0
@@ -199,12 +200,13 @@ print_final_summary() {
     reboot_status=$(check_reboot_required)
     
     # FIX: Ensure all counters are numeric - strip any non-numeric chars
-    # v5.0: BigFour - apt, dnf, pacman, zypper
-    local apt_c dnf_c pacman_c zypper_c flatpak_c snap_c fwupd_c
+    # v5.1: BigFive - apt, dnf, pacman, zypper, apk
+    local apt_c dnf_c pacman_c zypper_c apk_c flatpak_c snap_c fwupd_c
     apt_c=$(echo "${APT_COUNT:-0}" | tr -cd '0-9')
     dnf_c=$(echo "${DNF_COUNT:-0}" | tr -cd '0-9')
     pacman_c=$(echo "${PACMAN_COUNT:-0}" | tr -cd '0-9')
     zypper_c=$(echo "${ZYPPER_COUNT:-0}" | tr -cd '0-9')
+    apk_c=$(echo "${APK_COUNT:-0}" | tr -cd '0-9')
     flatpak_c=$(echo "${FLATPAK_COUNT:-0}" | tr -cd '0-9')
     snap_c=$(echo "${SNAP_COUNT:-0}" | tr -cd '0-9')
     fwupd_c=$(echo "${FWUPD_COUNT:-0}" | tr -cd '0-9')
@@ -214,11 +216,12 @@ print_final_summary() {
     dnf_c=${dnf_c:-0}
     pacman_c=${pacman_c:-0}
     zypper_c=${zypper_c:-0}
+    apk_c=${apk_c:-0}
     flatpak_c=${flatpak_c:-0}
     snap_c=${snap_c:-0}
     fwupd_c=${fwupd_c:-0}
 
-    local total_updates=$((apt_c + dnf_c + pacman_c + zypper_c + flatpak_c + snap_c + fwupd_c))
+    local total_updates=$((apt_c + dnf_c + pacman_c + zypper_c + apk_c + flatpak_c + snap_c + fwupd_c))
     
     echo ""
     printf '%s========================================%s\n' "${GREEN}" "${NC}"
@@ -261,6 +264,15 @@ print_final_summary() {
             printf '%s  Zypper: %s paket %s%s\n' "${GREEN}" "${zypper_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
         else
             printf '%s  Zypper: Güncel%s\n' "${GREEN}" "${NC}"
+        fi
+    fi
+
+    # v5.1 BigFive: APK (Alpine)
+    if command -v apk &> /dev/null; then
+        if [[ $apk_c -gt 0 ]]; then
+            printf '%s  APK: %s paket %s%s\n' "${GREEN}" "${apk_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
+        else
+            printf '%s  APK: Güncel%s\n' "${GREEN}" "${NC}"
         fi
     fi
 
@@ -324,6 +336,7 @@ print_final_summary() {
         [[ $dnf_c -gt 0 ]] && echo "DNF: $dnf_c packages"
         [[ $pacman_c -gt 0 ]] && echo "Pacman: $pacman_c packages"
         [[ $zypper_c -gt 0 ]] && echo "Zypper: $zypper_c packages"
+        [[ $apk_c -gt 0 ]] && echo "APK: $apk_c packages"
         [[ $flatpak_c -gt 0 ]] && echo "Flatpak: $flatpak_c apps"
         [[ $snap_c -gt 0 ]] && echo "Snap: $snap_c packages"
         [[ $fwupd_c -gt 0 ]] && echo "Firmware: $fwupd_c updates"
@@ -610,8 +623,8 @@ should_run_backend() {
     if [[ -n "$ONLY_MODE" ]]; then
         IFS=',' read -ra ONLY_ITEMS <<< "$ONLY_MODE"
         for item in "${ONLY_ITEMS[@]}"; do
-            # v5.0: system = apt, dnf, pacman, zypper (BigFour)
-            if [[ "$item" == "$backend" || "$item" == "system" && ("$backend" == "apt" || "$backend" == "dnf" || "$backend" == "pacman" || "$backend" == "zypper") ]]; then
+            # v5.1: system = apt, dnf, pacman, zypper, apk (BigFive)
+            if [[ "$item" == "$backend" || "$item" == "system" && ("$backend" == "apt" || "$backend" == "dnf" || "$backend" == "pacman" || "$backend" == "zypper" || "$backend" == "apk") ]]; then
                 return 0
             fi
         done
@@ -811,6 +824,43 @@ update_zypper() {
     return 0
 }
 
+# APK Güncellemesi (v5.1 BigFive - Alpine Linux)
+update_apk() {
+    if ! command -v apk &> /dev/null; then return 1; fi
+    if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
+    if ! should_run_backend "apk"; then return 1; fi
+
+    print_header "APK: Güncelleme"
+
+    # Repo'ları güncelle
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+        apk update 2>&1 | tee -a "$LOG_FILE"
+    else
+        apk update >> "$LOG_FILE" 2>&1
+    fi
+
+    # Güncellenecek paket sayısını al
+    APK_COUNT=$(apk version -l '<' 2>/dev/null | wc -l || echo "0")
+    APK_COUNT=${APK_COUNT:-0}
+
+    # Güncelleme yap
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+        apk upgrade 2>&1 | tee -a "$LOG_FILE"
+    else
+        apk upgrade >> "$LOG_FILE" 2>&1
+    fi
+
+    # Cache temizliği
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+        apk cache clean 2>&1 | tee -a "$LOG_FILE" || true
+    else
+        apk cache clean >> "$LOG_FILE" 2>&1 || true
+    fi
+
+    print_info "APK: $APK_COUNT paket güncellendi."
+    return 0
+}
+
 # Flatpak Güncellemesi
 update_flatpak() {
     if ! command -v flatpak &> /dev/null; then return 1; fi
@@ -994,6 +1044,23 @@ perform_dry_run_check() {
         echo ""
     fi
 
+    # APK (v5.1 BigFive - Alpine Linux)
+    if command -v apk &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "apk"; then
+        print_dry_run "APK: Güncellenebilir paketler listeleniyor..."
+        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        apk update >> "$LOG_FILE" 2>&1 || true
+        local apk_list
+        apk_list=$(apk version -l '<' 2>/dev/null || true)
+        if [[ -n "$apk_list" ]]; then
+            echo "$apk_list"
+            APK_COUNT=$(echo "$apk_list" | wc -l | tr -cd '0-9')
+        else
+            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+            APK_COUNT=0
+        fi
+        echo ""
+    fi
+
     # Flatpak
     if command -v flatpak &> /dev/null && [[ "$SKIP_FLATPAK" != "true" ]] && should_run_backend "flatpak"; then
         print_dry_run "Flatpak: Güncellenebilir uygulamalar listeleniyor..."
@@ -1052,9 +1119,9 @@ perform_updates() {
         return
     fi
 
-    # v5.0: Modüler güncelleme - BigFour Edition
-    # Sistem paket yöneticisi (sadece biri çalışır: APT, DNF, Pacman veya Zypper)
-    update_apt || update_dnf || update_pacman || update_zypper || true
+    # v5.1: Modüler güncelleme - BigFive Edition
+    # Sistem paket yöneticisi (sadece biri çalışır: APT, DNF, Pacman, Zypper veya APK)
+    update_apt || update_dnf || update_pacman || update_zypper || update_apk || true
 
     # Diğer backend'ler
     update_flatpak || true
@@ -1152,9 +1219,9 @@ show_help() {
     echo "  --dry-run           Kuru çalıştırma (Ne yapılacağını göster, yapma)"
     echo "  --skip <backend>    Belirtilen backend'leri atla (virgülle ayır)"
     echo "                      Değerler: snapshot, flatpak, snap, fwupd, system"
-    echo "                      (system = apt, dnf, pacman, zypper)"
+    echo "                      (system = apt, dnf, pacman, zypper, apk)"
     echo "  --only <backend>    Sadece belirtilen backend'leri çalıştır (virgülle ayır)"
-    echo "                      Değerler: system, flatpak, snap, fwupd, apt, dnf, pacman, zypper"
+    echo "                      Değerler: system, flatpak, snap, fwupd, apt, dnf, pacman, zypper, apk"
     echo "  --uninstall         ARCB Wider Updater'ı kaldır"
     echo "  --uninstall --purge Config ve logları da sil"
     echo "  --help              Bu yardım mesajını gösterir"
@@ -1166,9 +1233,10 @@ show_help() {
     echo "  guncel --quiet                -> Sessiz güncelleme (sadece özet)"
     echo "  guncel --dry-run              -> Güncellemeleri listele (uygulamadan)"
     echo "  guncel --skip flatpak,snap    -> Flatpak ve Snap atla"
-    echo "  guncel --only system          -> Sadece sistem paketleri (APT/DNF/Pacman/Zypper)"
+    echo "  guncel --only system          -> Sadece sistem paketleri (APT/DNF/Pacman/Zypper/APK)"
     echo "  guncel --only flatpak,fwupd   -> Sadece Flatpak ve Firmware"
     echo "  guncel --only pacman          -> Sadece Pacman (Arch Linux)"
+    echo "  guncel --only apk             -> Sadece APK (Alpine Linux)"
     echo "  guncel --uninstall            -> Aracı kaldır (config/log korunur)"
     echo "  guncel --uninstall --purge    -> Aracı tamamen kaldır"
     echo ""
