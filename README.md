@@ -18,10 +18,10 @@
 
 ## 🌐 Documentation / Dokümantasyon
 
-| Language | Link |
-|----------|------|
-| 🇹🇷 Türkçe | [README.tr.md](README.tr.md) |
-| 🇬🇧 English | [README.en.md](README.en.md) |
+| Language | Documentation | Roadmap |
+|----------|---------------|---------|
+| 🇹🇷 Türkçe | [README.tr.md](README.tr.md) | [ROADMAP.tr.md](ROADMAP.tr.md) |
+| 🇬🇧 English | [README.en.md](README.en.md) | [ROADMAP.en.md](ROADMAP.en.md) |
 
 ---
 
