@@ -1,0 +1,19 @@
+# CODEOWNERS - ARCB Wider Updater
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @ahm3t0t
+
+# Core scripts - require owner review
+/guncel @ahm3t0t
+/install.sh @ahm3t0t
+/release.sh @ahm3t0t
+
+# Security-sensitive files
+/pubkey.asc @ahm3t0t
+/.github/workflows/ @ahm3t0t
+
+# Documentation
+/README*.md @ahm3t0t
+/SECURITY.md @ahm3t0t
+/CONTRIBUTING.md @ahm3t0t

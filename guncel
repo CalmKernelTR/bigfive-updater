@@ -16,6 +16,9 @@ CONFIG_FILE="/etc/arcb-wider-updater.conf"
 # STRICT MODE
 set -Eeuo pipefail
 
+# PATH: Cron ortamında eksik olabilir
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH"
+
 # GÜVENLİK: Log ve temp dosyalar sadece root okusun
 umask 0077
 
@@ -893,6 +896,84 @@ perform_updates() {
     update_firmware || true
 }
 
+# --- UNINSTALL FONKSİYONU ---
+do_uninstall() {
+    printf '%s>>> ARCB Wider Updater Kaldırma%s\n' "${BLUE}${BOLD}" "${NC}"
+    echo "--------------------------------------------------"
+
+    local removed_items=()
+    local failed_items=()
+
+    # Binary
+    if [[ -f "/usr/local/bin/guncel" ]]; then
+        if rm -f "/usr/local/bin/guncel"; then
+            removed_items+=("Binary: /usr/local/bin/guncel")
+        else
+            failed_items+=("Binary: /usr/local/bin/guncel")
+        fi
+    fi
+
+    # Backup dosyası
+    if [[ -f "/usr/local/bin/guncel.bak" ]]; then
+        rm -f "/usr/local/bin/guncel.bak" && removed_items+=("Backup: /usr/local/bin/guncel.bak")
+    fi
+
+    # Arşiv yedekleri
+    local backup_count=0
+    for f in /usr/local/bin/guncel.bak_*; do
+        [[ -f "$f" ]] && rm -f "$f" && ((backup_count++))
+    done
+    [[ $backup_count -gt 0 ]] && removed_items+=("Arşiv yedekleri: $backup_count dosya")
+
+    # Config dosyası
+    if [[ -f "$CONFIG_FILE" ]]; then
+        if [[ "${1:-}" == "--purge" ]]; then
+            rm -f "$CONFIG_FILE" && removed_items+=("Config: $CONFIG_FILE")
+        else
+            printf '%s[i] Config dosyası korundu: %s%s\n' "${BLUE}" "$CONFIG_FILE" "${NC}"
+            printf '%s    Silmek için: guncel --uninstall --purge%s\n' "${BLUE}" "${NC}"
+        fi
+    fi
+
+    # Logrotate config
+    if [[ -f "/etc/logrotate.d/arcb-wider-updater" ]]; then
+        rm -f "/etc/logrotate.d/arcb-wider-updater" && removed_items+=("Logrotate: /etc/logrotate.d/arcb-wider-updater")
+    fi
+
+    # Log dizini
+    if [[ -d "$LOG_DIR" ]]; then
+        if [[ "${1:-}" == "--purge" ]]; then
+            rm -rf "$LOG_DIR" && removed_items+=("Log dizini: $LOG_DIR")
+        else
+            printf '%s[i] Log dizini korundu: %s%s\n' "${BLUE}" "$LOG_DIR" "${NC}"
+            printf '%s    Silmek için: guncel --uninstall --purge%s\n' "${BLUE}" "${NC}"
+        fi
+    fi
+
+    # Lock dosyası
+    rm -f "/var/lock/arcb-wider-updater.lock" 2>/dev/null
+
+    echo ""
+    if [[ ${#removed_items[@]} -gt 0 ]]; then
+        printf '%s✅ Kaldırılan öğeler:%s\n' "${GREEN}" "${NC}"
+        for item in "${removed_items[@]}"; do
+            printf '%s   - %s%s\n' "${GREEN}" "$item" "${NC}"
+        done
+    fi
+
+    if [[ ${#failed_items[@]} -gt 0 ]]; then
+        printf '%s❌ Kaldırılamayan öğeler:%s\n' "${RED}" "${NC}"
+        for item in "${failed_items[@]}"; do
+            printf '%s   - %s%s\n' "${RED}" "$item" "${NC}"
+        done
+        exit 1
+    fi
+
+    echo ""
+    printf '%s✅ ARCB Wider Updater başarıyla kaldırıldı.%s\n' "${GREEN}${BOLD}" "${NC}"
+    exit 0
+}
+
 show_help() {
     printf '%sARCB Wider Updater v%s (%s)%s\n' "${BOLD}" "$VERSION" "$CODENAME" "${NC}"
     echo "--------------------------------------------------"
@@ -907,6 +988,8 @@ show_help() {
     echo "                      Değerler: snapshot, flatpak, snap, fwupd, system (veya dnf, apt)"
     echo "  --only <backend>    Sadece belirtilen backend'leri çalıştır (virgülle ayır)"
     echo "                      Değerler: system, flatpak, snap, fwupd, dnf, apt"
+    echo "  --uninstall         ARCB Wider Updater'ı kaldır"
+    echo "  --uninstall --purge Config ve logları da sil"
     echo "  --help              Bu yardım mesajını gösterir"
     echo ""
     echo "Örnekler:"
@@ -918,6 +1001,8 @@ show_help() {
     echo "  guncel --skip flatpak,snap    -> Flatpak ve Snap atla"
     echo "  guncel --only system          -> Sadece sistem paketleri (APT/DNF)"
     echo "  guncel --only flatpak,fwupd   -> Sadece Flatpak ve Firmware"
+    echo "  guncel --uninstall            -> Aracı kaldır (config/log korunur)"
+    echo "  guncel --uninstall --purge    -> Aracı tamamen kaldır"
     echo ""
     echo "Config Dosyası: $CONFIG_FILE"
     echo "  Varsayılan ayarları config dosyasında tanımlayabilirsiniz."
@@ -958,6 +1043,15 @@ while [[ $# -gt 0 ]]; do
             else
                 printf '%sHATA: --only için değer gerekli (örn: --only system)%s\n' "${RED}" "${NC}"
                 exit 1
+            fi
+            ;;
+        --uninstall)
+            shift
+            # --purge kontrolü
+            if [[ "${1:-}" == "--purge" ]]; then
+                do_uninstall "--purge"
+            else
+                do_uninstall
             fi
             ;;
         --help) show_help ;;
