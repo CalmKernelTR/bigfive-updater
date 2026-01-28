@@ -67,11 +67,12 @@ download_file() {
     local url="$1"
     local output="$2"
     local downloaded=false
-    
+
     printf "➡️  İndiriliyor: %s\n" "$url"
 
+    # TLS 1.2+ zorunlu (güvenlik için)
     if command -v curl &> /dev/null; then
-        if curl -fsSL "$url" -o "$output"; then
+        if curl --proto '=https' --tlsv1.2 -fsSL "$url" -o "$output"; then
             downloaded=true
         else
             printf "%s⚠️  Curl başarısız, Wget deneniyor...%s\n" "$RED" "$NC"
@@ -79,7 +80,7 @@ download_file() {
     fi
 
     if [ "$downloaded" = "false" ] && command -v wget &> /dev/null; then
-        if wget -qO "$output" "$url"; then
+        if wget --secure-protocol=TLSv1_2 -qO "$output" "$url"; then
             downloaded=true
         fi
     fi
@@ -104,9 +105,9 @@ verify_gpg_signature() {
 
     printf "%s🔐 GPG imza doğrulaması başlatılıyor...%s\n" "$BLUE" "$NC"
 
-    # Public key'i indir ve import et
-    if curl -fsSL "$GPG_PUBKEY_URL" -o "$TEMP_PUBKEY" 2>/dev/null || \
-       wget -qO "$TEMP_PUBKEY" "$GPG_PUBKEY_URL" 2>/dev/null; then
+    # Public key'i indir ve import et (TLS 1.2+)
+    if curl --proto '=https' --tlsv1.2 -fsSL "$GPG_PUBKEY_URL" -o "$TEMP_PUBKEY" 2>/dev/null || \
+       wget --secure-protocol=TLSv1_2 -qO "$TEMP_PUBKEY" "$GPG_PUBKEY_URL" 2>/dev/null; then
         if gpg --import "$TEMP_PUBKEY" 2>/dev/null; then
             printf "%s   ✓ Public key import edildi%s\n" "$GREEN" "$NC"
         else
@@ -122,15 +123,15 @@ verify_gpg_signature() {
         return 0
     fi
 
-    # SHA256SUMS ve imzasını indir
-    if ! curl -fsSL "$GPG_SHA256SUMS_URL" -o "$TEMP_SHA256SUMS" 2>/dev/null && \
-       ! wget -qO "$TEMP_SHA256SUMS" "$GPG_SHA256SUMS_URL" 2>/dev/null; then
+    # SHA256SUMS ve imzasını indir (TLS 1.2+)
+    if ! curl --proto '=https' --tlsv1.2 -fsSL "$GPG_SHA256SUMS_URL" -o "$TEMP_SHA256SUMS" 2>/dev/null && \
+       ! wget --secure-protocol=TLSv1_2 -qO "$TEMP_SHA256SUMS" "$GPG_SHA256SUMS_URL" 2>/dev/null; then
         printf "%s⚠️  SHA256SUMS indirilemedi, GPG doğrulama atlanıyor.%s\n" "$YELLOW" "$NC"
         return 0
     fi
 
-    if ! curl -fsSL "$GPG_SHA256SUMS_SIG_URL" -o "$TEMP_SHA256SUMS_SIG" 2>/dev/null && \
-       ! wget -qO "$TEMP_SHA256SUMS_SIG" "$GPG_SHA256SUMS_SIG_URL" 2>/dev/null; then
+    if ! curl --proto '=https' --tlsv1.2 -fsSL "$GPG_SHA256SUMS_SIG_URL" -o "$TEMP_SHA256SUMS_SIG" 2>/dev/null && \
+       ! wget --secure-protocol=TLSv1_2 -qO "$TEMP_SHA256SUMS_SIG" "$GPG_SHA256SUMS_SIG_URL" 2>/dev/null; then
         printf "%s⚠️  SHA256SUMS.asc indirilemedi, GPG doğrulama atlanıyor.%s\n" "$YELLOW" "$NC"
         return 0
     fi
@@ -215,6 +216,17 @@ if install -m 0755 -o root -g root "$TEMP_FILE" "$INSTALL_PATH"; then
     INSTALLED_VERSION=$(sed -n 's/^VERSION="\([^"]*\)".*/\1/p' "$INSTALL_PATH" | head -n1)
     INSTALLED_CODENAME=$(sed -n 's/^CODENAME="\([^"]*\)".*/\1/p' "$INSTALL_PATH" | head -n1)
     printf "%s✅ Kurulum Başarılı! (v%s - %s)%s\n" "$GREEN" "${INSTALLED_VERSION:-Bilinmiyor}" "${INSTALLED_CODENAME:-}" "$NC"
+
+    # 4.1 SYMLINK: updater alias (İngilizce kullanıcılar için)
+    SYMLINK_PATH="/usr/local/bin/updater"
+    if [[ ! -e "$SYMLINK_PATH" ]]; then
+        if ln -s "$INSTALL_PATH" "$SYMLINK_PATH" 2>/dev/null; then
+            printf "%s🔗 Alias oluşturuldu: %supdater%s -> guncel%s\n" "$BLUE" "$BOLD" "$NC" "$NC"
+        fi
+    elif [[ -L "$SYMLINK_PATH" ]]; then
+        # Zaten symlink, güncelle
+        ln -sf "$INSTALL_PATH" "$SYMLINK_PATH" 2>/dev/null
+    fi
 else
     printf "%s❌ Kurulum sırasında yazma hatası oluştu!%s\n" "$RED" "$NC"
     # Rollback attempt

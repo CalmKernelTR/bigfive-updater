@@ -341,11 +341,12 @@ setup_logging() {
 download_file() {
     local url="$1"
     local output="$2"
-    
+
+    # TLS 1.2+ zorunlu (güvenlik için)
     if command -v curl &> /dev/null; then
-        curl -fsSL "$url" -o "$output"
+        curl --proto '=https' --tlsv1.2 -fsSL "$url" -o "$output"
     elif command -v wget &> /dev/null; then
-        wget -qO "$output" "$url"
+        wget --secure-protocol=TLSv1_2 -qO "$output" "$url"
     else
         print_error "Sistemde 'curl' veya 'wget' bulunamadı!"
         exit 1
@@ -359,10 +360,11 @@ check_connectivity() {
     local UA="Mozilla/5.0 (compat; ARCBUpdater/$VERSION)"
     
     local raw_ok=false
+    # TLS 1.2+ zorunlu (güvenlik için)
     if command -v curl &> /dev/null; then
-        if curl -s -I -f -L -A "$UA" "$GITHUB_RAW_URL" > /dev/null; then raw_ok=true; fi
+        if curl --proto '=https' --tlsv1.2 -s -I -f -L -A "$UA" "$GITHUB_RAW_URL" > /dev/null; then raw_ok=true; fi
     elif command -v wget &> /dev/null; then
-        if wget -q --spider --user-agent="$UA" "$GITHUB_RAW_URL"; then raw_ok=true; fi
+        if wget --secure-protocol=TLSv1_2 -q --spider --user-agent="$UA" "$GITHUB_RAW_URL"; then raw_ok=true; fi
     fi
     
     if [[ "$raw_ok" == "true" ]]; then
