@@ -274,3 +274,47 @@ get_script_version() {
 @test "LOG_DIR uses secure permissions" {
     grep -qE 'mkdir.*700|chmod.*700.*LOG_DIR' "$GUNCEL_SCRIPT" || grep -q 'LOG_DIR=' "$GUNCEL_SCRIPT"
 }
+
+# =============================================================================
+# v5.0 BIGFOUR TESTS
+# =============================================================================
+
+@test "update_pacman function exists" {
+    grep -qE '^update_pacman\(\)|^function update_pacman' "$GUNCEL_SCRIPT"
+}
+
+@test "update_zypper function exists" {
+    grep -qE '^update_zypper\(\)|^function update_zypper' "$GUNCEL_SCRIPT"
+}
+
+@test "PACMAN_COUNT variable is initialized" {
+    grep -q '^PACMAN_COUNT=' "$GUNCEL_SCRIPT"
+}
+
+@test "ZYPPER_COUNT variable is initialized" {
+    grep -q '^ZYPPER_COUNT=' "$GUNCEL_SCRIPT"
+}
+
+@test "should_run_backend recognizes pacman" {
+    grep -q '"pacman"' "$GUNCEL_SCRIPT"
+}
+
+@test "should_run_backend recognizes zypper" {
+    grep -q '"zypper"' "$GUNCEL_SCRIPT"
+}
+
+@test "help shows pacman option" {
+    run bash "$GUNCEL_SCRIPT" --help
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"pacman"* ]]
+}
+
+@test "help shows zypper option" {
+    run bash "$GUNCEL_SCRIPT" --help
+    [ "$status" -eq 0 ]
+    [[ "$output" == *"zypper"* ]]
+}
+
+@test "BigFour execution chain exists" {
+    grep -q 'update_apt || update_dnf || update_pacman || update_zypper' "$GUNCEL_SCRIPT"
+}

@@ -47,6 +47,8 @@ ONLY_MODE=""
 # Güncelleme sayaçları - FIX: Ensure they're always numeric
 APT_COUNT=0
 DNF_COUNT=0
+PACMAN_COUNT=0
+ZYPPER_COUNT=0
 FLATPAK_COUNT=0
 SNAP_COUNT=0
 FWUPD_COUNT=0
@@ -197,21 +199,26 @@ print_final_summary() {
     reboot_status=$(check_reboot_required)
     
     # FIX: Ensure all counters are numeric - strip any non-numeric chars
-    local apt_c dnf_c flatpak_c snap_c fwupd_c
+    # v5.0: BigFour - apt, dnf, pacman, zypper
+    local apt_c dnf_c pacman_c zypper_c flatpak_c snap_c fwupd_c
     apt_c=$(echo "${APT_COUNT:-0}" | tr -cd '0-9')
     dnf_c=$(echo "${DNF_COUNT:-0}" | tr -cd '0-9')
+    pacman_c=$(echo "${PACMAN_COUNT:-0}" | tr -cd '0-9')
+    zypper_c=$(echo "${ZYPPER_COUNT:-0}" | tr -cd '0-9')
     flatpak_c=$(echo "${FLATPAK_COUNT:-0}" | tr -cd '0-9')
     snap_c=$(echo "${SNAP_COUNT:-0}" | tr -cd '0-9')
     fwupd_c=$(echo "${FWUPD_COUNT:-0}" | tr -cd '0-9')
-    
+
     # Default to 0 if empty after stripping
     apt_c=${apt_c:-0}
     dnf_c=${dnf_c:-0}
+    pacman_c=${pacman_c:-0}
+    zypper_c=${zypper_c:-0}
     flatpak_c=${flatpak_c:-0}
     snap_c=${snap_c:-0}
     fwupd_c=${fwupd_c:-0}
-    
-    local total_updates=$((apt_c + dnf_c + flatpak_c + snap_c + fwupd_c))
+
+    local total_updates=$((apt_c + dnf_c + pacman_c + zypper_c + flatpak_c + snap_c + fwupd_c))
     
     echo ""
     printf '%s========================================%s\n' "${GREEN}" "${NC}"
@@ -238,7 +245,25 @@ print_final_summary() {
             printf '%s  DNF: Güncel%s\n' "${GREEN}" "${NC}"
         fi
     fi
-    
+
+    # v5.0 BigFour: Pacman
+    if command -v pacman &> /dev/null; then
+        if [[ $pacman_c -gt 0 ]]; then
+            printf '%s  Pacman: %s paket %s%s\n' "${GREEN}" "${pacman_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
+        else
+            printf '%s  Pacman: Güncel%s\n' "${GREEN}" "${NC}"
+        fi
+    fi
+
+    # v5.0 BigFour: Zypper
+    if command -v zypper &> /dev/null; then
+        if [[ $zypper_c -gt 0 ]]; then
+            printf '%s  Zypper: %s paket %s%s\n' "${GREEN}" "${zypper_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
+        else
+            printf '%s  Zypper: Güncel%s\n' "${GREEN}" "${NC}"
+        fi
+    fi
+
     # Flatpak
     if command -v flatpak &> /dev/null; then
         if [[ $flatpak_c -gt 0 ]]; then
@@ -297,6 +322,8 @@ print_final_summary() {
         echo "Total Updates: $total_updates"
         [[ $apt_c -gt 0 ]] && echo "APT: $apt_c packages"
         [[ $dnf_c -gt 0 ]] && echo "DNF: $dnf_c packages"
+        [[ $pacman_c -gt 0 ]] && echo "Pacman: $pacman_c packages"
+        [[ $zypper_c -gt 0 ]] && echo "Zypper: $zypper_c packages"
         [[ $flatpak_c -gt 0 ]] && echo "Flatpak: $flatpak_c apps"
         [[ $snap_c -gt 0 ]] && echo "Snap: $snap_c packages"
         [[ $fwupd_c -gt 0 ]] && echo "Firmware: $fwupd_c updates"
@@ -578,18 +605,19 @@ create_snapshot() {
 # --- YENİ v3.6.0: ONLY MODE KONTROLÜ ---
 should_run_backend() {
     local backend="$1"
-    
+
     # Eğer --only belirtilmişse, sadece o backend çalışsın
     if [[ -n "$ONLY_MODE" ]]; then
         IFS=',' read -ra ONLY_ITEMS <<< "$ONLY_MODE"
         for item in "${ONLY_ITEMS[@]}"; do
-            if [[ "$item" == "$backend" || "$item" == "system" && ("$backend" == "apt" || "$backend" == "dnf") ]]; then
+            # v5.0: system = apt, dnf, pacman, zypper (BigFour)
+            if [[ "$item" == "$backend" || "$item" == "system" && ("$backend" == "apt" || "$backend" == "dnf" || "$backend" == "pacman" || "$backend" == "zypper") ]]; then
                 return 0
             fi
         done
         return 1
     fi
-    
+
     return 0
 }
 
@@ -678,6 +706,108 @@ update_dnf() {
     DNF_COUNT=${DNF_COUNT:-0}
 
     print_info "DNF: $DNF_COUNT paket güncellendi."
+    return 0
+}
+
+# Pacman Güncellemesi (v5.0 BigFour - Arch Linux, Manjaro, EndeavourOS)
+update_pacman() {
+    if ! command -v pacman &> /dev/null; then return 1; fi
+    if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
+    if ! should_run_backend "pacman"; then return 1; fi
+
+    print_header "Pacman: Güncelleme"
+
+    local pacman_temp
+    pacman_temp=$(mktemp)
+
+    # Önce veritabanını güncelle
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+        pacman -Sy 2>&1 | tee -a "$LOG_FILE"
+    else
+        pacman -Sy >> "$LOG_FILE" 2>&1
+    fi
+
+    # Güncellenecek paket sayısını al
+    PACMAN_COUNT=$(pacman -Qu 2>/dev/null | wc -l || echo "0")
+    PACMAN_COUNT=${PACMAN_COUNT:-0}
+
+    if [[ "$PACMAN_COUNT" -gt 0 ]]; then
+        if [[ "$VERBOSE_MODE" == "true" ]]; then
+            pacman -Su --noconfirm 2>&1 | tee -a "$LOG_FILE" | tee "$pacman_temp"
+        else
+            pacman -Su --noconfirm 2>&1 | tee "$pacman_temp" >> "$LOG_FILE"
+        fi
+    fi
+
+    rm -f "$pacman_temp"
+
+    # Orphan paketleri temizle (opsiyonel)
+    local orphans
+    orphans=$(pacman -Qtdq 2>/dev/null || true)
+    if [[ -n "$orphans" ]]; then
+        print_header "Pacman: Orphan Temizliği"
+        if [[ "$VERBOSE_MODE" == "true" ]]; then
+            echo "$orphans" | xargs pacman -Rns --noconfirm 2>&1 | tee -a "$LOG_FILE" || true
+        else
+            echo "$orphans" | xargs pacman -Rns --noconfirm >> "$LOG_FILE" 2>&1 || true
+        fi
+    fi
+
+    # Cache temizliği
+    if command -v paccache &> /dev/null; then
+        paccache -r >> "$LOG_FILE" 2>&1 || true
+    fi
+
+    print_info "Pacman: $PACMAN_COUNT paket güncellendi."
+    return 0
+}
+
+# Zypper Güncellemesi (v5.0 BigFour - openSUSE Leap/Tumbleweed)
+update_zypper() {
+    if ! command -v zypper &> /dev/null; then return 1; fi
+    if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
+    if ! should_run_backend "zypper"; then return 1; fi
+
+    print_header "Zypper: Güncelleme"
+
+    local zypper_temp
+    zypper_temp=$(mktemp)
+
+    # Repo'ları yenile
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+        zypper refresh 2>&1 | tee -a "$LOG_FILE"
+    else
+        zypper refresh >> "$LOG_FILE" 2>&1
+    fi
+
+    # Güncellenecek paket sayısını al
+    ZYPPER_COUNT=$(zypper -q lu 2>/dev/null | grep -c "^v" || echo "0")
+    ZYPPER_COUNT=${ZYPPER_COUNT:-0}
+
+    # Güncelleme yap
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+        zypper --non-interactive update 2>&1 | tee -a "$LOG_FILE" | tee "$zypper_temp"
+    else
+        zypper --non-interactive update 2>&1 | tee "$zypper_temp" >> "$LOG_FILE"
+    fi
+
+    # Zypper çıktısından sayı parse et (alternatif)
+    if [[ "$ZYPPER_COUNT" == "0" ]]; then
+        ZYPPER_COUNT=$(grep -cE "^Installing:|^Upgrading:" "$zypper_temp" 2>/dev/null || echo "0")
+    fi
+
+    rm -f "$zypper_temp"
+    ZYPPER_COUNT=${ZYPPER_COUNT:-0}
+
+    # Kullanılmayan bağımlılıkları temizle
+    print_header "Zypper: Temizlik"
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+        zypper --non-interactive packages --orphaned 2>&1 | tee -a "$LOG_FILE" || true
+    else
+        zypper --non-interactive packages --orphaned >> "$LOG_FILE" 2>&1 || true
+    fi
+
+    print_info "Zypper: $ZYPPER_COUNT paket güncellendi."
     return 0
 }
 
@@ -829,7 +959,41 @@ perform_dry_run_check() {
         fi
         echo ""
     fi
-    
+
+    # Pacman (v5.0 BigFour)
+    if command -v pacman &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "pacman"; then
+        print_dry_run "Pacman: Güncellenebilir paketler listeleniyor..."
+        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        pacman -Sy >> "$LOG_FILE" 2>&1 || true
+        local pacman_list
+        pacman_list=$(pacman -Qu 2>/dev/null || true)
+        if [[ -n "$pacman_list" ]]; then
+            echo "$pacman_list"
+            PACMAN_COUNT=$(echo "$pacman_list" | wc -l | tr -cd '0-9')
+        else
+            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+            PACMAN_COUNT=0
+        fi
+        echo ""
+    fi
+
+    # Zypper (v5.0 BigFour)
+    if command -v zypper &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "zypper"; then
+        print_dry_run "Zypper: Güncellenebilir paketler listeleniyor..."
+        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        zypper refresh >> "$LOG_FILE" 2>&1 || true
+        local zypper_list
+        zypper_list=$(zypper -q lu 2>/dev/null | grep "^v" || true)
+        if [[ -n "$zypper_list" ]]; then
+            echo "$zypper_list"
+            ZYPPER_COUNT=$(echo "$zypper_list" | wc -l | tr -cd '0-9')
+        else
+            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+            ZYPPER_COUNT=0
+        fi
+        echo ""
+    fi
+
     # Flatpak
     if command -v flatpak &> /dev/null && [[ "$SKIP_FLATPAK" != "true" ]] && should_run_backend "flatpak"; then
         print_dry_run "Flatpak: Güncellenebilir uygulamalar listeleniyor..."
@@ -888,9 +1052,9 @@ perform_updates() {
         return
     fi
 
-    # v4.1.0: Modüler güncelleme - her backend ayrı fonksiyonda
-    # APT veya DNF (birini çalıştır)
-    update_apt || update_dnf || true
+    # v5.0: Modüler güncelleme - BigFour Edition
+    # Sistem paket yöneticisi (sadece biri çalışır: APT, DNF, Pacman veya Zypper)
+    update_apt || update_dnf || update_pacman || update_zypper || true
 
     # Diğer backend'ler
     update_flatpak || true
@@ -987,9 +1151,10 @@ show_help() {
     echo "  --quiet             Sessiz mod (Sadece hata ve özet gösterir)"
     echo "  --dry-run           Kuru çalıştırma (Ne yapılacağını göster, yapma)"
     echo "  --skip <backend>    Belirtilen backend'leri atla (virgülle ayır)"
-    echo "                      Değerler: snapshot, flatpak, snap, fwupd, system (veya dnf, apt)"
+    echo "                      Değerler: snapshot, flatpak, snap, fwupd, system"
+    echo "                      (system = apt, dnf, pacman, zypper)"
     echo "  --only <backend>    Sadece belirtilen backend'leri çalıştır (virgülle ayır)"
-    echo "                      Değerler: system, flatpak, snap, fwupd, dnf, apt"
+    echo "                      Değerler: system, flatpak, snap, fwupd, apt, dnf, pacman, zypper"
     echo "  --uninstall         ARCB Wider Updater'ı kaldır"
     echo "  --uninstall --purge Config ve logları da sil"
     echo "  --help              Bu yardım mesajını gösterir"
@@ -1001,8 +1166,9 @@ show_help() {
     echo "  guncel --quiet                -> Sessiz güncelleme (sadece özet)"
     echo "  guncel --dry-run              -> Güncellemeleri listele (uygulamadan)"
     echo "  guncel --skip flatpak,snap    -> Flatpak ve Snap atla"
-    echo "  guncel --only system          -> Sadece sistem paketleri (APT/DNF)"
+    echo "  guncel --only system          -> Sadece sistem paketleri (APT/DNF/Pacman/Zypper)"
     echo "  guncel --only flatpak,fwupd   -> Sadece Flatpak ve Firmware"
+    echo "  guncel --only pacman          -> Sadece Pacman (Arch Linux)"
     echo "  guncel --uninstall            -> Aracı kaldır (config/log korunur)"
     echo "  guncel --uninstall --purge    -> Aracı tamamen kaldır"
     echo ""
