@@ -23,7 +23,7 @@ Bir güvenlik açığı keşfederseniz, lütfen **sorumlu** ve **gizli** bir şe
 
 ### Preferred Methods / Tercih Edilen Yöntemler:
 
-1. 📧 **Email:** ahmet@tanrikulu.net
+1. 📧 **Email:** meet@calmkernel.tr
 2. 🔒 **GitHub Security Advisory:** [Report a vulnerability](https://github.com/ahm3t0t/arcb-wider-updater/security/advisories/new)
 3. 📋 **GitHub Issue (Public):** Use `security` label only after fix is discussed / Düzeltme tartışıldıktan sonra `security` etiketi kullanın
 
