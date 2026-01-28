@@ -5,7 +5,7 @@
 #
 
 # --- AYARLAR ---
-VERSION="4.1.0"
+VERSION="4.1.2"
 CODENAME="Signed"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
