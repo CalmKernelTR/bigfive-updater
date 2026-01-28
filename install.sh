@@ -22,7 +22,6 @@ LOGROTATE_DEST="/etc/logrotate.d/arcb-wider-updater"
 GPG_PUBKEY_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/pubkey.asc"
 GPG_SHA256SUMS_URL="https://github.com/ahm3t0t/arcb-wider-updater/releases/latest/download/SHA256SUMS"
 GPG_SHA256SUMS_SIG_URL="https://github.com/ahm3t0t/arcb-wider-updater/releases/latest/download/SHA256SUMS.asc"
-GPG_KEY_ID="D727A928B6C776B5AC5ABA3B393D543D891B6206"
 
 # --- SMART LOCAL FILE DETECTION ---
 # 1. Scriptin kendi bulunduğu dizini bul (Pipe ile gelmiyorsa)

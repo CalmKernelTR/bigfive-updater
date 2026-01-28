@@ -1,6 +1,6 @@
 #!/usr/bin/env bats
 # BATS Unit Tests for guncel - ARCB Wider Updater
-# v4.0.0 "Polished"
+# v4.1.0 "Signed"
 
 load test_helper
 
@@ -17,7 +17,7 @@ load test_helper
 @test "--help flag shows version in header" {
     run bash "$GUNCEL_SCRIPT" --help
     [ "$status" -eq 0 ]
-    [[ "$output" == *"v4.0.0"* ]]
+    [[ "$output" == *"v4.1.0"* ]]
 }
 
 @test "--help flag shows dry-run option" {
@@ -30,16 +30,16 @@ load test_helper
 # VERSION OUTPUT TESTS (via --help header)
 # =============================================================================
 
-@test "--help shows version number 4.0.0" {
+@test "--help shows version number 4.1.0" {
     run bash "$GUNCEL_SCRIPT" --help
     [ "$status" -eq 0 ]
-    [[ "$output" == *"4.0.0"* ]]
+    [[ "$output" == *"4.1.0"* ]]
 }
 
-@test "--help shows codename Polished" {
+@test "--help shows codename Signed" {
     run bash "$GUNCEL_SCRIPT" --help
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Polished"* ]]
+    [[ "$output" == *"Signed"* ]]
 }
 
 # =============================================================================
