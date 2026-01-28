@@ -10,7 +10,7 @@
 > *The lazy but obsessive admin's best friend.*
 > **One command. One updater. Zero nonsense.**
 
-Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks with a single command on Debian (Zorin OS, Ubuntu) and RHEL (Fedora) based systems.
+Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks with a single command. Supports **BigFour** package managers: APT (Debian/Ubuntu), DNF (Fedora/RHEL), Pacman (Arch/Manjaro), and Zypper (openSUSE).
 
 ## 📑 Table of Contents
 
@@ -30,9 +30,11 @@ Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks
 
 ## 🚀 Features
 
-* **Multi-Distro Support:**
+* **Multi-Distro Support (v5.0 BigFour):**
     * ✅ **Debian/Ubuntu/Zorin:** `APT` package manager and `Timeshift` backup.
     * ✅ **Fedora/RHEL:** `DNF` package manager and `Snapper` backup.
+    * ✅ **Arch/Manjaro/EndeavourOS:** `Pacman` package manager (v5.0+).
+    * ✅ **openSUSE Leap/Tumbleweed:** `Zypper` package manager (v5.0+).
 * **Full Coverage:**
     * System packages, Flatpak, Snap and `fwupdmgr` (Firmware) updates.
 * **Ironclad Security:**

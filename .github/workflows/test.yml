@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run ShellCheck
-        run: shellcheck -x guncel install.sh
+        run: shellcheck -x guncel install.sh release.sh
 
   syntax-check:
     name: Bash Syntax
@@ -20,7 +20,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check syntax
-        run: bash -n guncel && bash -n install.sh
+        run: bash -n guncel && bash -n install.sh && bash -n release.sh
 
   bats-tests:
     name: BATS Unit Tests
@@ -33,3 +33,56 @@ jobs:
           sudo apt-get install -y bats
       - name: Run BATS tests
         run: bats tests/*.bats
+
+  # v5.0 BigFour: Multi-distro install test matrix
+  multi-distro-test:
+    name: Install Test (${{ matrix.distro }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: ubuntu
+            image: ubuntu:24.04
+            pkg_manager: apt
+            install_deps: apt-get update && apt-get install -y curl wget gnupg ca-certificates
+          - distro: fedora
+            image: fedora:40
+            pkg_manager: dnf
+            install_deps: dnf install -y curl wget gnupg2 ca-certificates
+          - distro: arch
+            image: archlinux:latest
+            pkg_manager: pacman
+            install_deps: pacman -Syu --noconfirm && pacman -S --noconfirm curl wget gnupg ca-certificates
+          - distro: opensuse
+            image: opensuse/tumbleweed:latest
+            pkg_manager: zypper
+            install_deps: zypper refresh && zypper install -y curl wget gpg2 ca-certificates gawk
+
+    container:
+      image: ${{ matrix.image }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: ${{ matrix.install_deps }}
+
+      - name: Test install.sh (local file)
+        run: |
+          # Test local installation (not from GitHub)
+          bash install.sh
+
+      - name: Verify guncel installed
+        run: |
+          test -f /usr/local/bin/guncel
+          guncel --help | head -5
+
+      - name: Verify updater symlink
+        run: |
+          test -L /usr/local/bin/updater
+          updater --help | head -5
+
+      - name: Verify ${{ matrix.pkg_manager }} is recognized
+        run: |
+          guncel --help | grep -i "${{ matrix.pkg_manager }}"
