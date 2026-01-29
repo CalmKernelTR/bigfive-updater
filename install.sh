@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ARCB Updater Installer Night-V1.1.0
-# Sync: Night-V1.1.0 | GPG imza doğrulama desteği eklendi
+# ARCB Updater Installer Night-V1.2.0
+# Sync: Night-V1.2.0 | bigfive alias ve EDITION desteği eklendi
 
 # 1. HATA YÖNETİMİ
 set -Eeuo pipefail
@@ -165,7 +165,7 @@ verify_gpg_signature() {
     return 0
 }
 
-printf "\n%s>>> ARCB Wider Updater Kurulum (Night-V1.1.0)%s\n" "$BLUE" "$NC"
+printf "\n%s>>> ARCB Wider Updater Kurulum (Night-V1.2.0)%s\n" "$BLUE" "$NC"
 
 # İndirme veya Kopyalama Mantığı
 if [[ -n "$SOURCE_FILE" ]]; then
@@ -214,8 +214,9 @@ fi
 
 if install -m 0755 -o root -g root "$TEMP_FILE" "$INSTALL_PATH"; then
     INSTALLED_VERSION=$(sed -n 's/^VERSION="\([^"]*\)".*/\1/p' "$INSTALL_PATH" | head -n1)
+    INSTALLED_EDITION=$(sed -n 's/^EDITION="\([^"]*\)".*/\1/p' "$INSTALL_PATH" | head -n1)
     INSTALLED_CODENAME=$(sed -n 's/^CODENAME="\([^"]*\)".*/\1/p' "$INSTALL_PATH" | head -n1)
-    printf "%s✅ Kurulum Başarılı! (v%s - %s)%s\n" "$GREEN" "${INSTALLED_VERSION:-Bilinmiyor}" "${INSTALLED_CODENAME:-}" "$NC"
+    printf "%s✅ Kurulum Başarılı! (v%s - %s Edition - %s)%s\n" "$GREEN" "${INSTALLED_VERSION:-Bilinmiyor}" "${INSTALLED_EDITION:-}" "${INSTALLED_CODENAME:-}" "$NC"
 
     # 4.1 SYMLINK: updater alias (İngilizce kullanıcılar için)
     SYMLINK_PATH="/usr/local/bin/updater"
@@ -226,6 +227,17 @@ if install -m 0755 -o root -g root "$TEMP_FILE" "$INSTALL_PATH"; then
     elif [[ -L "$SYMLINK_PATH" ]]; then
         # Zaten symlink, güncelle
         ln -sf "$INSTALL_PATH" "$SYMLINK_PATH" 2>/dev/null
+    fi
+
+    # 4.2 SYMLINK: bigfive alias (Uluslararası/marka ismi)
+    BIGFIVE_SYMLINK="/usr/local/bin/bigfive"
+    if [[ ! -e "$BIGFIVE_SYMLINK" ]]; then
+        if ln -s "$INSTALL_PATH" "$BIGFIVE_SYMLINK" 2>/dev/null; then
+            printf "%s🔗 Alias oluşturuldu: %sbigfive%s -> guncel%s\n" "$BLUE" "$BOLD" "$NC" "$NC"
+        fi
+    elif [[ -L "$BIGFIVE_SYMLINK" ]]; then
+        # Zaten symlink, güncelle
+        ln -sf "$INSTALL_PATH" "$BIGFIVE_SYMLINK" 2>/dev/null
     fi
 else
     printf "%s❌ Kurulum sırasında yazma hatası oluştu!%s\n" "$RED" "$NC"
@@ -264,5 +276,5 @@ fi
 
 printf "%s\n" "--------------------------------------------------"
 printf "%sℹ️  Not: flock bağımlılığı util-linux paketi ile gelir (genelde kurulu).%s\n" "$BLUE" "$NC"
-printf "Komut: %sguncel%s [--auto] [--skip ...] [--only ...] [--help]\n" "$BOLD" "$NC"
+printf "Komut: %sguncel%s | %supdater%s | %sbigfive%s [--auto] [--skip ...] [--only ...] [--help]\n" "$BOLD" "$NC" "$BOLD" "$NC" "$BOLD" "$NC"
 printf "Loglar: %s/var/log/arcb-updater/%s (logrotate ile yönetilir)\n" "$BOLD" "$NC"
