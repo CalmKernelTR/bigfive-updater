@@ -5,7 +5,7 @@
 #
 
 # --- AYARLAR ---
-VERSION="5.3.2"
+VERSION="5.4.0"
 EDITION="BigFive"
 CODENAME="Beacon"
 LOG_DIR="/var/log/arcb-updater"
