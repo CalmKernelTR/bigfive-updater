@@ -83,6 +83,8 @@ load_config() {
         SKIP_SNAP="${CONFIG_SKIP_SNAP:-$SKIP_SNAP}"
         SKIP_FWUPD="${CONFIG_SKIP_FWUPD:-$SKIP_FWUPD}"
         SKIP_PKG_MANAGER="${CONFIG_SKIP_PKG_MANAGER:-$SKIP_PKG_MANAGER}"
+        # JSON modu (v5.3+)
+        JSON_MODE="${CONFIG_JSON_MODE:-$JSON_MODE}"
         # Renk ayarları (opsiyonel)
         RED="${CONFIG_COLOR_RED:-$RED}"
         GREEN="${CONFIG_COLOR_GREEN:-$GREEN}"

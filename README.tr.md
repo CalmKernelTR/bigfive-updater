@@ -131,7 +131,7 @@ Bu proje **iki ayrı versiyon sistemi** kullanır:
 ### Kurulum (30 saniye)
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/install.sh | sudo bash
+curl -fsSL https://github.com/ahm3t0t/arcb-wider-updater/releases/latest/download/install.sh | sudo bash
 ```
 
 ### İlk Çalıştırma

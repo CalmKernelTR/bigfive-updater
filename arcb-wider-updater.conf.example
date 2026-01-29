@@ -1,6 +1,6 @@
 # /etc/arcb-wider-updater.conf
 # ARCB Wider Updater Yapılandırma Dosyası / Configuration File
-# v5.2.0 "BigFive"
+# v5.4.x "BigFive - Beacon"
 #
 # Bu dosyayı /etc/arcb-wider-updater.conf olarak kopyalayın.
 # Copy this file to /etc/arcb-wider-updater.conf
@@ -23,6 +23,17 @@ CONFIG_QUIET=false
 # Varsayılan auto modu (true/false)
 # Default auto mode (no prompts)
 CONFIG_AUTO=false
+
+# ============================================
+# JSON ÇIKTI / JSON OUTPUT (v5.3+)
+# ============================================
+
+# JSON çıktı modu: none, json, json-full
+# JSON output mode: none, json, json-full
+# none = Normal terminal çıktısı / Normal terminal output
+# json = Hafif JSON (monitoring için) / Lightweight JSON (for monitoring)
+# json-full = Detaylı JSON (SIEM için) / Detailed JSON (for SIEM)
+CONFIG_JSON_MODE=none
 
 # ============================================
 # BACKEND ATLAMA / SKIP BACKENDS
@@ -88,7 +99,7 @@ CONFIG_SKIP_PKG_MANAGER=false
 #   CONFIG_SKIP_FWUPD=true
 
 # ============================================
-# DESTEKLENEN PAKET YÖNETİCİLERİ (v5.2.0 BigFive)
+# DESTEKLENEN PAKET YÖNETİCİLERİ (v5.4.x BigFive)
 # SUPPORTED PACKAGE MANAGERS
 # ============================================
 #

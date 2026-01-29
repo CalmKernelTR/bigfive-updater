@@ -93,7 +93,7 @@ This project uses **two separate version systems**:
 Paste the following command into your terminal. The script will safely request necessary privileges and complete the installation:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/install.sh | sudo bash
+curl -fsSL https://github.com/ahm3t0t/arcb-wider-updater/releases/latest/download/install.sh | sudo bash
 ```
 
 ---
