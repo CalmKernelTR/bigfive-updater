@@ -523,10 +523,10 @@ get_script_version() {
 }
 
 @test "Fish completion includes --json option" {
-    grep -q '\-\-json' "$PROJECT_ROOT/completions/guncel.fish"
+    grep -q '\-l json' "$PROJECT_ROOT/completions/guncel.fish"
 }
 
 @test "Fish completion includes backend values for --skip" {
-    grep -q '\-\-skip' "$PROJECT_ROOT/completions/guncel.fish"
+    grep -q '\-l skip' "$PROJECT_ROOT/completions/guncel.fish"
     grep -q 'snapshot' "$PROJECT_ROOT/completions/guncel.fish"
 }
