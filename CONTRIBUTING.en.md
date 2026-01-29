@@ -213,13 +213,13 @@ CODENAME="Alpine"
 
 ### 2. Installation Script (install.sh) - Night Version
 
-**Format:** `Night-Vx.x.x` (e.g., Night-V1.2.0)
+**Format:** `Night-Vx.x.x` (e.g., Night-V1.3.2)
 
 **Update Frequency:** Only when install logic changes
 
 ```bash
 # in install.sh
-# ARCB Updater Installer Night-V1.2.0
+# ARCB Updater Installer Night-V1.3.2
 ```
 
 ### Why Separate Systems?
@@ -346,7 +346,7 @@ docker run --rm -v "$(pwd):/app" alpine:3.20 sh -c "apk add bash curl && bash /a
 |-----------|-------|--------|
 | guncel.bats | 60 | Pass |
 | install.bats | 35 | Pass |
-| **Total** | **95** | Pass |
+| **Total** | **138** | Pass |
 
 ---
 

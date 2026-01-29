@@ -213,13 +213,13 @@ CODENAME="Alpine"
 
 ### 2. Kurulum Scripti (install.sh) - Night Version
 
-**Format:** `Night-Vx.x.x` (örn: Night-V1.2.0)
+**Format:** `Night-Vx.x.x` (örn: Night-V1.3.2)
 
 **Güncelleme Sıklığı:** Sadece kurulum mantığı değiştiğinde
 
 ```bash
 # install.sh içinde
-# ARCB Updater Installer Night-V1.2.0
+# ARCB Updater Installer Night-V1.3.2
 ```
 
 ### Neden Ayrı Sistemler?
@@ -346,7 +346,7 @@ docker run --rm -v "$(pwd):/app" alpine:3.20 sh -c "apk add bash curl && bash /a
 |---------|-------------|-------|
 | guncel.bats | 60 | Geçti |
 | install.bats | 35 | Geçti |
-| **Toplam** | **95** | Geçti |
+| **Toplam** | **138** | Geçti |
 
 ---
 
