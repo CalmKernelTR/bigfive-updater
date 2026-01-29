@@ -5,6 +5,15 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [5.4.6] - 2026-01-29 "BigFive Edition - Beacon"
+### Düzeltilenler
+- **Self-update indirme URL'i:** `GITHUB_RAW_URL` raw.githubusercontent.com'dan releases URL'e değiştirildi
+  - raw.githubusercontent.com CDN cache'i nedeniyle eski dosya döndürebiliyordu
+  - SHA256SUMS releases'den geldiği için hash uyuşmazlığı oluşuyordu
+  - Artık hem dosya hem SHA256 aynı kaynaktan (releases) geliyor
+
+---
+
 ## [5.4.5] - 2026-01-29 "BigFive Edition - Beacon"
 ### Düzeltilenler
 - **Self-update SHA256 doğrulama:** `check_self_update()` fonksiyonundaki grep pattern düzeltildi

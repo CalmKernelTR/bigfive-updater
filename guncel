@@ -5,12 +5,13 @@
 #
 
 # --- AYARLAR ---
-VERSION="5.4.5"
+VERSION="5.4.6"
 EDITION="BigFive"
 CODENAME="Beacon"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
-GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
+# v5.4.5: Releases URL kullan (CDN cache sorunu önlenir - raw.githubusercontent.com cache'lenebilir)
+GITHUB_RAW_URL="https://github.com/ahm3t0t/arcb-wider-updater/releases/latest/download/guncel"
 GITHUB_SHA256_URL="https://github.com/ahm3t0t/arcb-wider-updater/releases/latest/download/SHA256SUMS"
 CONFIG_FILE="/etc/arcb-wider-updater.conf"
 
