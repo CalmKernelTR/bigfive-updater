@@ -51,8 +51,8 @@ This project uses two separate version systems:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v5.4.x (BigFive Edition - Beacon) | Her özellik/fix'te / Every feature/fix |
-| `install.sh` (installer) | Night-Vx.x.x | Night-V1.3.0 | Sadece kurulum değiştiğinde / Only when install logic changes |
+| `guncel` (main script) | SemVer (x.x.x) | v5.4.8 (BigFive Edition - Beacon) | Her özellik/fix'te / Every feature/fix |
+| `install.sh` (installer) | Night-Vx.x.x | Night-V1.3.2 | Sadece kurulum değiştiğinde / Only when install logic changes |
 
 **Neden ayrı? / Why separate?**
 - Ana script sık güncellenir, installer nadiren değişir
@@ -76,7 +76,7 @@ This project uses two separate version systems:
 - ✅ Selective Updates: `--skip` and `--only` flags (including `--skip system`)
 - ✅ Dry-Run Mode: Preview without applying
 - ✅ JSON Output: `--json` for monitoring, `--json-full` for SIEM/audit (v5.3+)
-- ✅ Bash Completion: Tab completion for all options (v5.4+)
+- ✅ Shell Completion: Bash, Zsh, Fish tab completion (v5.4+)
 - ✅ Man Page: `man guncel` for full documentation (v5.4+)
 - ✅ Config File: `/etc/arcb-wider-updater.conf`
 - ✅ GPG Signature Verification: Cryptographically signed releases
@@ -109,9 +109,9 @@ bats --tap tests/*.bats
 
 | Component | Tests | Status |
 |-----------|-------|--------|
-| guncel.bats | 70 | ✅ |
-| install.bats | 35 | ✅ |
-| **Total** | **105** | ✅ |
+| guncel.bats | 99 | ✅ |
+| install.bats | 39 | ✅ |
+| **Total** | **138** | ✅ |
 
 ---
 

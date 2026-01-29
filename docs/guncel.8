@@ -1,6 +1,6 @@
 .\" Man page for guncel - ARCB Wider Updater
 .\" Generated from guncel.8.md
-.TH GUNCEL 8 "January 2026" "ARCB Wider Updater 5.4.0" "System Administration"
+.TH GUNCEL 8 "January 2026" "ARCB Wider Updater 5.4.8" "System Administration"
 .SH NAME
 guncel \- universal Linux system updater (BigFive Edition)
 .SH SYNOPSIS
@@ -118,6 +118,12 @@ Symlink to guncel (brand alias).
 .TP
 .I /usr/share/bash-completion/completions/guncel
 Bash completion script.
+.TP
+.I /usr/share/zsh/site-functions/_guncel
+Zsh completion script.
+.TP
+.I /usr/share/fish/vendor_completions.d/guncel.fish
+Fish completion script.
 .SH EXAMPLES
 Run interactive update (recommended):
 .PP
@@ -189,6 +195,9 @@ CONFIG_SKIP_SNAP=true
 
 # Enable verbose output
 CONFIG_VERBOSE=true
+
+# Snapshot timeout (seconds)
+CONFIG_SNAPSHOT_TIMEOUT=300
 .fi
 .RE
 .SH SEE ALSO

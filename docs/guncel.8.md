@@ -1,4 +1,4 @@
-% GUNCEL(8) ARCB Wider Updater 5.4.0
+% GUNCEL(8) ARCB Wider Updater 5.4.8
 % Ahmet T. <ahmet@tanrikulu.net>
 % January 2026
 
@@ -115,6 +115,12 @@ systems.
 */usr/share/bash-completion/completions/guncel*
 :   Bash completion script.
 
+*/usr/share/zsh/site-functions/_guncel*
+:   Zsh completion script.
+
+*/usr/share/fish/vendor_completions.d/guncel.fish*
+:   Fish completion script.
+
 # EXAMPLES
 
 Run interactive update (recommended):
@@ -176,6 +182,9 @@ Configuration file format (*/etc/arcb-wider-updater.conf*):
 
     # Enable verbose output
     CONFIG_VERBOSE=true
+
+    # Snapshot timeout (seconds)
+    CONFIG_SNAPSHOT_TIMEOUT=300
 
 # SEE ALSO
 
