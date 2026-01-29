@@ -55,3 +55,4 @@ Cargo.lock
 # =========================
 .artifacts/
 .claude-notes
+gist-claude-notes.txt
