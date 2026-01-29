@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# ARCB Updater Installer Night-V1.3.1
-# Sync: Night-V1.3.1 | Temp file cleanup düzeltmesi
+# ARCB Updater Installer Night-V1.3.2
+# Sync: Night-V1.3.2 | Zsh ve Fish completion desteği
 
 # 1. HATA YÖNETİMİ
 set -Eeuo pipefail
@@ -315,6 +315,37 @@ if [[ -d "$BASH_COMPLETION_DIR" ]]; then
     rm -f "$TEMP_COMPLETION" 2>/dev/null
 else
     printf "%s⚠️  Bash completion dizini bulunamadı (%s).%s\n" "$YELLOW" "$BASH_COMPLETION_DIR" "$NC"
+fi
+
+# 6b. ZSH COMPLETION KURULUMU (v1.3.2)
+ZSH_COMPLETION_DIR="/usr/share/zsh/site-functions"
+LOCAL_ZSH_COMPLETION="$SCRIPT_DIR/completions/_guncel"
+
+if [[ -d "$ZSH_COMPLETION_DIR" ]]; then
+    if [[ -f "$LOCAL_ZSH_COMPLETION" ]]; then
+        if install -m 0644 -o root -g root "$LOCAL_ZSH_COMPLETION" "$ZSH_COMPLETION_DIR/_guncel"; then
+            printf "%s✅ Zsh completion kuruldu%s\n" "$GREEN" "$NC"
+        else
+            printf "%s⚠️  Zsh completion kurulamadı (opsiyonel).%s\n" "$YELLOW" "$NC"
+        fi
+    fi
+fi
+
+# 6c. FISH COMPLETION KURULUMU (v1.3.2)
+FISH_COMPLETION_DIR="/usr/share/fish/vendor_completions.d"
+LOCAL_FISH_COMPLETION="$SCRIPT_DIR/completions/guncel.fish"
+
+if [[ -d "$FISH_COMPLETION_DIR" ]]; then
+    if [[ -f "$LOCAL_FISH_COMPLETION" ]]; then
+        if install -m 0644 -o root -g root "$LOCAL_FISH_COMPLETION" "$FISH_COMPLETION_DIR/guncel.fish"; then
+            # Symlink'ler için de completion
+            ln -sf "$FISH_COMPLETION_DIR/guncel.fish" "$FISH_COMPLETION_DIR/updater.fish" 2>/dev/null
+            ln -sf "$FISH_COMPLETION_DIR/guncel.fish" "$FISH_COMPLETION_DIR/bigfive.fish" 2>/dev/null
+            printf "%s✅ Fish completion kuruldu%s\n" "$GREEN" "$NC"
+        else
+            printf "%s⚠️  Fish completion kurulamadı (opsiyonel).%s\n" "$YELLOW" "$NC"
+        fi
+    fi
 fi
 
 # 7. MAN PAGE KURULUMU (v1.3.0)

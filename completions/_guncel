@@ -1,0 +1,37 @@
+#compdef guncel updater bigfive
+# Zsh completion for guncel/updater/bigfive
+# ARCB Wider Updater v5.4+
+# Install: sudo cp _guncel /usr/share/zsh/site-functions/_guncel
+
+local -a backends
+backends=(
+    'snapshot:Skip/only snapshot creation'
+    'flatpak:Skip/only Flatpak updates'
+    'snap:Skip/only Snap updates'
+    'fwupd:Skip/only firmware updates'
+    'system:Skip/only system package manager'
+    'apt:Skip/only APT (Debian/Ubuntu)'
+    'dnf:Skip/only DNF (Fedora/RHEL)'
+    'pacman:Skip/only Pacman (Arch)'
+    'zypper:Skip/only Zypper (openSUSE)'
+    'apk:Skip/only APK (Alpine)'
+)
+
+_arguments -s \
+    '(- *)--help[Show help message]' \
+    '--auto[Non-interactive mode for cron/automation]' \
+    '--verbose[Verbose output]' \
+    '--quiet[Quiet mode, minimal output]' \
+    '--dry-run[Show what would be done without making changes]' \
+    '--json[Output lightweight JSON for monitoring]' \
+    '--json-full[Output detailed JSON for SIEM/audit]' \
+    '--skip[Skip specific backends]:backend:->backends' \
+    '--only[Run only specific backends]:backend:->backends' \
+    '--uninstall[Uninstall guncel from system]' \
+    '--purge[Remove all files including logs (use with --uninstall)]'
+
+case "$state" in
+    backends)
+        _describe -t backends 'backend' backends
+        ;;
+esac

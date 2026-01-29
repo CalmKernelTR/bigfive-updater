@@ -43,6 +43,10 @@ CONFIG_JSON_MODE=none
 # Skip snapshot creation (Timeshift/Snapper)
 CONFIG_SKIP_SNAPSHOT=false
 
+# Snapshot timeout (saniye) - varsayılan 300 (5 dakika)
+# Snapshot timeout (seconds) - default 300 (5 minutes)
+CONFIG_SNAPSHOT_TIMEOUT=300
+
 # Flatpak güncellemelerini atla (true/false)
 # Skip Flatpak updates
 CONFIG_SKIP_FLATPAK=false

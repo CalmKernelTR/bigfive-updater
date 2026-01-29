@@ -761,17 +761,20 @@ wait_for_dnf_lock() {
 }
 
 create_snapshot() {
+    # v5.4.8: Snapshot timeout (5 dakika varsayılan)
+    local SNAPSHOT_TIMEOUT=${CONFIG_SNAPSHOT_TIMEOUT:-300}
+
     # v3.6.0: --skip snapshot kontrolü
     if [[ "$SKIP_SNAPSHOT" == "true" ]]; then
         print_info "Snapshot atlandı (--skip snapshot)"
         return
     fi
-    
+
     # v3.6.0: --only kontrolü (system veya fwupd ise snapshot atla)
     if [[ -n "$ONLY_MODE" && "$ONLY_MODE" != "snapshot" ]]; then
         return
     fi
-    
+
     # v3.8.0: Dry-run modunda snapshot oluşturma
     if [[ "$DRY_RUN" == "true" ]]; then
         if command -v timeshift &> /dev/null; then
@@ -783,15 +786,26 @@ create_snapshot() {
         fi
         return
     fi
-    
+
     if command -v timeshift &> /dev/null; then
         print_header "Sistem Yedekleniyor (Timeshift)"
         SNAPSHOT_NAME="ARCB-Update-$(date +%F)"
+        local ts_exit_code=0
         if [[ "$VERBOSE_MODE" == "true" ]]; then
-            timeshift --create --comments "$SNAPSHOT_NAME" --tags D 2>&1 | tee -a "$LOG_FILE"
+            timeout "$SNAPSHOT_TIMEOUT" timeshift --create --comments "$SNAPSHOT_NAME" --tags D 2>&1 | tee -a "$LOG_FILE" || ts_exit_code=$?
         else
-            timeshift --create --comments "$SNAPSHOT_NAME" --tags D >> "$LOG_FILE" 2>&1
+            timeout "$SNAPSHOT_TIMEOUT" timeshift --create --comments "$SNAPSHOT_NAME" --tags D >> "$LOG_FILE" 2>&1 || ts_exit_code=$?
+        fi
+        if [[ $ts_exit_code -eq 124 ]]; then
+            print_warning "Timeshift snapshot zaman aşımına uğradı (${SNAPSHOT_TIMEOUT}s)"
+            add_json_warning "Timeshift snapshot timed out after ${SNAPSHOT_TIMEOUT}s"
+            SNAPSHOT_NAME=""
+        elif [[ $ts_exit_code -eq 0 ]]; then
             print_success "Timeshift snapshot oluşturuldu."
+        else
+            print_warning "Timeshift snapshot başarısız oldu (exit: $ts_exit_code)"
+            add_json_warning "Timeshift snapshot failed with exit code $ts_exit_code"
+            SNAPSHOT_NAME=""
         fi
         return
     fi
@@ -799,11 +813,17 @@ create_snapshot() {
     if command -v snapper &> /dev/null; then
         print_header "Sistem Yedekleniyor (Snapper)"
         SNAPSHOT_NAME="ARCB-Update-$(date +%F)"
-        if snapper create --description "$SNAPSHOT_NAME" --cleanup-algorithm number >> "$LOG_FILE" 2>&1; then
-             print_success "Snapper snapshot oluşturuldu."
+        local sn_exit_code=0
+        timeout "$SNAPSHOT_TIMEOUT" snapper create --description "$SNAPSHOT_NAME" --cleanup-algorithm number >> "$LOG_FILE" 2>&1 || sn_exit_code=$?
+        if [[ $sn_exit_code -eq 124 ]]; then
+            print_warning "Snapper snapshot zaman aşımına uğradı (${SNAPSHOT_TIMEOUT}s)"
+            add_json_warning "Snapper snapshot timed out after ${SNAPSHOT_TIMEOUT}s"
+            SNAPSHOT_NAME=""
+        elif [[ $sn_exit_code -eq 0 ]]; then
+            print_success "Snapper snapshot oluşturuldu."
         else
-             print_warning "Snapper snapshot oluşturulamadı."
-             SNAPSHOT_NAME=""
+            print_warning "Snapper snapshot oluşturulamadı."
+            SNAPSHOT_NAME=""
         fi
         return
     fi
@@ -856,9 +876,21 @@ update_apt() {
     fi
 
     print_header "APT: Dist-Upgrade"
-    local apt_upgradable
-    apt_upgradable=$(apt-get -s dist-upgrade 2>/dev/null | grep -c "^Inst " || echo "0")
+    local apt_upgradable apt_simulate
+    apt_simulate=$(apt-get -s dist-upgrade 2>/dev/null | grep "^Inst " || true)
+    apt_upgradable=$(echo "$apt_simulate" | grep -c "^Inst " || echo "0")
     APT_COUNT=${apt_upgradable:-0}
+
+    # --json-full için paket detaylarını topla
+    if [[ "$JSON_MODE" == "json-full" && -n "$apt_simulate" ]]; then
+        while IFS= read -r line; do
+            local pkg_name old_ver new_ver
+            pkg_name=$(echo "$line" | awk '{print $2}')
+            old_ver=$(echo "$line" | grep -oP '\[\K[^\]]+' || echo "new")
+            new_ver=$(echo "$line" | grep -oP '\(\K[^\s]+' || echo "unknown")
+            add_package_info "$pkg_name" "$old_ver" "$new_ver" "apt"
+        done <<< "$apt_simulate"
+    fi
 
     if [[ "$VERBOSE_MODE" == "true" ]]; then
         apt-get dist-upgrade -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
@@ -892,6 +924,24 @@ update_dnf() {
     fi
 
     print_header "DNF: Güncelleme"
+
+    # --json-full için paket detaylarını ÖNCE topla
+    if [[ "$JSON_MODE" == "json-full" ]]; then
+        local dnf_updates
+        dnf_updates=$(dnf check-update 2>/dev/null | awk 'NF>=2 && /^[a-zA-Z0-9]/ {print $1, $2}' || true)
+        if [[ -n "$dnf_updates" ]]; then
+            while IFS= read -r line; do
+                local pkg_full pkg_name new_ver old_ver
+                pkg_full=$(echo "$line" | awk '{print $1}')
+                new_ver=$(echo "$line" | awk '{print $2}')
+                # Paket adından .arch kısmını çıkar
+                pkg_name=${pkg_full%.*}
+                # Mevcut versiyonu al
+                old_ver=$(rpm -q --qf '%{VERSION}-%{RELEASE}' "$pkg_name" 2>/dev/null || echo "unknown")
+                add_package_info "$pkg_name" "$old_ver" "$new_ver" "dnf"
+            done <<< "$dnf_updates"
+        fi
+    fi
 
     local dnf_temp
     dnf_temp=$(mktemp)
@@ -941,8 +991,22 @@ update_pacman() {
     fi
 
     # Güncellenecek paket sayısını al
-    PACMAN_COUNT=$(pacman -Qu 2>/dev/null | wc -l || echo "0")
+    local pacman_updates
+    pacman_updates=$(pacman -Qu 2>/dev/null || true)
+    PACMAN_COUNT=$(echo "$pacman_updates" | grep -c . || echo "0")
     PACMAN_COUNT=${PACMAN_COUNT:-0}
+
+    # --json-full için paket detaylarını topla
+    if [[ "$JSON_MODE" == "json-full" && -n "$pacman_updates" ]]; then
+        while IFS= read -r line; do
+            local pkg_name old_ver new_ver
+            # Format: paket_adı eski_versiyon -> yeni_versiyon
+            pkg_name=$(echo "$line" | awk '{print $1}')
+            old_ver=$(echo "$line" | awk '{print $2}')
+            new_ver=$(echo "$line" | awk '{print $4}')
+            add_package_info "$pkg_name" "$old_ver" "$new_ver" "pacman"
+        done <<< "$pacman_updates"
+    fi
 
     if [[ "$PACMAN_COUNT" -gt 0 ]]; then
         if [[ "$VERBOSE_MODE" == "true" ]]; then
@@ -997,8 +1061,22 @@ update_zypper() {
     # Güncellenecek paket sayısını al - v5.4.7 FIX: Doğru parsing
     # zypper lu çıktısı: "S | Repository | Name | Current | Available | Arch"
     # Header ve separator satırlarını atla, sadece paket satırlarını say
-    ZYPPER_COUNT=$(zypper -q lu 2>/dev/null | grep -v "^-" | grep -v "^S " | grep -c "|" || echo "0")
+    local zypper_updates
+    zypper_updates=$(zypper -q lu 2>/dev/null | grep -v "^-" | grep -v "^S " | grep "|" || true)
+    ZYPPER_COUNT=$(echo "$zypper_updates" | grep -c "|" || echo "0")
     ZYPPER_COUNT=${ZYPPER_COUNT:-0}
+
+    # --json-full için paket detaylarını topla
+    if [[ "$JSON_MODE" == "json-full" && -n "$zypper_updates" ]]; then
+        while IFS= read -r line; do
+            local pkg_name old_ver new_ver
+            # Format: S | Repository | Name | Current | Available | Arch
+            pkg_name=$(echo "$line" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}')
+            old_ver=$(echo "$line" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $4); print $4}')
+            new_ver=$(echo "$line" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $5); print $5}')
+            [[ -n "$pkg_name" ]] && add_package_info "$pkg_name" "$old_ver" "$new_ver" "zypper"
+        done <<< "$zypper_updates"
+    fi
 
     # Güncelleme yap
     if [[ "$VERBOSE_MODE" == "true" ]]; then
@@ -1044,8 +1122,24 @@ update_apk() {
     fi
 
     # Güncellenecek paket sayısını al
-    APK_COUNT=$(apk version -l '<' 2>/dev/null | wc -l || echo "0")
+    local apk_updates
+    apk_updates=$(apk version -l '<' 2>/dev/null || true)
+    APK_COUNT=$(echo "$apk_updates" | grep -c . || echo "0")
     APK_COUNT=${APK_COUNT:-0}
+
+    # --json-full için paket detaylarını topla
+    if [[ "$JSON_MODE" == "json-full" && -n "$apk_updates" ]]; then
+        while IFS= read -r line; do
+            local pkg_with_ver old_ver new_ver pkg_name
+            # Format: paket_adı-eski_versiyon < yeni_versiyon
+            pkg_with_ver=$(echo "$line" | awk '{print $1}')
+            new_ver=$(echo "$line" | awk '{print $3}')
+            # Paket adını ve versiyonu ayır (son - karakterinden böl)
+            pkg_name=${pkg_with_ver%-*}
+            old_ver=${pkg_with_ver##*-}
+            [[ -n "$pkg_name" ]] && add_package_info "$pkg_name" "$old_ver" "$new_ver" "apk"
+        done <<< "$apk_updates"
+    fi
 
     # Güncelleme yap
     if [[ "$VERBOSE_MODE" == "true" ]]; then
@@ -1074,9 +1168,22 @@ update_flatpak() {
 
     print_header "Flatpak: Güncelleme"
 
-    local flatpak_upgradable
-    flatpak_upgradable=$(flatpak remote-ls --updates 2>/dev/null | wc -l | tr -cd '0-9')
+    local flatpak_updates flatpak_upgradable
+    flatpak_updates=$(flatpak remote-ls --updates --columns=application,version 2>/dev/null || true)
+    flatpak_upgradable=$(echo "$flatpak_updates" | grep -c . | tr -cd '0-9')
     flatpak_upgradable=${flatpak_upgradable:-0}
+
+    # --json-full için paket detaylarını topla
+    if [[ "$JSON_MODE" == "json-full" && -n "$flatpak_updates" ]]; then
+        while IFS= read -r line; do
+            local app_id new_ver old_ver
+            app_id=$(echo "$line" | awk '{print $1}')
+            new_ver=$(echo "$line" | awk '{print $2}')
+            # Mevcut versiyonu al
+            old_ver=$(flatpak info "$app_id" 2>/dev/null | grep "Version:" | awk '{print $2}' || echo "unknown")
+            [[ -n "$app_id" ]] && add_package_info "$app_id" "$old_ver" "$new_ver" "flatpak"
+        done <<< "$flatpak_updates"
+    fi
 
     local flatpak_temp
     flatpak_temp=$(mktemp)
@@ -1117,10 +1224,24 @@ update_snap() {
 
     print_header "Snap: Güncelleme"
 
-    local snap_upgradable
-    snap_upgradable=$(snap refresh --list 2>/dev/null | tail -n +2 | wc -l | tr -cd '0-9')
+    local snap_updates snap_upgradable
+    snap_updates=$(snap refresh --list 2>/dev/null | tail -n +2 || true)
+    snap_upgradable=$(echo "$snap_updates" | grep -c . | tr -cd '0-9')
     snap_upgradable=${snap_upgradable:-0}
     SNAP_COUNT=${snap_upgradable:-0}
+
+    # --json-full için paket detaylarını topla
+    if [[ "$JSON_MODE" == "json-full" && -n "$snap_updates" ]]; then
+        while IFS= read -r line; do
+            local snap_name new_ver old_ver
+            # Format: Name Version Rev Publisher Notes
+            snap_name=$(echo "$line" | awk '{print $1}')
+            new_ver=$(echo "$line" | awk '{print $2}')
+            # Mevcut versiyonu al
+            old_ver=$(snap info "$snap_name" 2>/dev/null | grep "installed:" | awk '{print $2}' || echo "unknown")
+            [[ -n "$snap_name" ]] && add_package_info "$snap_name" "$old_ver" "$new_ver" "snap"
+        done <<< "$snap_updates"
+    fi
 
     if [[ "$VERBOSE_MODE" == "true" ]]; then
         snap refresh 2>&1 | tee -a "$LOG_FILE" || print_warning "Snap hata verdi."

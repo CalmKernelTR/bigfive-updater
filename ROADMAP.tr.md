@@ -58,7 +58,7 @@
 - [x] Seçenekler ve backend'ler için Tab tamamlama
 - [x] `man guncel` ile tam dokümantasyon
 - [x] `install.sh` ile otomatik kurulum
-- [x] Toplam 85 BATS testi
+- [x] Toplam 128 BATS testi
 
 ### v5.5+ - Kullanıcı Deneyimi (Planlanan)
 - [ ] Graceful error messages (kullanıcı dostu hata mesajları)
@@ -109,9 +109,9 @@
 
 | Bileşen | Test Sayısı | Durum |
 |---------|-------------|-------|
-| guncel.bats | 70 | ✅ |
-| install.bats | 35 | ✅ |
-| **Toplam** | **105** | ✅ |
+| guncel.bats | 89 | ✅ |
+| install.bats | 39 | ✅ |
+| **Toplam** | **128** | ✅ |
 
 ### CI Test Matrisi
 

@@ -484,3 +484,49 @@ get_script_version() {
     # v5.4.5: Must use "  guncel$" pattern to avoid matching guncel.bash, guncel.8
     grep -qE 'grep -E "\s+guncel\$"' "$GUNCEL_SCRIPT"
 }
+
+# =============================================================================
+# ZSH/FISH COMPLETION TESTS (v5.4.8)
+# =============================================================================
+
+@test "Zsh completion file exists" {
+    [ -f "$PROJECT_ROOT/completions/_guncel" ]
+}
+
+@test "Zsh completion has valid compdef header" {
+    grep -q '#compdef guncel updater bigfive' "$PROJECT_ROOT/completions/_guncel"
+}
+
+@test "Zsh completion includes --json option" {
+    grep -q '\-\-json' "$PROJECT_ROOT/completions/_guncel"
+}
+
+@test "Zsh completion includes backend values" {
+    grep -q 'snapshot' "$PROJECT_ROOT/completions/_guncel"
+    grep -q 'flatpak' "$PROJECT_ROOT/completions/_guncel"
+}
+
+@test "Fish completion file exists" {
+    [ -f "$PROJECT_ROOT/completions/guncel.fish" ]
+}
+
+@test "Fish completion registers guncel command" {
+    grep -q 'complete -c guncel' "$PROJECT_ROOT/completions/guncel.fish"
+}
+
+@test "Fish completion registers updater alias" {
+    grep -q 'complete -c updater' "$PROJECT_ROOT/completions/guncel.fish"
+}
+
+@test "Fish completion registers bigfive alias" {
+    grep -q 'complete -c bigfive' "$PROJECT_ROOT/completions/guncel.fish"
+}
+
+@test "Fish completion includes --json option" {
+    grep -q '\-\-json' "$PROJECT_ROOT/completions/guncel.fish"
+}
+
+@test "Fish completion includes backend values for --skip" {
+    grep -q '\-\-skip' "$PROJECT_ROOT/completions/guncel.fish"
+    grep -q 'snapshot' "$PROJECT_ROOT/completions/guncel.fish"
+}

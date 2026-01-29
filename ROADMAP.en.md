@@ -58,7 +58,7 @@
 - [x] Tab completion for options and backends
 - [x] Full documentation via `man guncel`
 - [x] Auto-install via `install.sh`
-- [x] 85 BATS tests total
+- [x] 128 BATS tests total
 
 ### v5.5+ - User Experience (Planned)
 - [ ] Graceful error messages
@@ -109,9 +109,9 @@
 
 | Component | Test Count | Status |
 |-----------|------------|--------|
-| guncel.bats | 70 | ✅ |
-| install.bats | 35 | ✅ |
-| **Total** | **105** | ✅ |
+| guncel.bats | 89 | ✅ |
+| install.bats | 39 | ✅ |
+| **Total** | **128** | ✅ |
 
 ### CI Test Matrix
 
