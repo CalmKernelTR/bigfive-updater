@@ -169,7 +169,7 @@ verify_gpg_signature() {
     return 0
 }
 
-printf "\n%s>>> ARCB Wider Updater Kurulum (Night-V1.3.1)%s\n" "$BLUE" "$NC"
+printf "\n%s>>> ARCB Wider Updater Kurulum (Night-V1.3.2)%s\n" "$BLUE" "$NC"
 
 # İndirme veya Kopyalama Mantığı
 if [[ -n "$SOURCE_FILE" ]]; then
