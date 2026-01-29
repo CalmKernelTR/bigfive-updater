@@ -85,6 +85,14 @@ Tek komut. Hepsi bir arada. Güvenli ve izlenebilir.
     * `--only` ile sadece istediğiniz backend'leri çalıştırın.
 * **Kuru Çalıştırma (v3.8.0):**
     * `--dry-run` ile güncellemeleri önizleyin, uygulamadan.
+* **JSON Çıktı (v5.3+):**
+    * `--json`: Monitoring sistemleri için hafif JSON (Zabbix, Nagios, Prometheus).
+    * `--json-full`: SIEM/audit sistemleri için detaylı JSON (Wazuh, Splunk, ELK).
+* **Bash Tamamlama (v5.4+):**
+    * Tab tuşu ile seçenek ve backend tamamlama.
+    * Otomatik kurulum ile `/usr/share/bash-completion/completions/` dizinine yüklenir.
+* **Man Sayfası (v5.4+):**
+    * `man guncel` ile detaylı dokümantasyon.
 * **Config Dosyası Desteği (v3.6.0):**
     * `/etc/arcb-wider-updater.conf` ile varsayılan ayarları tanımlayın.
 * **SHA256 Doğrulama (v3.6.0):**
@@ -110,8 +118,8 @@ Bu proje **iki ayrı versiyon sistemi** kullanır:
 
 | Bileşen | Format | Güncel | Güncelleme Sıklığı |
 |---------|--------|--------|--------------------|
-| `guncel` (ana script) | SemVer (x.x.x) | v5.3.0 (BigFive Edition - Beacon) | Her özellik/fix'te |
-| `install.sh` (kurulum) | Night-Vx.x.x | Night-V1.2.0 | Sadece kurulum mantığı değiştiğinde |
+| `guncel` (ana script) | SemVer (x.x.x) | v5.4.x (BigFive Edition - Beacon) | Her özellik/fix'te |
+| `install.sh` (kurulum) | Night-Vx.x.x | Night-V1.3.0 | Sadece kurulum mantığı değiştiğinde |
 
 **İsimlendirme Kuralı:**
 - **Edition** = Major seri adı (örn: "BigFive" v5.x için = 5 paket yöneticisi)

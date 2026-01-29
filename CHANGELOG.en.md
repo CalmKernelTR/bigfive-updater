@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.4.3] - 2026-01-29 "BigFive Edition - Beacon"
+### Fixed
+- **Installation URL:** Changed from raw.githubusercontent.com to releases URL (avoids CDN cache issues)
+- **SHA256 checksum verification:** Fixed grep pattern to match exact filename `guncel` (not `guncel.bash` or `guncel.8`)
+
+### Changed
+- **arcb-wider-updater.conf.example:** Updated to v5.4.x, added `CONFIG_JSON_MODE` option
+- **guncel:** Added `CONFIG_JSON_MODE` support in `load_config()`
+
+---
+
+## [5.4.1] - 2026-01-29 "BigFive Edition - Beacon"
+### Added
+- **Man page:** Full manual page in troff format (`docs/guncel.8`)
+  - Covers all options, backends, configuration, and examples
+  - Symlinks for `man updater` and `man bigfive`
+  - Auto-installed via `install.sh`
+- **7 new BATS tests:** Man page validation tests
+
+### Documentation
+- Man page available via `man guncel`
+
+---
+
+## [5.4.0] - 2026-01-29 "BigFive Edition - Beacon"
+### Added
+- **Bash completion:** Tab completion for all options and backends
+  - File: `completions/guncel.bash`
+  - Supports `guncel`, `updater`, and `bigfive` commands
+  - Completes `--skip` and `--only` with backend names
+  - Auto-installed to `/usr/share/bash-completion/completions/`
+- **8 new BATS tests:** Bash completion validation tests
+- **install.sh:** Now installs bash completion and man page automatically
+
+### Changed
+- install.sh version: Night-V1.2.1 → Night-V1.3.0
+- release.yml: Includes `guncel.bash` and `guncel.8` in release assets
+- Total BATS tests: 70 → 85
+
+---
+
 ## [5.3.0] - 2026-01-29 "BigFive Edition - Beacon"
 ### Added
 - **JSON Output Mode:** New `--json` and `--json-full` flags for machine-readable output

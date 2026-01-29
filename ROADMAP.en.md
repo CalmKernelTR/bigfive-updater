@@ -52,12 +52,20 @@
 - [x] SIEM integration (Wazuh, Splunk, ELK)
 - [x] Machine-readable output
 
-### v5.4 - User Experience (Planned)
+### v5.4 "Beacon" - Shell Integration ✅ COMPLETED
+- [x] Bash completion (`completions/guncel.bash`)
+- [x] Man page (`docs/guncel.8`)
+- [x] Tab completion for options and backends
+- [x] Full documentation via `man guncel`
+- [x] Auto-install via `install.sh`
+- [x] 85 BATS tests total
+
+### v5.5+ - User Experience (Planned)
 - [ ] Graceful error messages
 - [ ] Better error explanations
 - [ ] Solution suggestions
 
-### v5.5+ - Advanced Configuration (Planned)
+### v5.6+ - Advanced Configuration (Planned)
 - [ ] Email notifications (SMTP)
 - [ ] Webhook notifications (Slack, Discord)
 - [ ] Systemd timer template

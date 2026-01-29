@@ -49,6 +49,14 @@ Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks
     * `--only` to run only specified backends.
 * **Dry-Run Mode (v3.8.0):**
     * `--dry-run` to preview updates without applying.
+* **JSON Output (v5.3+):**
+    * `--json`: Lightweight JSON for monitoring systems (Zabbix, Nagios, Prometheus).
+    * `--json-full`: Detailed JSON for SIEM/audit systems (Wazuh, Splunk, ELK).
+* **Bash Completion (v5.4+):**
+    * Tab completion for all options and backends.
+    * Auto-installed to `/usr/share/bash-completion/completions/`.
+* **Man Page (v5.4+):**
+    * Full documentation via `man guncel`.
 * **Config File Support (v3.6.0):**
     * Define default settings in `/etc/arcb-wider-updater.conf`.
 * **SHA256 Verification (v3.6.0):**
@@ -74,8 +82,8 @@ This project uses **two separate version systems**:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v5.3.0 (BigFive Edition - Beacon) | Every feature/fix |
-| `install.sh` (installer) | Night-Vx.x.x | Night-V1.2.0 | Only when install logic changes |
+| `guncel` (main script) | SemVer (x.x.x) | v5.4.x (BigFive Edition - Beacon) | Every feature/fix |
+| `install.sh` (installer) | Night-Vx.x.x | Night-V1.3.0 | Only when install logic changes |
 
 **Naming Convention:**
 - **Edition** = Major series name (e.g., "BigFive" for v5.x = 5 package managers)

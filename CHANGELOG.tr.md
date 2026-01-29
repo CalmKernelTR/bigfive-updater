@@ -5,6 +5,47 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [5.4.3] - 2026-01-29 "BigFive Edition - Beacon"
+### Düzeltilenler
+- **Kurulum URL'i:** raw.githubusercontent.com yerine releases URL kullanılıyor (CDN cache sorunu önlendi)
+- **SHA256 checksum doğrulama:** Tam dosya adı `guncel` eşleşmesi için grep pattern düzeltildi (`guncel.bash` veya `guncel.8` değil)
+
+### Değişenler
+- **arcb-wider-updater.conf.example:** v5.4.x'e güncellendi, `CONFIG_JSON_MODE` opsiyonu eklendi
+- **guncel:** `load_config()` fonksiyonuna `CONFIG_JSON_MODE` desteği eklendi
+
+---
+
+## [5.4.1] - 2026-01-29 "BigFive Edition - Beacon"
+### Eklenenler
+- **Man sayfası:** Troff formatında tam kılavuz sayfası (`docs/guncel.8`)
+  - Tüm seçenekler, backend'ler, yapılandırma ve örnekleri kapsar
+  - `man updater` ve `man bigfive` için symlink'ler
+  - `install.sh` ile otomatik kurulum
+- **7 yeni BATS testi:** Man sayfası doğrulama testleri
+
+### Dokümantasyon
+- Man sayfası `man guncel` ile erişilebilir
+
+---
+
+## [5.4.0] - 2026-01-29 "BigFive Edition - Beacon"
+### Eklenenler
+- **Bash tamamlama:** Tüm seçenekler ve backend'ler için Tab tamamlama
+  - Dosya: `completions/guncel.bash`
+  - `guncel`, `updater` ve `bigfive` komutlarını destekler
+  - `--skip` ve `--only` backend isimleriyle tamamlanır
+  - `/usr/share/bash-completion/completions/` dizinine otomatik kurulum
+- **8 yeni BATS testi:** Bash tamamlama doğrulama testleri
+- **install.sh:** Artık bash completion ve man sayfasını otomatik kuruyor
+
+### Değişenler
+- install.sh versiyonu: Night-V1.2.1 → Night-V1.3.0
+- release.yml: `guncel.bash` ve `guncel.8` release asset'lerine eklendi
+- Toplam BATS testleri: 70 → 85
+
+---
+
 ## [5.3.0] - 2026-01-29 "BigFive Edition - Beacon"
 ### Eklenenler
 - **JSON Çıktı Modu:** Makine tarafından okunabilir çıktı için `--json` ve `--json-full` bayrakları

@@ -51,8 +51,8 @@ This project uses two separate version systems:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v5.3.0 (BigFive Edition - Beacon) | Her özellik/fix'te / Every feature/fix |
-| `install.sh` (installer) | Night-Vx.x.x | Night-V1.2.0 | Sadece kurulum değiştiğinde / Only when install logic changes |
+| `guncel` (main script) | SemVer (x.x.x) | v5.4.x (BigFive Edition - Beacon) | Her özellik/fix'te / Every feature/fix |
+| `install.sh` (installer) | Night-Vx.x.x | Night-V1.3.0 | Sadece kurulum değiştiğinde / Only when install logic changes |
 
 **Neden ayrı? / Why separate?**
 - Ana script sık güncellenir, installer nadiren değişir
@@ -75,9 +75,11 @@ This project uses two separate version systems:
 - ✅ Full Coverage: System packages, Flatpak, Snap, Firmware
 - ✅ Selective Updates: `--skip` and `--only` flags (including `--skip system`)
 - ✅ Dry-Run Mode: Preview without applying
-- ✅ JSON Output: `--json` for monitoring, `--json-full` for SIEM/audit (v5.3.0+)
+- ✅ JSON Output: `--json` for monitoring, `--json-full` for SIEM/audit (v5.3+)
+- ✅ Bash Completion: Tab completion for all options (v5.4+)
+- ✅ Man Page: `man guncel` for full documentation (v5.4+)
 - ✅ Config File: `/etc/arcb-wider-updater.conf`
-- ✅ GPG Signature Verification: Cryptographically signed releases (v4.1.0+)
+- ✅ GPG Signature Verification: Cryptographically signed releases
 - ✅ SHA256 Verification: Secure self-updates
 - ✅ Automatic Backup: Rollback capability
 - ✅ TLS 1.2+ Hardening: Secure downloads

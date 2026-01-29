@@ -52,12 +52,20 @@
 - [x] SIEM entegrasyonu (Wazuh, Splunk, ELK)
 - [x] Makine tarafından okunabilir çıktı
 
-### v5.4 "Echo" - Kullanıcı Deneyimi (Planlanan)
+### v5.4 "Beacon" - Shell Entegrasyonu ✅ TAMAMLANDI
+- [x] Bash tamamlama (`completions/guncel.bash`)
+- [x] Man sayfası (`docs/guncel.8`)
+- [x] Seçenekler ve backend'ler için Tab tamamlama
+- [x] `man guncel` ile tam dokümantasyon
+- [x] `install.sh` ile otomatik kurulum
+- [x] Toplam 85 BATS testi
+
+### v5.5+ - Kullanıcı Deneyimi (Planlanan)
 - [ ] Graceful error messages (kullanıcı dostu hata mesajları)
 - [ ] Daha iyi hata açıklamaları
 - [ ] Çözüm önerileri
 
-### v5.5+ - Gelişmiş Yapılandırma (Planlanan)
+### v5.6+ - Gelişmiş Yapılandırma (Planlanan)
 - [ ] Email bildirimleri (SMTP)
 - [ ] Webhook bildirimleri (Slack, Discord)
 - [ ] Systemd timer şablonu
