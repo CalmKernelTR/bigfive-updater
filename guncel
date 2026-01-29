@@ -146,6 +146,7 @@ print_info() {
 
 # --- v3.8.0: DRY-RUN MESAJI ---
 print_dry_run() {
+    [[ "$JSON_MODE" != "none" ]] && { echo "[$(date '+%F %T')] DRY-RUN: $1" >> "$LOG_FILE"; return; }
     printf '%s[DRY-RUN] %s%s\n' "${YELLOW}" "$1" "${NC}"
     echo "[$(date '+%F %T')] DRY-RUN: $1" >> "$LOG_FILE"
 }
@@ -214,15 +215,18 @@ print_system_header() {
     ram_str=$(free -h 2>/dev/null | awk '/^Mem:/{print $2}' || echo "N/A")
     local disk_str
     disk_str=$(df -h / 2>/dev/null | awk 'NR==2{print $5}' || echo "N/A")
-    
-    printf '%s========================================%s\n' "${GREEN}" "${NC}"
-    printf '%s  ARCB-WIDER-UPDATER v%s (%s Edition)%s\n' "${GREEN}" "${VERSION}" "${EDITION}" "${NC}"
-    [[ "$DRY_RUN" == "true" ]] && printf '%s  [DRY-RUN MODE]%s\n' "${YELLOW}" "${NC}"
-    printf '%s  Host: %s | User: %s%s\n' "${GREEN}" "${hostname_str}" "${user_str}" "${NC}"
-    printf '%s  Kernel: %s%s\n' "${GREEN}" "${kernel_str}" "${NC}"
-    printf '%s  RAM: %s | Disk: %s used%s\n' "${GREEN}" "${ram_str}" "${disk_str}" "${NC}"
-    printf '%s========================================%s\n' "${GREEN}" "${NC}"
-    
+
+    # JSON modunda terminal çıktısı bastırılır
+    if [[ "$JSON_MODE" == "none" ]]; then
+        printf '%s========================================%s\n' "${GREEN}" "${NC}"
+        printf '%s  ARCB-WIDER-UPDATER v%s (%s Edition)%s\n' "${GREEN}" "${VERSION}" "${EDITION}" "${NC}"
+        [[ "$DRY_RUN" == "true" ]] && printf '%s  [DRY-RUN MODE]%s\n' "${YELLOW}" "${NC}"
+        printf '%s  Host: %s | User: %s%s\n' "${GREEN}" "${hostname_str}" "${user_str}" "${NC}"
+        printf '%s  Kernel: %s%s\n' "${GREEN}" "${kernel_str}" "${NC}"
+        printf '%s  RAM: %s | Disk: %s used%s\n' "${GREEN}" "${ram_str}" "${disk_str}" "${NC}"
+        printf '%s========================================%s\n' "${GREEN}" "${NC}"
+    fi
+
     # Log'a da yaz
     {
         echo "=================================================="
@@ -259,9 +263,12 @@ check_reboot_required() {
 
 # --- FİNAL ÖZET KUTUSU ---
 print_final_summary() {
+    # JSON modunda terminal çıktısı bastırılır
+    [[ "$JSON_MODE" != "none" ]] && return
+
     local reboot_status
     reboot_status=$(check_reboot_required)
-    
+
     # FIX: Ensure all counters are numeric - strip any non-numeric chars
     # v5.1: BigFive - apt, dnf, pacman, zypper, apk
     local apt_c dnf_c pacman_c zypper_c apk_c flatpak_c snap_c fwupd_c
@@ -285,7 +292,7 @@ print_final_summary() {
     fwupd_c=${fwupd_c:-0}
 
     local total_updates=$((apt_c + dnf_c + pacman_c + zypper_c + apk_c + flatpak_c + snap_c + fwupd_c))
-    
+
     echo ""
     printf '%s========================================%s\n' "${GREEN}" "${NC}"
     if [[ "$DRY_RUN" == "true" ]]; then
@@ -1170,140 +1177,152 @@ update_firmware() {
 
 # --- v3.8.0: DRY-RUN GÜNCELLEME LİSTELEME ---
 perform_dry_run_check() {
+    # JSON modunda sessiz çalış
+    local json_quiet="false"
+    [[ "$JSON_MODE" != "none" ]] && json_quiet="true"
+
     print_header "[DRY-RUN] Mevcut Güncellemeler Kontrol Ediliyor"
-    
+
     # APT
     if command -v apt-get &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "apt"; then
         print_dry_run "APT: Güncellenebilir paketler listeleniyor..."
-        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         apt-get update -qq >> "$LOG_FILE" 2>&1 || true
         local apt_list
         apt_list=$(apt list --upgradable 2>/dev/null | grep -v "Listing..." || true)
         if [[ -n "$apt_list" ]]; then
-            echo "$apt_list"
+            [[ "$json_quiet" == "false" ]] && echo "$apt_list"
             APT_COUNT=$(echo "$apt_list" | wc -l | tr -cd '0-9')
         else
-            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
             APT_COUNT=0
         fi
-        echo ""
+        [[ "$json_quiet" == "false" ]] && echo ""
+        add_pkg_manager_status "apt" "checked" "$APT_COUNT"
     fi
     
     # DNF
     if command -v dnf &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "dnf"; then
         print_dry_run "DNF: Güncellenebilir paketler listeleniyor..."
-        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         local dnf_list
         dnf_list=$(dnf check-update 2>/dev/null | grep -v "^$" | grep -v "Last metadata" || true)
         if [[ -n "$dnf_list" ]]; then
-            echo "$dnf_list"
+            [[ "$json_quiet" == "false" ]] && echo "$dnf_list"
             DNF_COUNT=$(echo "$dnf_list" | wc -l | tr -cd '0-9')
         else
-            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
             DNF_COUNT=0
         fi
-        echo ""
+        [[ "$json_quiet" == "false" ]] && echo ""
+        add_pkg_manager_status "dnf" "checked" "$DNF_COUNT"
     fi
 
     # Pacman (v5.0 BigFour)
     if command -v pacman &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "pacman"; then
         print_dry_run "Pacman: Güncellenebilir paketler listeleniyor..."
-        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         pacman -Sy >> "$LOG_FILE" 2>&1 || true
         local pacman_list
         pacman_list=$(pacman -Qu 2>/dev/null || true)
         if [[ -n "$pacman_list" ]]; then
-            echo "$pacman_list"
+            [[ "$json_quiet" == "false" ]] && echo "$pacman_list"
             PACMAN_COUNT=$(echo "$pacman_list" | wc -l | tr -cd '0-9')
         else
-            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
             PACMAN_COUNT=0
         fi
-        echo ""
+        [[ "$json_quiet" == "false" ]] && echo ""
+        add_pkg_manager_status "pacman" "checked" "$PACMAN_COUNT"
     fi
 
     # Zypper (v5.0 BigFour)
     if command -v zypper &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "zypper"; then
         print_dry_run "Zypper: Güncellenebilir paketler listeleniyor..."
-        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         zypper refresh >> "$LOG_FILE" 2>&1 || true
         local zypper_list
         zypper_list=$(zypper -q lu 2>/dev/null | grep "^v" || true)
         if [[ -n "$zypper_list" ]]; then
-            echo "$zypper_list"
+            [[ "$json_quiet" == "false" ]] && echo "$zypper_list"
             ZYPPER_COUNT=$(echo "$zypper_list" | wc -l | tr -cd '0-9')
         else
-            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
             ZYPPER_COUNT=0
         fi
-        echo ""
+        [[ "$json_quiet" == "false" ]] && echo ""
+        add_pkg_manager_status "zypper" "checked" "$ZYPPER_COUNT"
     fi
 
     # APK (v5.1 BigFive - Alpine Linux)
     if command -v apk &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "apk"; then
         print_dry_run "APK: Güncellenebilir paketler listeleniyor..."
-        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         apk update >> "$LOG_FILE" 2>&1 || true
         local apk_list
         apk_list=$(apk version -l '<' 2>/dev/null || true)
         if [[ -n "$apk_list" ]]; then
-            echo "$apk_list"
+            [[ "$json_quiet" == "false" ]] && echo "$apk_list"
             APK_COUNT=$(echo "$apk_list" | wc -l | tr -cd '0-9')
         else
-            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
             APK_COUNT=0
         fi
-        echo ""
+        [[ "$json_quiet" == "false" ]] && echo ""
+        add_pkg_manager_status "apk" "checked" "$APK_COUNT"
     fi
 
     # Flatpak
     if command -v flatpak &> /dev/null && [[ "$SKIP_FLATPAK" != "true" ]] && should_run_backend "flatpak"; then
         print_dry_run "Flatpak: Güncellenebilir uygulamalar listeleniyor..."
-        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         local flatpak_list
         flatpak_list=$(flatpak remote-ls --updates 2>/dev/null || true)
         if [[ -n "$flatpak_list" ]]; then
-            echo "$flatpak_list"
+            [[ "$json_quiet" == "false" ]] && echo "$flatpak_list"
             FLATPAK_COUNT=$(echo "$flatpak_list" | wc -l | tr -cd '0-9')
         else
-            printf '%s  Tüm uygulamalar güncel.%s\n' "${GREEN}" "${NC}"
+            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm uygulamalar güncel.%s\n' "${GREEN}" "${NC}"
             FLATPAK_COUNT=0
         fi
-        echo ""
+        [[ "$json_quiet" == "false" ]] && echo ""
+        add_pkg_manager_status "flatpak" "checked" "$FLATPAK_COUNT"
     fi
-    
+
     # Snap
     if command -v snap &> /dev/null && [[ "$SKIP_SNAP" != "true" ]] && should_run_backend "snap"; then
         print_dry_run "Snap: Güncellenebilir paketler listeleniyor..."
-        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         local snap_list
         snap_list=$(snap refresh --list 2>/dev/null | tail -n +2 || true)
         if [[ -n "$snap_list" ]]; then
-            echo "$snap_list"
+            [[ "$json_quiet" == "false" ]] && echo "$snap_list"
             SNAP_COUNT=$(echo "$snap_list" | wc -l | tr -cd '0-9')
         else
-            printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
             SNAP_COUNT=0
         fi
-        echo ""
+        [[ "$json_quiet" == "false" ]] && echo ""
+        add_pkg_manager_status "snap" "checked" "$SNAP_COUNT"
     fi
-    
+
     # Firmware - v3.8.1 FIX: "No updatable devices" durumunda exit 0
     if command -v fwupdmgr &> /dev/null && [[ "$SKIP_FWUPD" != "true" ]] && should_run_backend "fwupd"; then
         print_dry_run "Firmware: Mevcut güncellemeler kontrol ediliyor..."
-        printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
         fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
         local fwupd_list fwupd_exit_code
         fwupd_list=$(fwupdmgr get-updates 2>&1) || fwupd_exit_code=$?
         # fwupdmgr returns exit code 2 for "No updatable devices" - this is not an error
         if [[ -n "$fwupd_list" && ! "$fwupd_list" =~ "No upgrades" && ! "$fwupd_list" =~ "No updatable devices" ]]; then
-            echo "$fwupd_list"
+            [[ "$json_quiet" == "false" ]] && echo "$fwupd_list"
             FWUPD_COUNT=$(echo "$fwupd_list" | grep -c "New version" | tr -cd '0-9' || echo "0")
         else
-            printf '%s  Firmware güncel.%s\n' "${GREEN}" "${NC}"
+            [[ "$json_quiet" == "false" ]] && printf '%s  Firmware güncel.%s\n' "${GREEN}" "${NC}"
             FWUPD_COUNT=0
         fi
-        echo ""
+        [[ "$json_quiet" == "false" ]] && echo ""
+        add_pkg_manager_status "fwupd" "checked" "$FWUPD_COUNT"
     fi
 }
 
@@ -1516,6 +1535,14 @@ check_root
 
 # --- FLOCK: Eşzamanlı çalışma kilidi ---
 LOCK_FILE="/var/lock/arcb-wider-updater.lock"
+# Bazı container'larda /var/lock veya /run/lock yoksa oluştur
+# Fedora/RHEL'de /var/lock -> /run/lock symlink'i var
+if [[ -L "/var/lock" ]]; then
+    # Symlink varsa hedef dizini oluştur
+    mkdir -p "/run/lock" 2>/dev/null || true
+elif [[ ! -d "/var/lock" ]]; then
+    mkdir -p "/var/lock" 2>/dev/null || true
+fi
 exec 9>"$LOCK_FILE"
 if ! flock -n 9; then
     print_error "Başka bir güncelleme işlemi zaten çalışıyor."
