@@ -558,7 +558,7 @@ setup_logging() {
         echo "ARCB Wider Updater v$VERSION ($EDITION Edition - $CODENAME)"
         echo "Start Time : $(date '+%F %T')"
         echo "User       : $(whoami)"
-        echo "Hostname   : $(hostname)"
+        echo "Hostname   : $(hostname 2>/dev/null || echo "unknown")"
         echo "Mode       : $([[ "${AUTO_MODE:-false}" == "true" ]] && echo "AUTO" || echo "INTERACTIVE")"
         echo "Dry-Run    : $DRY_RUN"
         echo "Verbose    : $VERBOSE_MODE"
@@ -1560,7 +1560,7 @@ check_self_update
 # v5.3.0: JSON output için başlangıç zamanını kaydet
 START_TIME=$(date +%s)
 
-if [[ "$AUTO_MODE" != "true" && "$QUIET_MODE" != "true" ]]; then clear; fi
+if [[ "$AUTO_MODE" != "true" && "$QUIET_MODE" != "true" ]]; then clear 2>/dev/null || true; fi
 
 # Başlangıç özeti
 print_system_header
