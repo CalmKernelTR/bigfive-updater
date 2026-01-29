@@ -206,19 +206,20 @@ This project uses **two separate version systems**:
 
 ```bash
 # in guncel
-VERSION="5.2.0"
-CODENAME="BigFive"
+VERSION="5.2.1"
+EDITION="BigFive"
+CODENAME="Alpine"
 ```
 
 ### 2. Installation Script (install.sh) - Night Version
 
-**Format:** `Night-Vx.x.x` (e.g., Night-V1.1.0)
+**Format:** `Night-Vx.x.x` (e.g., Night-V1.2.0)
 
 **Update Frequency:** Only when install logic changes
 
 ```bash
 # in install.sh
-# ARCB Updater Installer Night-V1.1.0
+# ARCB Updater Installer Night-V1.2.0
 ```
 
 ### Why Separate Systems?

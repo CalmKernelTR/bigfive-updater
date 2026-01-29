@@ -5,8 +5,9 @@
 #
 
 # --- AYARLAR ---
-VERSION="5.2.0"
-CODENAME="BigFive"
+VERSION="5.2.1"
+EDITION="BigFive"
+CODENAME="Alpine"
 LOG_DIR="/var/log/arcb-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 GITHUB_RAW_URL="https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/guncel"
@@ -153,7 +154,7 @@ print_system_header() {
     disk_str=$(df -h / 2>/dev/null | awk 'NR==2{print $5}' || echo "N/A")
     
     printf '%s========================================%s\n' "${GREEN}" "${NC}"
-    printf '%s  ARCB-WIDER-UPDATER v%s%s\n' "${GREEN}" "${VERSION}" "${NC}"
+    printf '%s  ARCB-WIDER-UPDATER v%s (%s Edition)%s\n' "${GREEN}" "${VERSION}" "${EDITION}" "${NC}"
     [[ "$DRY_RUN" == "true" ]] && printf '%s  [DRY-RUN MODE]%s\n' "${YELLOW}" "${NC}"
     printf '%s  Host: %s | User: %s%s\n' "${GREEN}" "${hostname_str}" "${user_str}" "${NC}"
     printf '%s  Kernel: %s%s\n' "${GREEN}" "${kernel_str}" "${NC}"
@@ -164,7 +165,7 @@ print_system_header() {
     {
         echo "=================================================="
         echo "PRE-UPDATE SYSTEM INFO"
-        echo "Version    : $VERSION ($CODENAME)"
+        echo "Version    : $VERSION ($EDITION Edition - $CODENAME)"
         echo "Dry-Run    : $DRY_RUN"
         echo "Hostname   : $hostname_str"
         echo "User       : $user_str"
@@ -361,7 +362,7 @@ setup_logging() {
     
     {
         echo "=================================================="
-        echo "ARCB Wider Updater v$VERSION ($CODENAME)"
+        echo "ARCB Wider Updater v$VERSION ($EDITION Edition - $CODENAME)"
         echo "Start Time : $(date '+%F %T')"
         echo "User       : $(whoami)"
         echo "Hostname   : $(hostname)"
@@ -1146,6 +1147,16 @@ do_uninstall() {
         fi
     fi
 
+    # Symlink: updater
+    if [[ -L "/usr/local/bin/updater" ]]; then
+        rm -f "/usr/local/bin/updater" && removed_items+=("Symlink: /usr/local/bin/updater")
+    fi
+
+    # Symlink: bigfive
+    if [[ -L "/usr/local/bin/bigfive" ]]; then
+        rm -f "/usr/local/bin/bigfive" && removed_items+=("Symlink: /usr/local/bin/bigfive")
+    fi
+
     # Backup dosyası
     if [[ -f "/usr/local/bin/guncel.bak" ]]; then
         rm -f "/usr/local/bin/guncel.bak" && removed_items+=("Backup: /usr/local/bin/guncel.bak")
@@ -1208,9 +1219,9 @@ do_uninstall() {
 }
 
 show_help() {
-    printf '%sARCB Wider Updater v%s (%s)%s\n' "${BOLD}" "$VERSION" "$CODENAME" "${NC}"
+    printf '%sARCB Wider Updater v%s (%s Edition - %s)%s\n' "${BOLD}" "$VERSION" "$EDITION" "$CODENAME" "${NC}"
     echo "--------------------------------------------------"
-    echo "Kullanım: guncel [SEÇENEK]"
+    echo "Kullanım: guncel | updater | bigfive [SEÇENEK]"
     echo ""
     echo "Seçenekler:"
     echo "  --auto              Otomatik mod (Onay sormadan günceller)"

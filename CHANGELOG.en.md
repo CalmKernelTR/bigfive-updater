@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.2.1] - 2026-01-29 "BigFive Edition - Alpine"
+### Added
+- **EDITION variable:** Separate Edition name from Codename
+  - Edition = Major series name (e.g., "BigFive" for v5.x)
+  - Codename = Minor release name (e.g., "Alpine" for v5.2.x)
+- **`bigfive` command alias:** International/brand name command
+  - Now 3 commands available: `guncel` (Turkish), `updater` (English), `bigfive` (Brand)
+- **Symlink cleanup in uninstall:** `do_uninstall()` now removes `updater` and `bigfive` symlinks
+
+### Changed
+- VERSION: 5.2.0 → 5.2.1
+- Version display format: `v5.2.1 (BigFive Edition - Alpine)`
+- `show_help()` now shows all three command aliases
+- install.sh version: Night-V1.1.0 → Night-V1.2.0
+- install.sh now creates `bigfive` symlink alongside `updater`
+
+### Documentation
+- Standardized all docs to `*.en.md` / `*.tr.md` naming convention
+- Updated README files with Edition/Codename explanation
+- Updated all version references
+
+---
+
 ## [5.2.0] - 2026-01-28 "BigFive"
 ### Added
 - **Alpine Linux Support:** New `update_apk()` function for Alpine Linux package management

@@ -206,19 +206,20 @@ Bu projede **iki ayrı versiyon sistemi** kullanılmaktadır:
 
 ```bash
 # guncel içinde
-VERSION="5.2.0"
-CODENAME="BigFive"
+VERSION="5.2.1"
+EDITION="BigFive"
+CODENAME="Alpine"
 ```
 
 ### 2. Kurulum Scripti (install.sh) - Night Version
 
-**Format:** `Night-Vx.x.x` (örn: Night-V1.1.0)
+**Format:** `Night-Vx.x.x` (örn: Night-V1.2.0)
 
 **Güncelleme Sıklığı:** Sadece kurulum mantığı değiştiğinde
 
 ```bash
 # install.sh içinde
-# ARCB Updater Installer Night-V1.1.0
+# ARCB Updater Installer Night-V1.2.0
 ```
 
 ### Neden Ayrı Sistemler?

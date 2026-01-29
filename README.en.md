@@ -10,7 +10,11 @@
 > *The lazy but obsessive admin's best friend.*
 > **One command. One updater. Zero nonsense.**
 
-Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks with a single command. Supports **BigFive** package managers: APT (Debian/Ubuntu), DNF (Fedora/RHEL), Pacman (Arch/Manjaro), Zypper (openSUSE), and APK (Alpine).
+Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks with a single command.
+
+**v5.x = BigFive Edition** - Supports 5 package managers: APT (Debian/Ubuntu), DNF (Fedora/RHEL), Pacman (Arch/Manjaro), Zypper (openSUSE), and APK (Alpine).
+
+**Available commands:** `guncel` (Turkish) | `updater` (English) | `bigfive` (Brand/International)
 
 ## 📑 Table of Contents
 
@@ -70,8 +74,12 @@ This project uses **two separate version systems**:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v4.1.4 | Every feature/fix |
-| `install.sh` (installer) | Night-Vx.x.x | Night-V1.1.0 | Only when install logic changes |
+| `guncel` (main script) | SemVer (x.x.x) | v5.2.1 (BigFive Edition - Alpine) | Every feature/fix |
+| `install.sh` (installer) | Night-Vx.x.x | Night-V1.2.0 | Only when install logic changes |
+
+**Naming Convention:**
+- **Edition** = Major series name (e.g., "BigFive" for v5.x = 5 package managers)
+- **Codename** = Minor release name (e.g., "Alpine" for v5.2.0 = APK support added)
 
 **Why separate systems?**
 - Main script updates frequently (new features, bug fixes)
@@ -92,20 +100,22 @@ curl -fsSL https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/ins
 
 ## 🛠️ Usage
 
-After installation, simply type `guncel` in the terminal.
+After installation, use any of the three available commands: `guncel`, `updater`, or `bigfive`.
 
 ```bash
 # Interactive Mode (Recommended - Provides detailed output)
 guncel
+updater
+bigfive
 
 # Automatic Mode (No prompts - For Cron/Scheduled tasks)
 guncel --auto
 
 # Verbose Mode (Shows all command outputs)
-guncel --verbose
+updater --verbose
 
 # Quiet Mode (Shows only errors and summary)
-guncel --quiet
+bigfive --quiet
 
 # Dry-Run Mode (v3.8.0) - List updates without applying
 guncel --dry-run
@@ -113,7 +123,7 @@ guncel --dry-run
 # Selective Updates (v3.6.0)
 guncel --skip flatpak,snap      # Skip Flatpak and Snap
 guncel --skip snapshot          # Skip snapshot creation
-guncel --only system            # Only system packages (APT/DNF)
+guncel --only system            # Only system packages (APT/DNF/Pacman/Zypper/APK)
 guncel --only flatpak,fwupd     # Only Flatpak and Firmware
 ```
 

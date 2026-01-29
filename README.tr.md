@@ -70,7 +70,7 @@ Tek komut. Hepsi bir arada. Güvenli ve izlenebilir.
 
 ## 🚀 Özellikler
 
-* **Multi-Distro Desteği (v5.1 BigFive):**
+* **Multi-Distro Desteği (v5.x BigFive Edition):**
     * ✅ **Debian/Ubuntu/Zorin:** `APT` paket yöneticisi ve `Timeshift` yedekleme.
     * ✅ **Fedora/RHEL:** `DNF` paket yöneticisi ve `Snapper` yedekleme.
     * ✅ **Arch/Manjaro/EndeavourOS:** `Pacman` paket yöneticisi (v5.0+).
@@ -110,13 +110,19 @@ Bu proje **iki ayrı versiyon sistemi** kullanır:
 
 | Bileşen | Format | Güncel | Güncelleme Sıklığı |
 |---------|--------|--------|--------------------|
-| `guncel` (ana script) | SemVer (x.x.x) | v4.1.4 | Her özellik/fix'te |
-| `install.sh` (kurulum) | Night-Vx.x.x | Night-V1.1.0 | Sadece kurulum mantığı değiştiğinde |
+| `guncel` (ana script) | SemVer (x.x.x) | v5.2.1 (BigFive Edition - Alpine) | Her özellik/fix'te |
+| `install.sh` (kurulum) | Night-Vx.x.x | Night-V1.2.0 | Sadece kurulum mantığı değiştiğinde |
+
+**İsimlendirme Kuralı:**
+- **Edition** = Major seri adı (örn: "BigFive" v5.x için = 5 paket yöneticisi)
+- **Codename** = Minor sürüm adı (örn: "Alpine" v5.2.0 için = APK desteği eklendi)
 
 **Neden ayrı sistemler?**
 - Ana script sık güncellenir (yeni özellikler, bug fix'ler)
 - Kurulum scripti nadiren değişir (kurulum mantığı stabil)
 - Kullanıcılar hangi bileşenin güncellendiğini net görebilir
+
+**Kullanılabilir Komutlar:** `guncel` (Türkçe) | `updater` (İngilizce) | `bigfive` (Marka/Uluslararası)
 
 ---
 
@@ -209,20 +215,22 @@ sudo guncel --skip fwupd
 
 ## 🛠️ Kullanım
 
-Kurulumdan sonra terminalde `guncel` yazmanız yeterlidir.
+Kurulumdan sonra terminalde `guncel`, `updater` veya `bigfive` yazmanız yeterlidir.
 
 ```bash
 # İnteraktif Mod (Önerilen - Detaylı çıktı verir)
 guncel
+updater
+bigfive
 
 # Otomatik Mod (Soru sormaz - Cron/Zamanlanmış görevler için)
 guncel --auto
 
 # Detaylı Mod (Tüm komut çıktılarını gösterir)
-guncel --verbose
+updater --verbose
 
 # Sessiz Mod (Sadece hata ve özet gösterir)
-guncel --quiet
+bigfive --quiet
 
 # Kuru Çalıştırma (v3.8.0) - Güncellemeleri listele, uygulama
 guncel --dry-run
@@ -230,9 +238,10 @@ guncel --dry-run
 # Seçici Güncelleme (v3.6.0)
 guncel --skip flatpak,snap      # Flatpak ve Snap'i atla
 guncel --skip snapshot          # Snapshot oluşturmayı atla
-guncel --only system            # Sadece sistem paketleri (APT/DNF/Pacman/Zypper)
+guncel --only system            # Sadece sistem paketleri (APT/DNF/Pacman/Zypper/APK)
 guncel --only pacman            # Sadece Pacman (Arch Linux)
 guncel --only zypper            # Sadece Zypper (openSUSE)
+guncel --only apk               # Sadece APK (Alpine Linux)
 guncel --only flatpak,fwupd     # Sadece Flatpak ve Firmware
 ```
 

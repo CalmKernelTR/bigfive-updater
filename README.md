@@ -32,10 +32,10 @@
 curl -fsSL https://raw.githubusercontent.com/ahm3t0t/arcb-wider-updater/main/install.sh | sudo bash
 ```
 ```bash
-# Usage / Kullanım
+# Usage / Kullanım (3 alias: guncel, updater, bigfive)
 guncel              # Interactive mode / İnteraktif mod
-guncel --verbose    # Show details / Detayları göster
-guncel --quiet      # Quiet mode / Sessiz mod
+updater --verbose   # Show details / Detayları göster
+bigfive --quiet     # Quiet mode / Sessiz mod
 guncel --auto       # Automatic mode / Otomatik mod
 guncel --dry-run    # Preview updates / Güncellemeleri önizle
 guncel --help       # Help / Yardım
@@ -51,8 +51,8 @@ This project uses two separate version systems:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v5.2.0 | Her özellik/fix'te / Every feature/fix |
-| `install.sh` (installer) | Night-Vx.x.x | Night-V1.1.0 | Sadece kurulum değiştiğinde / Only when install logic changes |
+| `guncel` (main script) | SemVer (x.x.x) | v5.2.1 (BigFive Edition - Alpine) | Her özellik/fix'te / Every feature/fix |
+| `install.sh` (installer) | Night-Vx.x.x | Night-V1.2.0 | Sadece kurulum değiştiğinde / Only when install logic changes |
 
 **Neden ayrı? / Why separate?**
 - Ana script sık güncellenir, installer nadiren değişir
@@ -62,7 +62,9 @@ This project uses two separate version systems:
 
 ## 📋 Features / Özellikler
 
-### BigFive Multi-Distro Support (v5.2.0)
+### BigFive Edition - Multi-Distro Support (v5.x)
+
+**v5.x = BigFive Edition** (5 paket yöneticisi desteği / 5 package managers supported)
 - ✅ **APT** - Debian/Ubuntu/Zorin/Linux Mint
 - ✅ **DNF** - Fedora/RHEL/CentOS
 - ✅ **Pacman** - Arch Linux/Manjaro/EndeavourOS

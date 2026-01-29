@@ -32,10 +32,14 @@
 - [x] Multi-distro CI test matrix
 - [x] Docker test environment
 
-### v5.2.0 "BigFive" - Alpine Support
+### v5.2.x BigFive Edition - Alpine Support
 - [x] **APK** - Alpine Linux
 - [x] 5 package manager support
 - [x] Alpine CI testing (alpine:3.20)
+- [x] EDITION/CODENAME separation (Edition = series name, Codename = release name)
+- [x] `bigfive` command alias (for international users)
+- [x] 3 command support: `guncel`, `updater`, `bigfive`
+- [x] Documentation standardization (`*.en.md` / `*.tr.md`)
 
 ---
 
