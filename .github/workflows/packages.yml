@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          pacman -Syu --noconfirm base-devel git
+          pacman -Syu --noconfirm base-devel git pacman-contrib
 
       - name: Create build user
         run: |
@@ -88,11 +88,15 @@ jobs:
           cd packaging/alpine
           chown -R builder:builder .
           su builder -c "abuild checksum"
-          su builder -c "abuild -r"
+          # Build package (ignore index error due to self-signed key)
+          su builder -c "abuild -r" || true
+          # Verify packages were actually built
+          ls -la /home/builder/packages/packaging/x86_64/*.apk
 
       - name: Collect packages
         run: |
           mkdir -p alpine-packages
+          cp /home/builder/packages/packaging/x86_64/*.apk alpine-packages/ || \
           find /home/builder/packages -name "*.apk" -exec cp {} alpine-packages/ \;
 
       - name: Upload Alpine packages
