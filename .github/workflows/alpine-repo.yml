@@ -57,11 +57,14 @@ jobs:
           # Extract public key from private key
           openssl rsa -in /home/builder/.abuild/bigfive@ahm3t0t.rsa -pubout -out /home/builder/.abuild/bigfive@ahm3t0t.rsa.pub
           chmod 644 /home/builder/.abuild/bigfive@ahm3t0t.rsa.pub
+          # Install public key to system (so abuild trusts its own signatures)
+          cp /home/builder/.abuild/bigfive@ahm3t0t.rsa.pub /etc/apk/keys/
           # abuild config
           echo "PACKAGER_PRIVKEY=/home/builder/.abuild/bigfive@ahm3t0t.rsa" > /home/builder/.abuild/abuild.conf
           chown -R builder:builder /home/builder/.abuild
           # Verify keys exist
           ls -la /home/builder/.abuild/
+          ls -la /etc/apk/keys/
 
       - name: Update APKBUILD version
         run: |
