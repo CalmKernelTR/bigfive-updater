@@ -1,0 +1,99 @@
+# Contributor: Ahmet Ötegen <ahm3t0t@users.noreply.github.com>
+# Maintainer: Ahmet Ötegen <ahm3t0t@users.noreply.github.com>
+pkgname=bigfive-updater
+pkgver=6.0.2
+pkgrel=0
+pkgdesc="Armored, Smart, Multi-Distro Update Tool for Linux Systems"
+url="https://github.com/ahm3t0t/bigfive-updater"
+arch="noarch"
+license="MIT"
+depends="bash curl"
+makedepends=""
+subpackages="$pkgname-doc $pkgname-bash-completion $pkgname-zsh-completion $pkgname-fish-completion"
+source="$pkgname-$pkgver.tar.gz::https://github.com/ahm3t0t/bigfive-updater/archive/v$pkgver.tar.gz"
+
+build() {
+	# Nothing to build, it's a shell script
+	return 0
+}
+
+check() {
+	# Basic syntax check
+	bash -n "$builddir/guncel"
+}
+
+package() {
+	cd "$builddir"
+
+	# Main script
+	install -Dm755 guncel "$pkgdir"/usr/bin/guncel
+	ln -s guncel "$pkgdir"/usr/bin/updater
+	ln -s guncel "$pkgdir"/usr/bin/bigfive
+
+	# Language files
+	install -Dm644 lang/tr.sh "$pkgdir"/usr/share/$pkgname/lang/tr.sh
+	install -Dm644 lang/en.sh "$pkgdir"/usr/share/$pkgname/lang/en.sh
+
+	# Config example
+	install -Dm644 bigfive-updater.conf.example "$pkgdir"/etc/$pkgname.conf.example
+
+	# License
+	install -Dm644 LICENSE "$pkgdir"/usr/share/licenses/$pkgname/LICENSE
+}
+
+doc() {
+	cd "$builddir"
+	default_doc
+
+	# Man pages (must be gzipped for Alpine)
+	install -Dm644 docs/guncel.8 "$subpkgdir"/usr/share/man/man8/guncel.8
+	gzip -9 "$subpkgdir"/usr/share/man/man8/guncel.8
+	ln -s guncel.8.gz "$subpkgdir"/usr/share/man/man8/updater.8.gz
+	ln -s guncel.8.gz "$subpkgdir"/usr/share/man/man8/bigfive.8.gz
+
+	# Turkish man page
+	install -Dm644 docs/guncel.8.tr "$subpkgdir"/usr/share/man/tr/man8/guncel.8
+	gzip -9 "$subpkgdir"/usr/share/man/tr/man8/guncel.8
+
+	# Documentation
+	install -Dm644 README.md "$subpkgdir"/usr/share/doc/$pkgname/README.md
+	install -Dm644 CHANGELOG.en.md "$subpkgdir"/usr/share/doc/$pkgname/CHANGELOG.md
+}
+
+bashcomp() {
+	depends=""
+	pkgdesc="Bash completions for $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel bash-completion"
+
+	cd "$builddir"
+	install -Dm644 completions/guncel.bash \
+		"$subpkgdir"/usr/share/bash-completion/completions/guncel
+	ln -s guncel "$subpkgdir"/usr/share/bash-completion/completions/updater
+	ln -s guncel "$subpkgdir"/usr/share/bash-completion/completions/bigfive
+}
+
+zshcomp() {
+	depends=""
+	pkgdesc="Zsh completions for $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel zsh"
+
+	cd "$builddir"
+	install -Dm644 completions/_guncel \
+		"$subpkgdir"/usr/share/zsh/site-functions/_guncel
+	ln -s _guncel "$subpkgdir"/usr/share/zsh/site-functions/_updater
+	ln -s _guncel "$subpkgdir"/usr/share/zsh/site-functions/_bigfive
+}
+
+fishcomp() {
+	depends=""
+	pkgdesc="Fish completions for $pkgname"
+	install_if="$pkgname=$pkgver-r$pkgrel fish"
+
+	cd "$builddir"
+	install -Dm644 completions/guncel.fish \
+		"$subpkgdir"/usr/share/fish/vendor_completions.d/guncel.fish
+	ln -s guncel.fish "$subpkgdir"/usr/share/fish/vendor_completions.d/updater.fish
+	ln -s guncel.fish "$subpkgdir"/usr/share/fish/vendor_completions.d/bigfive.fish
+}
+
+sha512sums="SKIP"
