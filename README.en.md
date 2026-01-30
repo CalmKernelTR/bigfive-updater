@@ -114,12 +114,18 @@ curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/i
 ### Arch Linux / Manjaro / EndeavourOS (AUR)
 
 ```bash
-yay -S bigfive-updater
-# or
-paru -S bigfive-updater
+yay -S bigfive-updater   # or: paru -S bigfive-updater
 ```
 
-> **Note:** Official AUR package: https://aur.archlinux.org/packages/bigfive-updater
+### Alpine Linux (APK) - Coming Soon
+
+```bash
+# apk add bigfive-updater
+```
+
+> **Package Repositories:**
+> - AUR: https://aur.archlinux.org/packages/bigfive-updater
+> - Alpine: Coming soon (APKBUILD ready, repo in progress)
 
 ---
 

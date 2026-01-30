@@ -14,6 +14,19 @@ versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.ht
 - **Türkçe Man Page Kurulumu (install.sh):**
   - `docs/guncel.8.tr` artık `/usr/share/man/tr/man8/guncel.8` olarak kuruluyor
   - `LANG=tr_TR.UTF-8 man guncel` ile Türkçe dokümantasyon
+- **i18n BATS Testleri:** 13 yeni test eklendi (toplam 151 test)
+  - `--lang tr/en` flag testleri
+  - `BIGFIVE_LANG` env var testleri
+  - Fallback ve dil dosyası eşitlik kontrolleri
+- **AUR Paketi:** Arch Linux kullanıcıları için resmi AUR paketi
+  - `yay -S bigfive-updater` ile kurulum
+  - https://aur.archlinux.org/packages/bigfive-updater
+- **Alpine APKBUILD:** Alpine Linux paket desteği
+  - `packaging/alpine/APKBUILD` eklendi
+  - Subpackages: doc, bash-completion, zsh-completion, fish-completion
+- **GitHub Actions Paket Workflow:** Otomatik paket build
+  - `.github/workflows/packages.yml`
+  - Her release'de Arch ve Alpine paketleri otomatik build
 
 ### Değişenler
 - **Atomic Self-Update:** Self-update mekanizması atomic replace pattern kullanıyor

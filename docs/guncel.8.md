@@ -1,5 +1,5 @@
-% GUNCEL(8) BigFive Updater 6.0.0
-% Ahmet T. <ahmet@tanrikulu.net>
+% GUNCEL(8) BigFive Updater 6.0.2
+% Ahmet T. <ahm3t0t@users.noreply.github.com>
 % January 2026
 
 # NAME

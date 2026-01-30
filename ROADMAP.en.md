@@ -58,7 +58,7 @@
 - [x] Tab completion for options and backends
 - [x] Full documentation via `man guncel`
 - [x] Auto-install via `install.sh`
-- [x] 138 BATS tests total
+- [x] Total 138 BATS tests
 
 ### v5.5.0 "Dream" - Complete Rebranding ✅ COMPLETED
 - [x] Project rename: `arcb-wider-updater` → `bigfive-updater`
@@ -88,6 +88,18 @@
 - [x] Fixed printf invalid number error (grep -c exit code issue)
 - [x] Fixed all package manager counters
 
+### v6.0.2 "Echo" - Packaging & Improvements ✅ COMPLETED
+- [x] Disk space check (`check_disk_space()`, E040 error code)
+- [x] Atomic self-update (install + mv pattern)
+- [x] Turkish man page installation (install.sh Night-V1.4.1)
+- [x] 13 new i18n BATS tests (total 151 tests)
+- [x] **AUR Package:** https://aur.archlinux.org/packages/bigfive-updater
+  - Install with `yay -S bigfive-updater`
+- [x] **Alpine APKBUILD:** `packaging/alpine/APKBUILD`
+  - Subpackages: doc, bash-completion, zsh-completion, fish-completion
+- [x] **GitHub Actions Package Workflow:** `.github/workflows/packages.yml`
+  - Automatic Arch and Alpine package build on each release
+
 ### v6.x+ "Chrom" - Notifications & GUI (Planned)
 - [ ] Email notifications (SMTP)
 - [ ] Webhook notifications (Slack, Discord)
@@ -113,12 +125,14 @@
 
 | Idea | Status | Note |
 |------|--------|------|
+| AUR package | ✅ Completed | v6.0.2 - `yay -S bigfive-updater` |
+| Alpine APKBUILD | ✅ Completed | v6.0.2 - Repo setup in progress |
 | Desktop notifications | 🤔 Uncertain | Evaluating for v6.x |
 | Parallel updates | ❌ Deferred | Risky, complex |
 | Rust migration | ❌ Deferred | Bash is sufficient |
 | Web UI | ❌ Out of scope | Staying CLI-focused |
 | Plugin system | ❌ Deferred | Complexity |
-| DEB/RPM packaging | ❌ Deferred | curl-pipe-bash is sufficient |
+| DEB/RPM packaging | ❌ Deferred | curl-pipe-bash is sufficient, high maintenance burden |
 
 ---
 
@@ -126,9 +140,9 @@
 
 | Component | Test Count | Status |
 |-----------|------------|--------|
-| guncel.bats | 99 | ✅ |
+| guncel.bats | 112 | ✅ |
 | install.bats | 39 | ✅ |
-| **Total** | **138** | ✅ |
+| **Total** | **151** | ✅ |
 
 ### CI Test Matrix
 

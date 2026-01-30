@@ -151,12 +151,15 @@ Bu proje **iki ayrı versiyon sistemi** kullanır:
 curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/install.sh | sudo bash
 
 # Arch Linux / Manjaro / EndeavourOS (AUR)
-yay -S bigfive-updater
-# veya
-paru -S bigfive-updater
+yay -S bigfive-updater   # veya: paru -S bigfive-updater
+
+# Alpine Linux (APK) - Yakında
+# apk add bigfive-updater
 ```
 
-> **Not:** AUR paketi resmi olarak yayınlanmıştır: https://aur.archlinux.org/packages/bigfive-updater
+> **Paket Repoları:**
+> - AUR: https://aur.archlinux.org/packages/bigfive-updater
+> - Alpine: Yakında (APKBUILD hazır, repo kurulacak)
 
 ### İlk Çalıştırma
 

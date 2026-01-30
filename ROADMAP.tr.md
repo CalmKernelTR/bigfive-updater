@@ -88,6 +88,18 @@
 - [x] printf invalid number hatası düzeltildi (grep -c exit code sorunu)
 - [x] Tüm paket yöneticisi sayaçları düzeltildi
 
+### v6.0.2 "Echo" - Paketleme & İyileştirmeler ✅ TAMAMLANDI
+- [x] Disk alanı kontrolü (`check_disk_space()`, E040 hata kodu)
+- [x] Atomic self-update (install + mv pattern)
+- [x] Türkçe man page kurulumu (install.sh Night-V1.4.1)
+- [x] 13 yeni i18n BATS testi (toplam 151 test)
+- [x] **AUR Paketi:** https://aur.archlinux.org/packages/bigfive-updater
+  - `yay -S bigfive-updater` ile kurulum
+- [x] **Alpine APKBUILD:** `packaging/alpine/APKBUILD`
+  - Subpackages: doc, bash-completion, zsh-completion, fish-completion
+- [x] **GitHub Actions Paket Workflow:** `.github/workflows/packages.yml`
+  - Her release'de otomatik Arch ve Alpine paket build
+
 ### v6.x+ "Chrom" - Bildirimler & GUI (Planlanan)
 - [ ] Email bildirimleri (SMTP)
 - [ ] Webhook bildirimleri (Slack, Discord)
@@ -113,12 +125,14 @@
 
 | Fikir | Durum | Not |
 |-------|-------|-----|
+| AUR paketi | ✅ Tamamlandı | v6.0.2 - `yay -S bigfive-updater` |
+| Alpine APKBUILD | ✅ Tamamlandı | v6.0.2 - Repo kurulumu devam ediyor |
 | Masaüstü bildirimleri | 🤔 Belirsiz | v6.x için değerlendiriliyor |
 | Paralel güncellemeler | ❌ Ertelendi | Riskli, karmaşık |
 | Rust migration | ❌ Ertelendi | Bash yeterli |
 | Web UI | ❌ Kapsam dışı | CLI odaklı kalıyoruz |
 | Plugin sistemi | ❌ Ertelendi | Karmaşıklık |
-| DEB/RPM paketleme | ❌ Ertelendi | curl-pipe-bash yeterli |
+| DEB/RPM paketleme | ❌ Ertelendi | curl-pipe-bash yeterli, maintenance yükü fazla |
 
 ---
 
@@ -126,9 +140,9 @@
 
 | Bileşen | Test Sayısı | Durum |
 |---------|-------------|-------|
-| guncel.bats | 99 | ✅ |
+| guncel.bats | 112 | ✅ |
 | install.bats | 39 | ✅ |
-| **Toplam** | **138** | ✅ |
+| **Toplam** | **151** | ✅ |
 
 ### CI Test Matrisi
 
