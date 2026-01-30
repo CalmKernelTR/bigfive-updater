@@ -1,0 +1,155 @@
+name: Alpine Repository
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., 6.0.2)'
+        required: true
+
+env:
+  VERSION: ${{ github.event.release.tag_name || github.event.inputs.version }}
+
+jobs:
+  build-and-deploy:
+    name: Build and Deploy Alpine Repo
+    runs-on: ubuntu-latest
+    container: alpine:latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          apk add --no-cache alpine-sdk bash curl git sudo
+
+      - name: Create build user
+        run: |
+          adduser -D builder
+          addgroup builder abuild
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          mkdir -p /var/cache/distfiles
+          chmod 777 /var/cache/distfiles
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup signing key
+        run: |
+          mkdir -p /home/builder/.abuild
+          echo "${{ secrets.ALPINE_PRIVATE_KEY }}" > /home/builder/.abuild/bigfive@ahm3t0t.rsa
+          chmod 600 /home/builder/.abuild/bigfive@ahm3t0t.rsa
+          echo "PACKAGER_PRIVKEY=/home/builder/.abuild/bigfive@ahm3t0t.rsa" > /home/builder/.abuild/abuild.conf
+          chown -R builder:builder /home/builder/.abuild
+
+      - name: Update APKBUILD version
+        run: |
+          cd packaging/alpine
+          VER=${VERSION#v}
+          sed -i "s/^pkgver=.*/pkgver=$VER/" APKBUILD
+          chown -R builder:builder .
+
+      - name: Build packages
+        run: |
+          cd packaging/alpine
+          su builder -c "abuild checksum"
+          su builder -c "abuild -r"
+
+      - name: Prepare repo structure
+        run: |
+          # Create repo directory structure
+          mkdir -p repo/alpine/v3.20/main/x86_64
+
+          # Copy packages
+          cp /home/builder/packages/packaging/x86_64/*.apk repo/alpine/v3.20/main/x86_64/
+
+          # Copy public key
+          cp packaging/alpine-repo/bigfive@ahm3t0t.rsa.pub repo/
+
+          # Create APKINDEX
+          cd repo/alpine/v3.20/main/x86_64
+          apk index -o APKINDEX.tar.gz *.apk
+
+          # Sign the index
+          abuild-sign -k /home/builder/.abuild/bigfive@ahm3t0t.rsa APKINDEX.tar.gz
+
+      - name: Upload repo artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: alpine-repo
+          path: repo/
+
+  deploy:
+    name: Deploy to GitHub Pages
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download repo artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: alpine-repo
+          path: repo/
+
+      - name: Create index.html
+        run: |
+          cat > repo/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>BigFive Updater - Alpine Repository</title>
+              <style>
+                  body { font-family: system-ui; max-width: 800px; margin: 50px auto; padding: 20px; }
+                  code { background: #f4f4f4; padding: 2px 6px; border-radius: 4px; }
+                  pre { background: #f4f4f4; padding: 15px; border-radius: 8px; overflow-x: auto; }
+                  h1 { color: #2d3748; }
+              </style>
+          </head>
+          <body>
+              <h1>🛡️ BigFive Updater - Alpine Repository</h1>
+              <p>Alpine Linux paket reposu.</p>
+
+              <h2>Kurulum</h2>
+              <pre><code># 1. Public key'i kur
+          sudo wget -O /etc/apk/keys/bigfive@ahm3t0t.rsa.pub \
+              https://ahm3t0t.github.io/bigfive-updater/bigfive@ahm3t0t.rsa.pub
+
+          # 2. Repo'yu ekle
+          echo "https://ahm3t0t.github.io/bigfive-updater/alpine/v3.20/main" | \
+              sudo tee -a /etc/apk/repositories
+
+          # 3. Kur
+          sudo apk update
+          sudo apk add bigfive-updater</code></pre>
+
+              <h2>Paketler</h2>
+              <ul>
+                  <li><code>bigfive-updater</code> - Ana paket</li>
+                  <li><code>bigfive-updater-doc</code> - Dokümantasyon</li>
+                  <li><code>bigfive-updater-bash-completion</code></li>
+                  <li><code>bigfive-updater-zsh-completion</code></li>
+                  <li><code>bigfive-updater-fish-completion</code></li>
+              </ul>
+
+              <p><a href="https://github.com/ahm3t0t/bigfive-updater">GitHub</a></p>
+          </body>
+          </html>
+          EOF
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: repo/
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
