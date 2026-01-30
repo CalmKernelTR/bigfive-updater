@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.5.1] - 2026-01-30 "BigFive Edition - Dream"
+### Added
+- **Enhanced Error Messages (Error UX):** User-friendly error messages
+  - `print_error_with_hint()`: Error + solution suggestion
+  - `print_warning_with_hint()`: Warning + recommendation
+  - Error code system (E001, E002, E010, E011, E020, E021, E030, E031)
+- **Improved Error Messages:**
+  - E001: curl/wget not found → installation suggestion
+  - E002: sudo unavailable → alternative solution
+  - E010: APT lock → check command
+  - E011: DNF lock → process check
+  - E020: Another update running → lock file info
+  - E021: No internet connection → test command
+  - E030: SHA256 verification failed → solution suggestion
+  - E031: Update copy failed → disk/permission check
+
+### Changed
+- VERSION: 5.5.0 → 5.5.1
+
+---
+
 ## [5.5.0] - 2026-01-30 "BigFive Edition - Dream"
 ### Added
 - **Complete Rebranding:** Project renamed from `arcb-wider-updater` → `bigfive-updater`

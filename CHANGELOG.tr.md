@@ -5,6 +5,27 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [5.5.1] - 2026-01-30 "BigFive Edition - Dream"
+### Eklenenler
+- **Gelişmiş Hata Mesajları (Error UX):** Kullanıcı dostu hata mesajları
+  - `print_error_with_hint()`: Hata + çözüm önerisi
+  - `print_warning_with_hint()`: Uyarı + öneri
+  - Hata kodları sistemi (E001, E002, E010, E011, E020, E021, E030, E031)
+- **Düzeltilen Hata Mesajları:**
+  - E001: curl/wget bulunamadı → kurulum önerisi
+  - E002: sudo yok → alternatif çözüm
+  - E010: APT kilidi → kontrol komutu
+  - E011: DNF kilidi → process kontrolü
+  - E020: Başka güncelleme çalışıyor → kilit dosyası bilgisi
+  - E021: İnternet bağlantısı yok → test komutu
+  - E030: SHA256 doğrulama başarısız → çözüm önerisi
+  - E031: Güncelleme kopyalanamadı → disk/izin kontrolü
+
+### Değişenler
+- VERSION: 5.5.0 → 5.5.1
+
+---
+
 ## [5.5.0] - 2026-01-30 "BigFive Edition - Dream"
 ### Eklenenler
 - **Tam Rebranding:** Proje adı `arcb-wider-updater` → `bigfive-updater` olarak değiştirildi
