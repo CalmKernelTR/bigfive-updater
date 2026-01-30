@@ -1,0 +1,130 @@
+name: Build Packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., 6.0.2)'
+        required: true
+
+env:
+  VERSION: ${{ github.event.release.tag_name || github.event.inputs.version }}
+
+jobs:
+  build-arch:
+    name: Build Arch Package
+    runs-on: ubuntu-latest
+    container: archlinux:latest
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm base-devel git
+
+      - name: Create build user
+        run: |
+          useradd -m builder
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update PKGBUILD version
+        run: |
+          cd packaging/aur
+          VER=${VERSION#v}
+          sed -i "s/^pkgver=.*/pkgver=$VER/" PKGBUILD
+          # Update checksum
+          chown -R builder:builder .
+          su builder -c "updpkgsums"
+          su builder -c "makepkg --printsrcinfo > .SRCINFO"
+
+      - name: Build package
+        run: |
+          cd packaging/aur
+          chown -R builder:builder .
+          su builder -c "makepkg -sf --noconfirm"
+
+      - name: Upload Arch package
+        uses: actions/upload-artifact@v4
+        with:
+          name: arch-package
+          path: packaging/aur/*.pkg.tar.zst
+
+  build-alpine:
+    name: Build Alpine Package
+    runs-on: ubuntu-latest
+    container: alpine:latest
+    steps:
+      - name: Install dependencies
+        run: |
+          apk add --no-cache alpine-sdk bash curl sudo
+
+      - name: Create build user
+        run: |
+          adduser -D builder
+          addgroup builder abuild
+          echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
+          mkdir -p /var/cache/distfiles
+          chmod 777 /var/cache/distfiles
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update APKBUILD version
+        run: |
+          cd packaging/alpine
+          VER=${VERSION#v}
+          sed -i "s/^pkgver=.*/pkgver=$VER/" APKBUILD
+
+      - name: Generate signing key
+        run: |
+          chown -R builder:builder .
+          su builder -c "abuild-keygen -a -n"
+
+      - name: Build package
+        run: |
+          cd packaging/alpine
+          chown -R builder:builder .
+          su builder -c "abuild checksum"
+          su builder -c "abuild -r"
+
+      - name: Collect packages
+        run: |
+          mkdir -p alpine-packages
+          find /home/builder/packages -name "*.apk" -exec cp {} alpine-packages/ \;
+
+      - name: Upload Alpine packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: alpine-packages
+          path: alpine-packages/*.apk
+
+  attach-to-release:
+    name: Attach to Release
+    runs-on: ubuntu-latest
+    needs: [build-arch, build-alpine]
+    if: github.event_name == 'release'
+    steps:
+      - name: Download Arch package
+        uses: actions/download-artifact@v4
+        with:
+          name: arch-package
+          path: packages/
+
+      - name: Download Alpine packages
+        uses: actions/download-artifact@v4
+        with:
+          name: alpine-packages
+          path: packages/
+
+      - name: List packages
+        run: ls -la packages/
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: packages/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
