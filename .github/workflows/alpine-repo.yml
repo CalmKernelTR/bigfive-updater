@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          apk add --no-cache alpine-sdk bash curl git sudo
+          apk add --no-cache alpine-sdk bash curl git sudo openssl
 
       - name: Create build user
         run: |
@@ -51,10 +51,17 @@ jobs:
       - name: Setup signing key
         run: |
           mkdir -p /home/builder/.abuild
+          # Private key
           echo "${{ secrets.ALPINE_PRIVATE_KEY }}" > /home/builder/.abuild/bigfive@ahm3t0t.rsa
           chmod 600 /home/builder/.abuild/bigfive@ahm3t0t.rsa
+          # Extract public key from private key
+          openssl rsa -in /home/builder/.abuild/bigfive@ahm3t0t.rsa -pubout -out /home/builder/.abuild/bigfive@ahm3t0t.rsa.pub
+          chmod 644 /home/builder/.abuild/bigfive@ahm3t0t.rsa.pub
+          # abuild config
           echo "PACKAGER_PRIVKEY=/home/builder/.abuild/bigfive@ahm3t0t.rsa" > /home/builder/.abuild/abuild.conf
           chown -R builder:builder /home/builder/.abuild
+          # Verify keys exist
+          ls -la /home/builder/.abuild/
 
       - name: Update APKBUILD version
         run: |
