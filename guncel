@@ -695,6 +695,33 @@ download_file() {
     fi
 }
 
+# v6.0.2: Disk alanı kontrolü
+check_disk_space() {
+    local min_mb="${1:-500}"  # Varsayılan: 500MB
+    local available_mb
+    local mount_point="/"
+
+    # df ile boş alanı MB cinsinden al
+    available_mb=$(df -m "$mount_point" 2>/dev/null | awk 'NR==2 {print $4}')
+
+    if [[ -z "$available_mb" ]]; then
+        print_warning "${MSG_WARN_DISK_CHECK_FAIL:-Disk alanı kontrol edilemedi.}"
+        return 0  # Kontrol başarısız olsa bile devam et
+    fi
+
+    if [[ "$available_mb" -lt "$min_mb" ]]; then
+        print_error_with_hint \
+            "$(printf "${MSG_ERR_LOW_DISK:-Yetersiz disk alanı: %sMB mevcut, %sMB gerekli.}" "$available_mb" "$min_mb")" \
+            "${MSG_HINT_LOW_DISK:-Disk alanı açın: sudo apt clean / sudo dnf clean all / sudo pacman -Sc}" "E040"
+        return 1
+    fi
+
+    if [[ "$QUIET_MODE" != "true" ]]; then
+        print_info "$(printf "${MSG_INFO_DISK_OK:-Disk alanı yeterli: %sMB mevcut.}" "$available_mb")"
+    fi
+    return 0
+}
+
 check_connectivity() {
     if [[ "$QUIET_MODE" != "true" ]]; then
         printf '%s[~] Bağlantı kontrol ediliyor... %s' "${YELLOW}" "${NC}"
@@ -1814,6 +1841,11 @@ if ! flock -n 9; then
     exit 1
 fi
 setup_logging
+
+# v6.0.2: Disk alanı kontrolü (güncellemeler için yeterli alan var mı?)
+if ! check_disk_space 500; then
+    exit 1
+fi
 
 if ! check_connectivity; then
     print_error_with_hint "${MSG_ERR_NO_INTERNET:-İnternet bağlantısı kurulamadı.}" \
