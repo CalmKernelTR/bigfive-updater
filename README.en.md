@@ -117,15 +117,24 @@ curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/i
 yay -S bigfive-updater   # or: paru -S bigfive-updater
 ```
 
-### Alpine Linux (APK) - Coming Soon
+### Alpine Linux (APK)
 
 ```bash
-# apk add bigfive-updater
+# 1. Add public key
+sudo wget -O /etc/apk/keys/bigfive@ahm3t0t.rsa.pub \
+    https://ahm3t0t.github.io/bigfive-updater/bigfive@ahm3t0t.rsa.pub
+
+# 2. Add repository
+echo "https://ahm3t0t.github.io/bigfive-updater/alpine/v3.20/main" | \
+    sudo tee -a /etc/apk/repositories
+
+# 3. Install
+sudo apk update && sudo apk add bigfive-updater
 ```
 
 > **Package Repositories:**
 > - AUR: https://aur.archlinux.org/packages/bigfive-updater
-> - Alpine: Coming soon (APKBUILD ready, repo in progress)
+> - Alpine: https://ahm3t0t.github.io/bigfive-updater/
 
 ---
 

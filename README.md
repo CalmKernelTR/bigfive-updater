@@ -34,8 +34,8 @@ curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/i
 # Arch Linux / Manjaro / EndeavourOS (AUR)
 yay -S bigfive-updater   # veya: paru -S bigfive-updater
 
-# Alpine Linux (APK) - Coming soon / Yakında
-# apk add bigfive-updater
+# Alpine Linux (APK) - See README.en.md or README.tr.md for full instructions
+# Quick: Add key + repo, then: apk add bigfive-updater
 ```
 ```bash
 # Usage / Kullanım (3 alias: guncel, updater, bigfive)

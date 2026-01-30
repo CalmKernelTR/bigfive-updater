@@ -153,13 +153,22 @@ curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/i
 # Arch Linux / Manjaro / EndeavourOS (AUR)
 yay -S bigfive-updater   # veya: paru -S bigfive-updater
 
-# Alpine Linux (APK) - Yakında
-# apk add bigfive-updater
+# Alpine Linux (APK)
+# 1. Public key ekle
+sudo wget -O /etc/apk/keys/bigfive@ahm3t0t.rsa.pub \
+    https://ahm3t0t.github.io/bigfive-updater/bigfive@ahm3t0t.rsa.pub
+
+# 2. Repo ekle
+echo "https://ahm3t0t.github.io/bigfive-updater/alpine/v3.20/main" | \
+    sudo tee -a /etc/apk/repositories
+
+# 3. Kur
+sudo apk update && sudo apk add bigfive-updater
 ```
 
 > **Paket Repoları:**
 > - AUR: https://aur.archlinux.org/packages/bigfive-updater
-> - Alpine: Yakında (APKBUILD hazır, repo kurulacak)
+> - Alpine: https://ahm3t0t.github.io/bigfive-updater/
 
 ### İlk Çalıştırma
 

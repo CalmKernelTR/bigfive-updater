@@ -12,17 +12,22 @@ Alpine Linux APKBUILD for BigFive Updater.
 | `bigfive-updater-zsh-completion` | Zsh tab completion |
 | `bigfive-updater-fish-completion` | Fish tab completion |
 
-## Installation (After Repo Setup)
+## Installation
 
 ```bash
-# Add repository (one-time)
-echo "https://ahm3t0t.github.io/bigfive-updater/alpine" >> /etc/apk/repositories
+# 1. Add public key (one-time)
+sudo wget -O /etc/apk/keys/bigfive@ahm3t0t.rsa.pub \
+    https://ahm3t0t.github.io/bigfive-updater/bigfive@ahm3t0t.rsa.pub
 
-# Install
-apk add bigfive-updater
+# 2. Add repository (one-time)
+echo "https://ahm3t0t.github.io/bigfive-updater/alpine/v3.20/main" | \
+    sudo tee -a /etc/apk/repositories
+
+# 3. Install
+sudo apk update && sudo apk add bigfive-updater
 
 # With all completions
-apk add bigfive-updater bigfive-updater-doc bigfive-updater-bash-completion
+sudo apk add bigfive-updater-doc bigfive-updater-bash-completion
 ```
 
 ## Building Locally
