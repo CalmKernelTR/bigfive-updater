@@ -101,6 +101,9 @@ Tek komut. Hepsi bir arada. Güvenli ve izlenebilir.
     * `--lang tr` veya `--lang en` ile dil seçimi.
     * `BIGFIVE_LANG` environment variable desteği.
     * Sistem LANG ayarına göre otomatik dil tespiti.
+* **Disk Alanı Kontrolü (v6.0.2):**
+    * Güncelleme öncesi minimum 500MB disk alanı kontrolü.
+    * Yetersiz alan durumunda E040 hata kodu ile uyarı.
 * **Config Dosyası Desteği (v3.6.0):**
     * `/etc/bigfive-updater.conf` ile varsayılan ayarları tanımlayın.
 * **SHA256 Doğrulama (v3.6.0):**
@@ -341,6 +344,12 @@ CONFIG_SKIP_FLATPAK=false
 CONFIG_SKIP_SNAP=false
 CONFIG_SKIP_FWUPD=false
 CONFIG_SKIP_PKG_MANAGER=false  # Tüm sistem paket yöneticileri (APT/DNF/Pacman/Zypper/APK)
+
+# Snapshot timeout (saniye) - varsayılan 300 (5 dakika)
+CONFIG_SNAPSHOT_TIMEOUT=300
+
+# JSON çıktı modu: none, json, json-full (v5.3+)
+CONFIG_JSON_MODE=none
 ```
 
 **Not:** Komut satırı argümanları config dosyasındaki ayarları override eder.
@@ -538,6 +547,7 @@ v5.5.1'den itibaren hatalar kod numarası ve çözüm önerisi ile gösterilir:
 | E021 | İnternet bağlantısı yok | `ping google.com` ile test edin |
 | E030 | SHA256 doğrulama başarısız | Dosya bozuk, daha sonra tekrar deneyin |
 | E031 | Güncelleme kopyalanamadı | Disk dolu veya yazma izni yok |
+| E040 | Yetersiz disk alanı | En az 500MB boş alan gerekli, `df -h` ile kontrol edin |
 
 ---
 

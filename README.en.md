@@ -64,6 +64,9 @@ Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks
     * `--lang tr` or `--lang en` for language selection.
     * `BIGFIVE_LANG` environment variable support.
     * Automatic language detection based on system LANG.
+* **Disk Space Check (v6.0.2):**
+    * Pre-update check for minimum 500MB free disk space.
+    * E040 error code warning when space is insufficient.
 * **Config File Support (v3.6.0):**
     * Define default settings in `/etc/bigfive-updater.conf`.
 * **SHA256 Verification (v3.6.0):**
@@ -227,6 +230,12 @@ CONFIG_SKIP_FLATPAK=false
 CONFIG_SKIP_SNAP=false
 CONFIG_SKIP_FWUPD=false
 CONFIG_SKIP_PKG_MANAGER=false  # All system package managers (APT/DNF/Pacman/Zypper/APK)
+
+# Snapshot timeout (seconds) - default 300 (5 minutes)
+CONFIG_SNAPSHOT_TIMEOUT=300
+
+# JSON output mode: none, json, json-full (v5.3+)
+CONFIG_JSON_MODE=none
 ```
 
 **Note:** Command line arguments override config file settings.
@@ -364,6 +373,7 @@ From v5.5.1, errors are displayed with error codes and solution hints:
 | E021 | No internet connection | Test with `ping google.com` |
 | E030 | SHA256 verification failed | File corrupted, try again later |
 | E031 | Update copy failed | Disk full or no write permission |
+| E040 | Insufficient disk space | At least 500MB free space required, check with `df -h` |
 
 ---
 
