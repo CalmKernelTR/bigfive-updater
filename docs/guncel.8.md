@@ -189,7 +189,7 @@ Configuration file format (*/etc/bigfive-updater.conf*):
 
 # BUGS
 
-Report bugs at: https://github.com/ahm3t0t/bigfive-updater/issues
+Report bugs at: https://github.com/CalmKernelTR/bigfive-updater/issues
 
 # COPYRIGHT
 
@@ -199,4 +199,4 @@ Copyright (C) 2026 Ahmet T. Licensed under MIT License.
 
 Written by Ahmet T. with contributions from Claude AI.
 
-Project homepage: https://github.com/ahm3t0t/bigfive-updater
+Project homepage: https://github.com/CalmKernelTR/bigfive-updater

@@ -89,6 +89,6 @@ su builder -c "cd /home/builder/build && abuild-keygen -a -n && abuild -r"
 
 ## Links
 
-- [GitHub Repository](https://github.com/ahm3t0t/bigfive-updater)
+- [GitHub Repository](https://github.com/CalmKernelTR/bigfive-updater)
 - [APKBUILD Reference](https://wiki.alpinelinux.org/wiki/APKBUILD_Reference)
 - [Creating an Alpine Package](https://wiki.alpinelinux.org/wiki/Creating_an_Alpine_package)

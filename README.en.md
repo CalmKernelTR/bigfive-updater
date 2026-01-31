@@ -1,9 +1,9 @@
 # BigFive Updater 🛡️
 
-[![CI Status](https://github.com/ahm3t0t/bigfive-updater/actions/workflows/ci.yml/badge.svg)](https://github.com/ahm3t0t/bigfive-updater/actions/workflows/ci.yml)
-[![Tests](https://github.com/ahm3t0t/bigfive-updater/actions/workflows/test.yml/badge.svg)](https://github.com/ahm3t0t/bigfive-updater/actions/workflows/test.yml)
-[![Latest Release](https://img.shields.io/github/v/release/ahm3t0t/bigfive-updater?sort=semver&label=Version)](https://github.com/ahm3t0t/bigfive-updater/releases)
-[![License](https://img.shields.io/github/license/ahm3t0t/bigfive-updater)](https://github.com/ahm3t0t/bigfive-updater/blob/main/LICENSE)
+[![CI Status](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/ci.yml/badge.svg)](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/ci.yml)
+[![Tests](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/test.yml/badge.svg)](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/test.yml)
+[![Latest Release](https://img.shields.io/github/v/release/CalmKernelTR/bigfive-updater?sort=semver&label=Version)](https://github.com/CalmKernelTR/bigfive-updater/releases)
+[![License](https://img.shields.io/github/license/CalmKernelTR/bigfive-updater)](https://github.com/CalmKernelTR/bigfive-updater/blob/main/LICENSE)
 
 **Armored, Smart, Multi-Distro Update Tool for Linux Systems.**
 
@@ -108,7 +108,7 @@ This project uses **two separate version systems**:
 ### Universal (All Distributions)
 
 ```bash
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/install.sh | sudo bash
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/install.sh | sudo bash
 ```
 
 ### Arch Linux / Manjaro / EndeavourOS (AUR)
@@ -333,11 +333,11 @@ The `install.sh` script automatically:
 
 ```bash
 # Import public key
-curl -fsSL https://raw.githubusercontent.com/ahm3t0t/bigfive-updater/main/pubkey.asc | gpg --import
+curl -fsSL https://raw.githubusercontent.com/CalmKernelTR/bigfive-updater/main/pubkey.asc | gpg --import
 
 # Verify signature
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS -o SHA256SUMS
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS.asc -o SHA256SUMS.asc
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/SHA256SUMS -o SHA256SUMS
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/SHA256SUMS.asc -o SHA256SUMS.asc
 gpg --verify SHA256SUMS.asc SHA256SUMS
 ```
 

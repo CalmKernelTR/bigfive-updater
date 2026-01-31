@@ -27,5 +27,5 @@ shellcheck -x guncel
 
 ## Communication / İletişim
 
-- Issues: [GitHub Issues](https://github.com/ahm3t0t/bigfive-updater/issues)
+- Issues: [GitHub Issues](https://github.com/CalmKernelTR/bigfive-updater/issues)
 - Email: meet@calmkernel.tr

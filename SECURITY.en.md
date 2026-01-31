@@ -20,7 +20,7 @@ If you discover a security vulnerability, please report it **responsibly** and *
 ### Preferred Methods:
 
 1. **Email:** meet@calmkernel.tr
-2. **GitHub Security Advisory:** [Report a vulnerability](https://github.com/ahm3t0t/bigfive-updater/security/advisories/new)
+2. **GitHub Security Advisory:** [Report a vulnerability](https://github.com/CalmKernelTR/bigfive-updater/security/advisories/new)
 3. **GitHub Issue (Public):** Use `security` label only after fix is discussed
 
 ### What to Include:
@@ -52,7 +52,7 @@ From **v4.1.0 onwards**, all releases are **cryptographically signed with GPG**.
 #### Step 1: Import Public Key
 ```bash
 # Import GPG key from repository
-curl -fsSL https://raw.githubusercontent.com/ahm3t0t/bigfive-updater/main/pubkey.asc | gpg --import
+curl -fsSL https://raw.githubusercontent.com/CalmKernelTR/bigfive-updater/main/pubkey.asc | gpg --import
 
 # Verify key fingerprint
 gpg --list-keys ahmet@tanrikulu.net
@@ -62,8 +62,8 @@ gpg --list-keys ahmet@tanrikulu.net
 #### Step 2: Download Release Files
 ```bash
 # Download checksums and signature
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS -o SHA256SUMS
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS.asc -o SHA256SUMS.asc
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/SHA256SUMS -o SHA256SUMS
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/SHA256SUMS.asc -o SHA256SUMS.asc
 ```
 
 #### Step 3: Verify Signature
@@ -75,7 +75,7 @@ gpg --verify SHA256SUMS.asc SHA256SUMS
 #### Step 4: Verify File Hash
 ```bash
 # Download the script
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/guncel -o guncel
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/guncel -o guncel
 
 # Verify hash
 sha256sum -c SHA256SUMS --ignore-missing
@@ -98,7 +98,7 @@ The `install.sh` script performs GPG verification automatically during installat
 
 ```bash
 # Full verified installation
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/install.sh | sudo bash
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/install.sh | sudo bash
 ```
 
 ---

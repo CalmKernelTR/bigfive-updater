@@ -148,7 +148,7 @@ main() {
     echo -e "${GREEN}Release v$new_version başarıyla oluşturuldu!${NC}"
     echo "GitHub Actions workflow çalışıyor, birkaç saniye içinde release hazır olacak."
     echo ""
-    echo "Release sayfası: https://github.com/ahm3t0t/bigfive-updater/releases/tag/v$new_version"
+    echo "Release sayfası: https://github.com/CalmKernelTR/bigfive-updater/releases/tag/v$new_version"
 }
 
 main "$@"

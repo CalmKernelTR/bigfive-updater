@@ -158,6 +158,6 @@
 
 ## 🤝 Contributing
 
-Feel free to open an [Issue](https://github.com/ahm3t0t/bigfive-updater/issues) for suggestions.
+Feel free to open an [Issue](https://github.com/CalmKernelTR/bigfive-updater/issues) for suggestions.
 
 Detailed contribution guide: [CONTRIBUTING.en.md](CONTRIBUTING.en.md)

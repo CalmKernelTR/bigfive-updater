@@ -4,5 +4,5 @@ contact_links:
     url: mailto:meet@calmkernel.tr
     about: Report security issues privately via email (do NOT open public issues)
   - name: Documentation
-    url: https://github.com/ahm3t0t/bigfive-updater#readme
+    url: https://github.com/CalmKernelTR/bigfive-updater#readme
     about: Check the README for documentation

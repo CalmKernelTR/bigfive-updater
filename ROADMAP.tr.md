@@ -158,6 +158,6 @@
 
 ## 🤝 Katkıda Bulunma
 
-Önerileriniz için [Issue](https://github.com/ahm3t0t/bigfive-updater/issues) açabilirsiniz.
+Önerileriniz için [Issue](https://github.com/CalmKernelTR/bigfive-updater/issues) açabilirsiniz.
 
 Detaylı katkı kılavuzu: [CONTRIBUTING.tr.md](CONTRIBUTING.tr.md)

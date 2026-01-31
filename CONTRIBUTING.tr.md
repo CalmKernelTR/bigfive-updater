@@ -30,7 +30,7 @@ Katkıda bulunmayı düşündüğün için teşekkürler!
 ## Geliştirme Ortamı
 
 ```bash
-git clone git@github.com:ahm3t0t/bigfive-updater.git
+git clone git@github.com:CalmKernelTR/bigfive-updater.git
 cd bigfive-updater
 chmod +x guncel install.sh release.sh
 ./guncel --help
@@ -459,5 +459,5 @@ sudo ./guncel --only apk       # Alpine Linux
 
 Sorularınız için issue açabilir veya PR'da yorum bırakabilirsiniz.
 
-- **GitHub Issues:** [bigfive-updater/issues](https://github.com/ahm3t0t/bigfive-updater/issues)
+- **GitHub Issues:** [bigfive-updater/issues](https://github.com/CalmKernelTR/bigfive-updater/issues)
 - **Email:** ahmet@tanrikulu.net

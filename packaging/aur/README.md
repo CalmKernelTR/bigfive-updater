@@ -40,7 +40,7 @@ makepkg -si
 1. Update `pkgver` in PKGBUILD
 2. Download new tarball and calculate sha256:
    ```bash
-   curl -sL https://github.com/ahm3t0t/bigfive-updater/archive/vX.Y.Z.tar.gz | sha256sum
+   curl -sL https://github.com/CalmKernelTR/bigfive-updater/archive/vX.Y.Z.tar.gz | sha256sum
    ```
 3. Update `sha256sums` in PKGBUILD
 4. Regenerate .SRCINFO:
@@ -72,5 +72,5 @@ namcap bigfive-updater-*.pkg.tar.zst
 ## Links
 
 - [AUR Package](https://aur.archlinux.org/packages/bigfive-updater) (after submission)
-- [GitHub Repository](https://github.com/ahm3t0t/bigfive-updater)
+- [GitHub Repository](https://github.com/CalmKernelTR/bigfive-updater)
 - [PKGBUILD Guidelines](https://wiki.archlinux.org/title/PKGBUILD)

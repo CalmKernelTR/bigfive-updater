@@ -15,14 +15,14 @@ NC=$'\033[0m'
 
 INSTALL_PATH="/usr/local/bin/guncel"
 # v1.2.1: Releases URL kullan (CDN cache sorunu önlenir)
-REPO_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/guncel"
-LOGROTATE_REPO_URL="https://raw.githubusercontent.com/ahm3t0t/bigfive-updater/main/logrotate.d/bigfive-updater"
+REPO_URL="https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/guncel"
+LOGROTATE_REPO_URL="https://raw.githubusercontent.com/CalmKernelTR/bigfive-updater/main/logrotate.d/bigfive-updater"
 LOGROTATE_DEST="/etc/logrotate.d/bigfive-updater"
 
 # GPG Doğrulama URL'leri (v1.1.0)
-GPG_PUBKEY_URL="https://raw.githubusercontent.com/ahm3t0t/bigfive-updater/main/pubkey.asc"
-GPG_SHA256SUMS_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS"
-GPG_SHA256SUMS_SIG_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS.asc"
+GPG_PUBKEY_URL="https://raw.githubusercontent.com/CalmKernelTR/bigfive-updater/main/pubkey.asc"
+GPG_SHA256SUMS_URL="https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/SHA256SUMS"
+GPG_SHA256SUMS_SIG_URL="https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/SHA256SUMS.asc"
 
 # --- SMART LOCAL FILE DETECTION ---
 # 1. Scriptin kendi bulunduğu dizini bul (Pipe ile gelmiyorsa)
@@ -63,7 +63,7 @@ if [[ $EUID -ne 0 ]]; then
     else
         printf "%s❌ Bu script root yetkisi gerektirir.%s\n" "$RED" "$NC"
         printf "%sLütfen komutu başına 'sudo' ekleyerek çalıştırın:%s\n" "$RED" "$NC"
-        printf "%s   curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/install.sh | sudo bash%s\n" "$BLUE" "$NC"
+        printf "%s   curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/install.sh | sudo bash%s\n" "$BLUE" "$NC"
         exit 1
     fi
 fi
@@ -284,7 +284,7 @@ fi
 printf "\n%s>>> Bash Completion%s\n" "$BLUE" "$NC"
 
 BASH_COMPLETION_DIR="/usr/share/bash-completion/completions"
-BASH_COMPLETION_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/guncel.bash"
+BASH_COMPLETION_URL="https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/guncel.bash"
 LOCAL_COMPLETION_FILE="$SCRIPT_DIR/completions/guncel.bash"
 TEMP_COMPLETION="$(mktemp /tmp/guncel_completion_XXXXXX)"
 
@@ -354,7 +354,7 @@ fi
 printf "\n%s>>> Man Page%s\n" "$BLUE" "$NC"
 
 MAN_DIR="/usr/share/man/man8"
-MAN_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/guncel.8"
+MAN_URL="https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/guncel.8"
 LOCAL_MAN_FILE="$SCRIPT_DIR/docs/guncel.8"
 TEMP_MAN="$(mktemp /tmp/guncel_man_XXXXXX)"
 
@@ -414,8 +414,8 @@ printf "\n%s>>> Dil Dosyaları (i18n)%s\n" "$BLUE" "$NC"
 LANG_INSTALL_DIR="/usr/share/bigfive-updater/lang"
 LOCAL_LANG_TR="$SCRIPT_DIR/lang/tr.sh"
 LOCAL_LANG_EN="$SCRIPT_DIR/lang/en.sh"
-LANG_TR_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/tr.sh"
-LANG_EN_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/en.sh"
+LANG_TR_URL="https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/tr.sh"
+LANG_EN_URL="https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/en.sh"
 TEMP_LANG_TR="$(mktemp /tmp/guncel_lang_tr_XXXXXX)"
 TEMP_LANG_EN="$(mktemp /tmp/guncel_lang_en_XXXXXX)"
 

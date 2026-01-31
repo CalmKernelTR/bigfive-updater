@@ -20,7 +20,7 @@ Bir güvenlik açığı keşfederseniz, lütfen **sorumlu** ve **gizli** bir şe
 ### Tercih Edilen Yöntemler:
 
 1. **Email:** meet@calmkernel.tr
-2. **GitHub Security Advisory:** [Güvenlik açığı bildir](https://github.com/ahm3t0t/bigfive-updater/security/advisories/new)
+2. **GitHub Security Advisory:** [Güvenlik açığı bildir](https://github.com/CalmKernelTR/bigfive-updater/security/advisories/new)
 3. **GitHub Issue (Herkese Açık):** Düzeltme tartışıldıktan sonra `security` etiketi kullanın
 
 ### Neleri Ekleyin:
@@ -52,7 +52,7 @@ Düzeltme yayınlanmadan önce hassas detayları herkese açık paylaşmaktan ka
 #### Adım 1: Public Key'i İçe Aktar
 ```bash
 # GPG anahtarını repodan içe aktar
-curl -fsSL https://raw.githubusercontent.com/ahm3t0t/bigfive-updater/main/pubkey.asc | gpg --import
+curl -fsSL https://raw.githubusercontent.com/CalmKernelTR/bigfive-updater/main/pubkey.asc | gpg --import
 
 # Anahtar parmak izini doğrula
 gpg --list-keys ahmet@tanrikulu.net
@@ -62,8 +62,8 @@ gpg --list-keys ahmet@tanrikulu.net
 #### Adım 2: Release Dosyalarını İndir
 ```bash
 # Checksum ve imzayı indir
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS -o SHA256SUMS
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS.asc -o SHA256SUMS.asc
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/SHA256SUMS -o SHA256SUMS
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/SHA256SUMS.asc -o SHA256SUMS.asc
 ```
 
 #### Adım 3: İmzayı Doğrula
@@ -75,7 +75,7 @@ gpg --verify SHA256SUMS.asc SHA256SUMS
 #### Adım 4: Dosya Hash'ini Doğrula
 ```bash
 # Scripti indir
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/guncel -o guncel
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/guncel -o guncel
 
 # Hash'i doğrula
 sha256sum -c SHA256SUMS --ignore-missing
@@ -98,7 +98,7 @@ sha256sum -c SHA256SUMS --ignore-missing
 
 ```bash
 # Tam doğrulamalı kurulum
-curl -fsSL https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/install.sh | sudo bash
+curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/install.sh | sudo bash
 ```
 
 ---
