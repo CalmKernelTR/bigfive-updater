@@ -1,0 +1,44 @@
+name: Docker Base Images
+
+on:
+  push:
+    paths:
+      - 'tests/docker/base/Dockerfile.*'
+    branches:
+      - main
+  workflow_dispatch:  # Manuel tetikleme
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      matrix:
+        distro: [alpine, ubuntu, fedora, arch, opensuse]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push ${{ matrix.distro }}
+        uses: docker/build-push-action@v5
+        with:
+          context: tests/docker/base
+          file: tests/docker/base/Dockerfile.${{ matrix.distro }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/bigfive-base-${{ matrix.distro }}:latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/bigfive-base-${{ matrix.distro }}:${{ github.sha }}
