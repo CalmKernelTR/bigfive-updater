@@ -89,7 +89,8 @@ Kısa vadeli iyileştirmeler — mevcut altyapının üzerine.
 - [ ] `--history [N]` komutu: Log dosyalarını parse edip son N günün güncelleme özetini gösterir
 - [ ] `--doctor` komutu: Config doğrulama, bağımlılık kontrolü, disk alanı, internet bağlantısı tek komutla
 - [ ] GitHub Actions CI matrix build: Her PR'da 5 distro otomatik test (Docker base images hazır)
-- [ ] Hook false positive fix: `block-dangerous-commands.sh` — git commit mesajlarında false positive (#TBD)
+- [ ] install.sh iyileştirmeleri: wget TLS flag modernize, grep portability, mesaj netliği, değişken cleanup
+- [ ] Hook false positive fix: `block-dangerous-commands.sh` — git commit mesajlarında false positive
 
 ### v6.2.0 "Chrom" - Server Automation
 
