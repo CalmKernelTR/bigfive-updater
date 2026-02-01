@@ -89,7 +89,8 @@ Short-term improvements building on existing infrastructure.
 - [ ] `--history [N]` command: Parse log files and display update summary for the last N days
 - [ ] `--doctor` command: Config validation, dependency check, disk space, internet connectivity in one command
 - [ ] GitHub Actions CI matrix build: Automatic 5-distro testing on every PR (Docker base images ready)
-- [ ] Hook false positive fix: `block-dangerous-commands.sh` — false positive on git commit messages (#TBD)
+- [ ] install.sh improvements: wget TLS flag modernize, grep portability, message clarity, variable cleanup
+- [ ] Hook false positive fix: `block-dangerous-commands.sh` — false positive on git commit messages
 
 ### v6.2.0 "Chrom" - Server Automation
 
