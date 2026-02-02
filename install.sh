@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# BigFive Updater Installer Night-V1.4.1
-# Sync: Night-V1.4.1 | Türkçe man page kurulumu eklendi
+# BigFive Updater Installer Night-V1.4.2
+# Sync: Night-V1.4.2 | wget fallback iyileştirmesi
 
 # 1. HATA YÖNETİMİ
 set -Eeuo pipefail
@@ -85,7 +85,9 @@ download_file() {
     fi
 
     if [ "$downloaded" = "false" ] && command -v wget &> /dev/null; then
-        if wget --secure-protocol=TLSv1_2 -qO "$output" "$url"; then
+        # Try with --secure-protocol first, fallback to basic wget (older versions)
+        if wget --secure-protocol=TLSv1_2 -qO "$output" "$url" 2>/dev/null || \
+           wget -qO "$output" "$url" 2>/dev/null; then
             downloaded=true
         fi
     fi
@@ -171,7 +173,7 @@ verify_gpg_signature() {
     return 0
 }
 
-printf "\n%s>>> BigFive Updater Kurulum (Night-V1.4.1)%s\n" "$BLUE" "$NC"
+printf "\n%s>>> BigFive Updater Kurulum (Night-V1.4.2)%s\n" "$BLUE" "$NC"
 
 # İndirme veya Kopyalama Mantığı
 if [[ -n "$SOURCE_FILE" ]]; then
