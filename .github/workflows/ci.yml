@@ -11,9 +11,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  REGISTRY: ghcr.io
-
 jobs:
   # ==================== Lint ====================
   lint:
@@ -43,7 +40,7 @@ jobs:
     name: ${{ matrix.distro }} (${{ matrix.pkg_manager }})
     runs-on: ubuntu-latest
     needs: lint
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     strategy:
       fail-fast: false
@@ -51,78 +48,69 @@ jobs:
         include:
           - distro: ubuntu
             pkg_manager: APT
-            image: ghcr.io/ahm3t0t/bigfive-base-ubuntu:latest
-            shell: bash
+            image: ubuntu:24.04
+            setup: apt-get update && apt-get install -y curl wget sudo gawk ca-certificates
           - distro: fedora
             pkg_manager: DNF
-            image: ghcr.io/ahm3t0t/bigfive-base-fedora:latest
-            shell: bash
+            image: fedora:40
+            setup: dnf install -y curl wget sudo gawk ca-certificates hostname
           - distro: arch
             pkg_manager: Pacman
-            image: ghcr.io/ahm3t0t/bigfive-base-arch:latest
-            shell: bash
+            image: archlinux:latest
+            setup: pacman -Sy --noconfirm curl wget sudo gawk ca-certificates
           - distro: opensuse
             pkg_manager: Zypper
-            image: ghcr.io/ahm3t0t/bigfive-base-opensuse:latest
-            shell: bash
+            image: opensuse/leap:15.6
+            setup: zypper --non-interactive install curl wget sudo gawk ca-certificates hostname tar gzip
           - distro: alpine
             pkg_manager: APK
-            image: ghcr.io/ahm3t0t/bigfive-base-alpine:latest
-            shell: sh
+            image: alpine:3.20
+            setup: apk add --no-cache curl wget sudo gawk ca-certificates bash
 
     container:
       image: ${{ matrix.image }}
       options: --user root
 
     steps:
+      - name: Setup container
+        run: ${{ matrix.setup }}
+
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Create test directories
+      - name: Create directories
         run: |
           mkdir -p /var/log/bigfive-updater
           mkdir -p /usr/share/bigfive-updater/lang
           mkdir -p /usr/local/bin
 
-      - name: Test install (local copy)
+      - name: Install guncel
         run: |
           cp guncel /usr/local/bin/guncel
           chmod +x /usr/local/bin/guncel
           cp lang/*.sh /usr/share/bigfive-updater/lang/
           ln -sf /usr/local/bin/guncel /usr/local/bin/updater
           ln -sf /usr/local/bin/guncel /usr/local/bin/bigfive
-          echo "Install simulation complete"
 
       - name: Test --help
-        run: |
-          guncel --help
-          echo "--help works"
+        run: guncel --help
 
       - name: Test --doctor
-        run: |
-          guncel --doctor
-          echo "--doctor works"
+        run: guncel --doctor
 
       - name: Test --history
-        run: |
-          guncel --history
-          echo "--history works"
+        run: guncel --history
 
       - name: Test --dry-run
-        run: |
-          guncel --dry-run
-          echo "--dry-run works"
+        run: guncel --dry-run
 
-      - name: Test --json output
-        run: |
-          guncel --json --dry-run | head -20
-          echo "--json works"
+      - name: Test --json
+        run: guncel --json --dry-run | head -20
 
-      - name: Test uninstall (simulation)
+      - name: Test uninstall
         run: |
           rm -f /usr/local/bin/guncel /usr/local/bin/updater /usr/local/bin/bigfive
           rm -rf /usr/share/bigfive-updater
-          echo "Uninstall simulation complete"
 
       - name: Summary
         env:
@@ -185,6 +173,6 @@ jobs:
           echo "========================================"
           echo ""
           echo "  - Lint: ${LINT_RESULT}"
-          echo "  - Multi-distro: ${DISTRO_RESULT}"
-          echo "  - BATS: ${BATS_RESULT}"
+          echo "  - Multi-distro (5 distros): ${DISTRO_RESULT}"
+          echo "  - BATS (170 tests): ${BATS_RESULT}"
           echo "========================================"
