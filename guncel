@@ -688,15 +688,17 @@ EOF
 }
 
 setup_logging() {
+    # v6.1.0: Create with secure permissions from start (TOCTOU fix)
     if [ ! -d "$LOG_DIR" ]; then
-        mkdir -p "$LOG_DIR"
+        mkdir -p "$LOG_DIR" 2>/dev/null || true
+        chmod 700 "$LOG_DIR" 2>/dev/null || true
     fi
 
     local deleted_count
     # Logrotate handles log cleanup now
     # deleted_count=$(find "$LOG_DIR" -name "update_*.log" -type f -mtime +30 -print -delete | wc -l)
     deleted_count=0
-    
+
     touch "$LOG_FILE"
     chmod 600 "$LOG_FILE"
     
@@ -1241,7 +1243,8 @@ should_run_backend() {
         IFS=',' read -ra ONLY_ITEMS <<< "$ONLY_MODE"
         for item in "${ONLY_ITEMS[@]}"; do
             # v5.1: system = apt, dnf, pacman, zypper, apk (BigFive)
-            if [[ "$item" == "$backend" || "$item" == "system" && ("$backend" == "apt" || "$backend" == "dnf" || "$backend" == "pacman" || "$backend" == "zypper" || "$backend" == "apk") ]]; then
+            # v6.1.0: Explicit grouping for clarity (|| has lower precedence than &&)
+            if [[ "$item" == "$backend" ]] || { [[ "$item" == "system" ]] && [[ "$backend" =~ ^(apt|dnf|pacman|zypper|apk)$ ]]; }; then
                 return 0
             fi
         done
@@ -1911,11 +1914,13 @@ do_uninstall() {
         rm -f "/usr/local/bin/guncel.bak" && removed_items+=("Backup: /usr/local/bin/guncel.bak")
     fi
 
-    # Arşiv yedekleri
+    # Arşiv yedekleri - v6.1.0: Use find instead of glob (safer)
     local backup_count=0
-    for f in /usr/local/bin/guncel.bak_*; do
-        [[ -f "$f" ]] && rm -f "$f" && ((backup_count++))
-    done
+    while IFS= read -r -d '' f; do
+        if rm -f "$f"; then
+            ((backup_count++)) || true
+        fi
+    done < <(find /usr/local/bin -maxdepth 1 -name 'guncel.bak_*' -type f -print0 2>/dev/null)
     [[ $backup_count -gt 0 ]] && removed_items+=("Arşiv yedekleri: $backup_count dosya")
 
     # Config dosyası
