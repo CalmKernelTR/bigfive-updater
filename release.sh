@@ -101,7 +101,7 @@ check_tag_exists() {
 # Check commit messages for conventional commits format
 # Returns: 0 if all OK, 1 if issues found (report only, non-blocking)
 check_commit_messages() {
-    local last_tag bad_commits bad_count=0
+    local last_tag bad_count=0
 
     # Find last tag
     last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
