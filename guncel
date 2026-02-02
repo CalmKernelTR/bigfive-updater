@@ -1008,6 +1008,12 @@ check_root() {
     if [[ $EUID -ne 0 ]]; then
         printf '%s[*] Root yetkisi gerekiyor...%s\n' "${YELLOW}" "${NC}"
         if command -v sudo &> /dev/null; then
+            # v6.1.0: NOPASSWD check for non-interactive environments (cron, CI)
+            if [[ "${AUTO_MODE:-false}" == "true" ]] && ! sudo -n true 2>/dev/null; then
+                print_error_with_hint "${MSG_ERR_SUDO_NOPASSWD:-Auto mode için sudo NOPASSWD gerekli.}" \
+                    "${MSG_HINT_SUDO_NOPASSWD:-/etc/sudoers dosyasına NOPASSWD ekleyin veya root olarak çalıştırın.}" "E041"
+                exit 1
+            fi
             # v3.6.1 FIX: Orijinal argümanları kullan
             exec sudo -E "$0" "${ORIGINAL_ARGS[@]}"
         else
