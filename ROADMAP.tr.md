@@ -86,13 +86,14 @@
 
 Kısa vadeli iyileştirmeler — mevcut altyapının üzerine.
 
-- [ ] `--history [N]` komutu: Log dosyalarını parse edip son N günün güncelleme özetini gösterir
+- [x] `--history [N]` komutu: Log dosyalarını parse edip son N günün güncelleme özetini gösterir
   - Varsayılan: N=7 (son 7 gün)
-  - Çıktı: tarih, paket sayısı, başarı/hata durumu
-  - Log format: `/var/log/bigfive-updater/guncel-YYYY-MM-DD.log`
-- [ ] `--doctor` komutu: Config doğrulama, bağımlılık kontrolü, disk alanı, internet bağlantısı tek komutla
+  - Çıktı: tarih, saat, durum (OK/HATA/DRY), detay
+  - Log format: `/var/log/bigfive-updater/update_YYYYMMDD_HHMMSS.log`
+- [x] `--doctor` komutu: Config doğrulama, bağımlılık kontrolü, disk alanı, internet bağlantısı tek komutla
   - Config dosyası syntax kontrolü
-  - Gerekli komutlar: curl/wget, jq (opsiyonel), paket yöneticisi
+  - Gerekli komutlar: curl/wget, paket yöneticisi
+  - Opsiyonel komutlar: jq, fwupd, flatpak, snap
   - Disk alanı: minimum 500MB boş
   - İnternet: GitHub raw URL ping
   - Dil dosyaları: varlık kontrolü
@@ -152,9 +153,9 @@ Tam entegre server automation deneyimi.
 
 | Bileşen | Test Sayısı | Durum |
 |---------|-------------|-------|
-| guncel.bats | 112 | ✅ |
+| guncel.bats | 131 | ✅ |
 | install.bats | 39 | ✅ |
-| **Toplam** | **151** | ✅ |
+| **Toplam** | **170** | ✅ |
 
 ### CI Test Matrisi
 

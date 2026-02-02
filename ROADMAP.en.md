@@ -86,13 +86,14 @@
 
 Short-term improvements building on existing infrastructure.
 
-- [ ] `--history [N]` command: Parse log files and display update summary for the last N days
+- [x] `--history [N]` command: Parse log files and display update summary for the last N days
   - Default: N=7 (last 7 days)
-  - Output: date, package count, success/error status
-  - Log format: `/var/log/bigfive-updater/guncel-YYYY-MM-DD.log`
-- [ ] `--doctor` command: Config validation, dependency check, disk space, internet connectivity in one command
+  - Output: date, time, status (OK/HATA/DRY), details
+  - Log format: `/var/log/bigfive-updater/update_YYYYMMDD_HHMMSS.log`
+- [x] `--doctor` command: Config validation, dependency check, disk space, internet connectivity in one command
   - Config file syntax check
-  - Required commands: curl/wget, jq (optional), package manager
+  - Required commands: curl/wget, package manager
+  - Optional commands: jq, fwupd, flatpak, snap
   - Disk space: minimum 500MB free
   - Internet: GitHub raw URL ping
   - Lang files: existence check
@@ -152,9 +153,9 @@ Fully integrated server automation experience.
 
 | Component | Test Count | Status |
 |-----------|------------|--------|
-| guncel.bats | 112 | ✅ |
+| guncel.bats | 131 | ✅ |
 | install.bats | 39 | ✅ |
-| **Total** | **151** | ✅ |
+| **Total** | **170** | ✅ |
 
 ### CI Test Matrix
 
