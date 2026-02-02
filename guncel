@@ -791,6 +791,95 @@ check_connectivity() {
     fi
 }
 
+# v6.1.0: History - güncelleme geçmişi
+do_history() {
+    local days="${1:-7}"
+    local log_dir="/var/log/bigfive-updater"
+    local found=0
+    local today_epoch
+    today_epoch=$(date +%s)
+
+    printf '%b%s%b\n' "${BLUE}${BOLD}" "BigFive Update History - Son $days Gün" "${NC}"
+    printf '%s\n' "══════════════════════════════════════════════════════"
+    printf '\n'
+    printf '%-12s %-8s %-10s %s\n' "Tarih" "Saat" "Durum" "Detay"
+    printf '%s\n' "────────────────────────────────────────────────────────"
+
+    # Log dizini kontrolü
+    if [[ ! -d "$log_dir" ]]; then
+        printf '%b!%b Log dizini bulunamadı: %s\n' "${YELLOW}" "${NC}" "$log_dir"
+        printf '%s\n' "  Henüz güncelleme yapılmamış olabilir."
+        return 0
+    fi
+
+    # Log dosyalarını tara (en yeniden eskiye)
+    while IFS= read -r log_file; do
+        [[ -z "$log_file" ]] && continue
+
+        # Dosya adından tarih çıkar: update_YYYYMMDD_HHMMSS.log
+        local basename
+        basename=$(basename "$log_file")
+        if [[ "$basename" =~ update_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2}) ]]; then
+            local year="${BASH_REMATCH[1]}"
+            local month="${BASH_REMATCH[2]}"
+            local day="${BASH_REMATCH[3]}"
+            local hour="${BASH_REMATCH[4]}"
+            local minute="${BASH_REMATCH[5]}"
+
+            # Tarih farkını kontrol et
+            local log_date="${year}-${month}-${day}"
+            local log_epoch
+            log_epoch=$(date -d "$log_date" +%s 2>/dev/null) || continue
+            local diff_days=$(( (today_epoch - log_epoch) / 86400 ))
+
+            # N gün içinde mi?
+            if [[ $diff_days -le $days ]]; then
+                ((found++)) || true
+
+                # Log içeriğini analiz et
+                local status="?"
+                local detail=""
+                local pkg_count=0
+
+                # Başarı/hata durumu
+                if grep -q "ERROR:" "$log_file" 2>/dev/null; then
+                    status="${RED}HATA${NC}"
+                    local err_count
+                    err_count=$(grep -c "ERROR:" "$log_file" 2>/dev/null) || err_count=0
+                    detail="$err_count hata"
+                elif grep -q "SUCCESS:" "$log_file" 2>/dev/null; then
+                    status="${GREEN}OK${NC}"
+                    # Paket sayısını bulmaya çalış
+                    # "X packages upgraded" veya "X güncelleme" gibi pattern
+                    local pkg_line
+                    pkg_line=$(grep -E "(packages upgraded|paket güncellendi|upgraded\.|güncelleme)" "$log_file" 2>/dev/null | head -1) || true
+                    if [[ -n "$pkg_line" ]]; then
+                        detail="$pkg_line"
+                    else
+                        detail="Başarılı"
+                    fi
+                elif grep -q "DRY-RUN:" "$log_file" 2>/dev/null; then
+                    status="${YELLOW}DRY${NC}"
+                    detail="Simülasyon"
+                else
+                    status="${YELLOW}?${NC}"
+                    detail="Belirsiz"
+                fi
+
+                printf '%-12s %-8s %b%-10s%b %s\n' "$log_date" "${hour}:${minute}" "" "$status" "" "$detail"
+            fi
+        fi
+    done < <(find "$log_dir" -name "update_*.log" -type f 2>/dev/null | sort -r)
+
+    printf '\n'
+    if [[ $found -eq 0 ]]; then
+        printf '%b!%b Son %d günde güncelleme kaydı bulunamadı.\n' "${YELLOW}" "${NC}" "$days"
+    else
+        printf '%s\n' "────────────────────────────────────────────────────────"
+        printf 'Toplam: %d kayıt\n' "$found"
+    fi
+}
+
 # v6.1.0: Doctor - sistem sağlık kontrolü
 do_doctor() {
     local errors=0
@@ -1900,6 +1989,7 @@ show_help() {
     echo "${MSG_HELP_OPT_PURGE:-  --uninstall --purge Config ve logları da sil}"
     echo "${MSG_HELP_OPT_LANG:-  --lang <code>       Dil seçimi (tr, en)}"
     echo "${MSG_HELP_OPT_DOCTOR:-  --doctor            Sistem sağlık kontrolü (config, bağımlılıklar, disk, ağ)}"
+    echo "${MSG_HELP_OPT_HISTORY:-  --history [N]       Son N günün güncelleme geçmişi (varsayılan: 7)}"
     echo "${MSG_HELP_OPT_HELP:-  --help              Bu yardım mesajını gösterir}"
     echo ""
     echo "${MSG_HELP_EXAMPLES:-Örnekler:}"
@@ -1981,6 +2071,15 @@ while [[ $# -gt 0 ]]; do
             ;;
         --help) show_help ;;
         --doctor) do_doctor; exit $? ;;
+        --history)
+            if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
+                do_history "$2"
+                shift
+            else
+                do_history 7
+            fi
+            exit 0
+            ;;
         *) printf '%sUyarı: Bilinmeyen argüman: %s%s\n' "${YELLOW}" "$1" "${NC}"; shift ;;
     esac
 done

@@ -655,3 +655,43 @@ get_script_version() {
     run bash "$GUNCEL_SCRIPT" --doctor
     echo "$output" | grep -qE '(sağlıklı|uyarı|hata)'
 }
+
+# ==================== v6.1.0 --history Tests ====================
+
+@test "history: --history flag exists in argument parsing" {
+    grep -q '\-\-history)' "$GUNCEL_SCRIPT"
+}
+
+@test "history: do_history function exists" {
+    grep -q '^do_history()' "$GUNCEL_SCRIPT"
+}
+
+@test "history: --history in help output" {
+    run bash "$GUNCEL_SCRIPT" --help
+    echo "$output" | grep -q '\-\-history'
+}
+
+@test "history: --history shows header" {
+    run bash "$GUNCEL_SCRIPT" --history
+    echo "$output" | grep -q 'Update History'
+}
+
+@test "history: --history default is 7 days" {
+    run bash "$GUNCEL_SCRIPT" --history
+    echo "$output" | grep -q 'Son 7 Gün'
+}
+
+@test "history: --history accepts numeric argument" {
+    run bash "$GUNCEL_SCRIPT" --history 30
+    echo "$output" | grep -q 'Son 30 Gün'
+}
+
+@test "history: --history shows column headers" {
+    run bash "$GUNCEL_SCRIPT" --history
+    echo "$output" | grep -q 'Tarih'
+}
+
+@test "history: --history returns 0" {
+    run bash "$GUNCEL_SCRIPT" --history
+    [ "$status" -eq 0 ]
+}
