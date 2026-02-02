@@ -87,10 +87,18 @@
 Kısa vadeli iyileştirmeler — mevcut altyapının üzerine.
 
 - [ ] `--history [N]` komutu: Log dosyalarını parse edip son N günün güncelleme özetini gösterir
+  - Varsayılan: N=7 (son 7 gün)
+  - Çıktı: tarih, paket sayısı, başarı/hata durumu
+  - Log format: `/var/log/bigfive-updater/guncel-YYYY-MM-DD.log`
 - [ ] `--doctor` komutu: Config doğrulama, bağımlılık kontrolü, disk alanı, internet bağlantısı tek komutla
+  - Config dosyası syntax kontrolü
+  - Gerekli komutlar: curl/wget, jq (opsiyonel), paket yöneticisi
+  - Disk alanı: minimum 500MB boş
+  - İnternet: GitHub raw URL ping
+  - Dil dosyaları: varlık kontrolü
 - [ ] GitHub Actions CI matrix build: Her PR'da 5 distro otomatik test (Docker base images hazır)
 - [ ] install.sh iyileştirmeleri: wget TLS flag modernize, grep portability, mesaj netliği, değişken cleanup
-- [ ] Hook false positive fix: `block-dangerous-commands.sh` — git commit mesajlarında false positive
+- [x] ~~Hook false positive fix~~ (claude-code-skills reposunda tamamlandı, Fase 5)
 
 ### v6.2.0 "Chrom" - Server Automation
 

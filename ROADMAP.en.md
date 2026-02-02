@@ -87,10 +87,18 @@
 Short-term improvements building on existing infrastructure.
 
 - [ ] `--history [N]` command: Parse log files and display update summary for the last N days
+  - Default: N=7 (last 7 days)
+  - Output: date, package count, success/error status
+  - Log format: `/var/log/bigfive-updater/guncel-YYYY-MM-DD.log`
 - [ ] `--doctor` command: Config validation, dependency check, disk space, internet connectivity in one command
+  - Config file syntax check
+  - Required commands: curl/wget, jq (optional), package manager
+  - Disk space: minimum 500MB free
+  - Internet: GitHub raw URL ping
+  - Lang files: existence check
 - [ ] GitHub Actions CI matrix build: Automatic 5-distro testing on every PR (Docker base images ready)
 - [ ] install.sh improvements: wget TLS flag modernize, grep portability, message clarity, variable cleanup
-- [ ] Hook false positive fix: `block-dangerous-commands.sh` — false positive on git commit messages
+- [x] ~~Hook false positive fix~~ (completed in claude-code-skills repo, Fase 5)
 
 ### v6.2.0 "Chrom" - Server Automation
 
