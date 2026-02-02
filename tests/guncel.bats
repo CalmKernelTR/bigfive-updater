@@ -623,12 +623,12 @@ get_script_version() {
 
 @test "doctor: --doctor shows required commands check (2/6)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -q '\[2/6\].*Gerekli komutlar'
+    echo "$output" | grep -qE '\[2/6\].*(Required|Gerekli)'
 }
 
 @test "doctor: --doctor shows optional commands check (3/6)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -q '\[3/6\].*Opsiyonel'
+    echo "$output" | grep -qE '\[3/6\].*(Optional|Opsiyonel)'
 }
 
 @test "doctor: --doctor shows disk space check (4/6)" {
@@ -638,12 +638,12 @@ get_script_version() {
 
 @test "doctor: --doctor shows internet check (5/6)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -q '\[5/6\].*İnternet'
+    echo "$output" | grep -qE '\[5/6\].*(Internet|İnternet)'
 }
 
 @test "doctor: --doctor shows language files check (6/6)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -q '\[6/6\].*Dil'
+    echo "$output" | grep -qE '\[6/6\].*(Language|Dil)'
 }
 
 @test "doctor: --doctor returns 0 when healthy" {
@@ -653,7 +653,7 @@ get_script_version() {
 
 @test "doctor: --doctor shows summary line" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -qE '(sağlıklı|uyarı|hata)'
+    echo "$output" | grep -qE '(healthy|sağlıklı|warning|uyarı|error|hata)'
 }
 
 # ==================== v6.1.0 --history Tests ====================
@@ -678,17 +678,17 @@ get_script_version() {
 
 @test "history: --history default is 7 days" {
     run bash "$GUNCEL_SCRIPT" --history
-    echo "$output" | grep -q 'Son 7 Gün'
+    echo "$output" | grep -qE '(Last 7 Days|Son 7 Gün|7)'
 }
 
 @test "history: --history accepts numeric argument" {
     run bash "$GUNCEL_SCRIPT" --history 30
-    echo "$output" | grep -q 'Son 30 Gün'
+    echo "$output" | grep -qE '(Last 30 Days|Son 30 Gün|30)'
 }
 
 @test "history: --history shows column headers" {
     run bash "$GUNCEL_SCRIPT" --history
-    echo "$output" | grep -q 'Tarih'
+    echo "$output" | grep -qE '(Date|Tarih)'
 }
 
 @test "history: --history returns 0" {

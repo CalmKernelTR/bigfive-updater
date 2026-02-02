@@ -1,6 +1,6 @@
 .\" Man page for guncel - BigFive Updater (Türkçe)
 .\" Generated from guncel.8.md
-.TH GUNCEL 8 "Ocak 2026" "BigFive Updater 6.0.2" "Sistem Yönetimi"
+.TH GUNCEL 8 "Şubat 2026" "BigFive Updater 6.1.0" "Sistem Yönetimi"
 .SH İSİM
 guncel \- evrensel Linux sistem güncelleyici (BigFive Edition)
 .SH KULLANIM
@@ -62,6 +62,15 @@ BigFive Updater'ı yapılandırma dosyaları ve loglar dahil tamamen kaldır.
 .BI \-\-lang " kod"
 Çıktı dilini ayarla. Kullanılabilir değerler: tr (Türkçe), en (İngilizce).
 Varsayılan olarak sistem LANG'den otomatik algılanır.
+.TP
+.B \-\-doctor
+Sistem sağlık kontrolü çalıştır. Yapılandırma dosyası, gerekli ve opsiyonel
+komutlar, disk alanı, internet bağlantısı ve dil dosyalarını doğrular.
+Güncelleme çalıştırmadan önce sorunları gidermek için kullanışlıdır.
+.TP
+.BI \-\-history " [N]"
+Son N günün güncelleme geçmişini göster (varsayılan: 7). Log dizininden
+her güncelleme çalıştırmasının tarih, saat, durum ve detaylarını görüntüler.
 .TP
 .B \-\-help
 Yardım mesajını göster ve çık.
@@ -163,6 +172,18 @@ sudo guncel --skip fwupd
 .PP
 .RS
 sudo guncel --json
+.RE
+.PP
+Sistem sağlık kontrolü çalıştır:
+.PP
+.RS
+guncel --doctor
+.RE
+.PP
+Son 14 günün güncelleme geçmişini göster:
+.PP
+.RS
+guncel --history 14
 .RE
 .SH ÇIKIŞ DURUMU
 .TP

@@ -1,6 +1,6 @@
 .\" Man page for guncel - BigFive Updater
 .\" Generated from guncel.8.md
-.TH GUNCEL 8 "January 2026" "BigFive Updater 6.0.2" "System Administration"
+.TH GUNCEL 8 "February 2026" "BigFive Updater 6.1.0" "System Administration"
 .SH NAME
 guncel \- universal Linux system updater (BigFive Edition)
 .SH SYNOPSIS
@@ -65,6 +65,15 @@ Completely remove BigFive Updater including configuration files and logs.
 .BI \-\-lang " code"
 Set output language. Available values: tr (Turkish), en (English).
 Default is auto-detected from system LANG.
+.TP
+.B \-\-doctor
+Run system health check. Verifies configuration file, required and optional
+commands, disk space, internet connectivity, and language files. Useful for
+troubleshooting issues before running updates.
+.TP
+.BI \-\-history " [N]"
+Show update history for the last N days (default: 7). Displays date, time,
+status, and details of each update run from the log directory.
 .TP
 .B \-\-help
 Display help message and exit.
@@ -166,6 +175,18 @@ Output JSON for monitoring:
 .PP
 .RS
 sudo guncel --json
+.RE
+.PP
+Run system health check:
+.PP
+.RS
+guncel --doctor
+.RE
+.PP
+Show last 14 days of update history:
+.PP
+.RS
+guncel --history 14
 .RE
 .SH EXIT STATUS
 .TP

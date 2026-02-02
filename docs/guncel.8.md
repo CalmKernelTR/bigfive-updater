@@ -1,6 +1,6 @@
-% GUNCEL(8) BigFive Updater 6.0.2
+% GUNCEL(8) BigFive Updater 6.1.0
 % Ahmet T. <ahm3t0t@users.noreply.github.com>
-% January 2026
+% February 2026
 
 # NAME
 
@@ -69,6 +69,15 @@ systems.
 **--lang** *code*
 :   Set output language. Available values: tr (Turkish), en (English).
     Default is auto-detected from system LANG.
+
+**--doctor**
+:   Run system health check. Verifies configuration file, required and
+    optional commands, disk space, internet connectivity, and language
+    files. Useful for troubleshooting issues before running updates.
+
+**--history** *[N]*
+:   Show update history for the last N days (default: 7). Displays date,
+    time, status, and details of each update run from the log directory.
 
 **--help**
 :   Display help message and exit.
@@ -153,6 +162,14 @@ Skip firmware updates:
 Output JSON for monitoring:
 
     sudo guncel --json
+
+Run system health check:
+
+    guncel --doctor
+
+Show last 14 days of update history:
+
+    guncel --history 14
 
 # EXIT STATUS
 

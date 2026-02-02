@@ -5,6 +5,53 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.0] - 2026-02-02 "BigFive Edition - Echo"
+### Added
+- **--doctor command:** System health check with 6 diagnostic tests
+  - Config file syntax validation
+  - Required commands check (curl/wget)
+  - Optional commands check (flatpak, snap, fwupd, timeshift, snapper)
+  - Disk space verification (500MB minimum)
+  - Internet connectivity test (GitHub reachable)
+  - Language files check
+- **--history [N] command:** Update history viewer
+  - Shows last N days of update logs (default: 7)
+  - Displays date, time, status (OK/ERROR/DRY), and details
+  - Parses log files from `/var/log/bigfive-updater/`
+- **i18n for new commands:** Added ~50 MSG_ variables to both language files
+  - `MSG_DOCTOR_*` messages for health check output
+  - `MSG_HISTORY_*` messages for history display
+  - `MSG_HELP_OPT_DOCTOR` and `MSG_HELP_OPT_HISTORY` for --help
+- **Shell completion updates:** Added --doctor, --history, --lang to all shells
+  - Bash: `completions/guncel.bash`
+  - Zsh: `completions/_guncel`
+  - Fish: `completions/guncel.fish`
+
+### Fixed
+- **Security improvements:**
+  - `safe_source()`: Validates config file ownership and permissions before sourcing
+  - `safe_mktemp()`: Secure temporary file creation with proper permissions
+  - NOPASSWD check for --auto mode (E041 error code)
+  - Relaxed ownership check for non-root users (allows user-owned configs)
+- **ShellCheck fixes:** Removed unused variables (SC2034)
+  - `pkg_count` in history function
+  - `bad_commits` in release.sh
+
+### Changed
+- **release.sh:** Updated to Dev-V1.3.1
+  - Added `get_current_version()` error handling
+  - GPG signing for commits and tags
+  - `escape_for_sed()` for injection prevention
+  - `validate_version()` for X.Y.Z format
+  - `cleanup_on_error()` trap for rollback
+- **install.sh:** Updated to Night-V1.4.2
+  - wget fallback for older systems without TLS 1.3
+- **Man pages:** Updated to version 6.1.0
+  - Added --doctor and --history documentation
+  - Added examples for new commands
+
+---
+
 ## [6.0.2] - 2026-01-30 "BigFive Edition - Echo"
 ### Added
 - **Disk Space Check:** Pre-update disk space verification

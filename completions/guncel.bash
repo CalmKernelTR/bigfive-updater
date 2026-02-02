@@ -1,18 +1,21 @@
 # Bash completion for guncel/updater/bigfive
-# ARCB Wider Updater v5.4+
+# BigFive Updater v6.1.0+
 # Install: sudo cp guncel.bash /usr/share/bash-completion/completions/guncel
 
 _guncel_completions() {
-    local cur prev opts skip_only_opts
+    local cur prev opts skip_only_opts lang_opts
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     # Ana seçenekler
-    opts="--help --auto --verbose --quiet --dry-run --json --json-full --skip --only --uninstall"
+    opts="--help --auto --verbose --quiet --dry-run --json --json-full --skip --only --uninstall --doctor --history --lang"
 
     # --skip ve --only için değerler
     skip_only_opts="snapshot flatpak snap fwupd system apt dnf pacman zypper apk"
+
+    # --lang için değerler
+    lang_opts="tr en"
 
     # --uninstall sonrası --purge
     if [[ "${COMP_WORDS[*]}" == *"--uninstall"* ]]; then
@@ -24,6 +27,14 @@ _guncel_completions() {
     case "${prev}" in
         --skip|--only)
             COMPREPLY=( $(compgen -W "${skip_only_opts}" -- "${cur}") )
+            return 0
+            ;;
+        --lang)
+            COMPREPLY=( $(compgen -W "${lang_opts}" -- "${cur}") )
+            return 0
+            ;;
+        --history)
+            # Gün sayısı için tamamlama yok, kullanıcı sayı yazabilir
             return 0
             ;;
     esac

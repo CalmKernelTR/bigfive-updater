@@ -67,6 +67,12 @@ Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks
 * **Disk Space Check (v6.0.2):**
     * Pre-update check for minimum 500MB free disk space.
     * E040 error code warning when space is insufficient.
+* **System Health Check (v6.1.0):**
+    * `--doctor` command for system diagnostics.
+    * Checks config, required/optional commands, disk, network, language files.
+* **Update History (v6.1.0):**
+    * `--history [N]` to view last N days of update logs (default: 7).
+    * Shows date, time, status, and details of each run.
 * **Config File Support (v3.6.0):**
     * Define default settings in `/etc/bigfive-updater.conf`.
 * **SHA256 Verification (v3.6.0):**
@@ -92,8 +98,8 @@ This project uses **two separate version systems**:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v6.0.2 (BigFive Edition - Echo) | Every feature/fix |
-| `install.sh` (installer) | Night-Vx.x.x | Night-V1.4.1 | Only when install logic changes |
+| `guncel` (main script) | SemVer (x.x.x) | v6.1.0 (BigFive Edition - Echo) | Every feature/fix |
+| `install.sh` (installer) | Night-Vx.x.x | Night-V1.4.2 | Only when install logic changes |
 
 **Naming Convention:**
 - **Edition** = Major series name (e.g., "BigFive" for v5.x = 5 package managers)

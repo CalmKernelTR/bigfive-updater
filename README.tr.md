@@ -104,6 +104,12 @@ Tek komut. Hepsi bir arada. Güvenli ve izlenebilir.
 * **Disk Alanı Kontrolü (v6.0.2):**
     * Güncelleme öncesi minimum 500MB disk alanı kontrolü.
     * Yetersiz alan durumunda E040 hata kodu ile uyarı.
+* **Sistem Sağlık Kontrolü (v6.1.0):**
+    * `--doctor` komutu ile sistem tanılama.
+    * Config, gerekli/opsiyonel komutlar, disk, ağ, dil dosyalarını kontrol eder.
+* **Güncelleme Geçmişi (v6.1.0):**
+    * `--history [N]` ile son N günün güncelleme loglarını görüntüleme (varsayılan: 7).
+    * Her çalıştırmanın tarih, saat, durum ve detaylarını gösterir.
 * **Config Dosyası Desteği (v3.6.0):**
     * `/etc/bigfive-updater.conf` ile varsayılan ayarları tanımlayın.
 * **SHA256 Doğrulama (v3.6.0):**
@@ -129,8 +135,8 @@ Bu proje **iki ayrı versiyon sistemi** kullanır:
 
 | Bileşen | Format | Güncel | Güncelleme Sıklığı |
 |---------|--------|--------|--------------------|
-| `guncel` (ana script) | SemVer (x.x.x) | v6.0.2 (BigFive Edition - Echo) | Her özellik/fix'te |
-| `install.sh` (kurulum) | Night-Vx.x.x | Night-V1.4.1 | Sadece kurulum mantığı değiştiğinde |
+| `guncel` (ana script) | SemVer (x.x.x) | v6.1.0 (BigFive Edition - Echo) | Her özellik/fix'te |
+| `install.sh` (kurulum) | Night-Vx.x.x | Night-V1.4.2 | Sadece kurulum mantığı değiştiğinde |
 
 **İsimlendirme Kuralı:**
 - **Edition** = Major seri adı (örn: "BigFive" v5.x için = 5 paket yöneticisi)

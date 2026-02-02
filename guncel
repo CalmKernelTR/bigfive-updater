@@ -7,7 +7,7 @@
 #
 
 # --- AYARLAR ---
-VERSION="6.0.2"
+VERSION="6.1.0"
 EDITION="BigFive"
 CODENAME="Echo"
 
@@ -801,16 +801,16 @@ do_history() {
     local today_epoch
     today_epoch=$(date +%s)
 
-    printf '%b%s%b\n' "${BLUE}${BOLD}" "BigFive Update History - Son $days Gün" "${NC}"
+    printf '%b%s%b\n' "${BLUE}${BOLD}" "$(printf "${MSG_HISTORY_TITLE:-BigFive Update History - Last %d Days}" "$days")" "${NC}"
     printf '%s\n' "══════════════════════════════════════════════════════"
     printf '\n'
-    printf '%-12s %-8s %-10s %s\n' "Tarih" "Saat" "Durum" "Detay"
+    printf '%-12s %-8s %-10s %s\n' "${MSG_HISTORY_COL_DATE:-Date}" "${MSG_HISTORY_COL_TIME:-Time}" "${MSG_HISTORY_COL_STATUS:-Status}" "${MSG_HISTORY_COL_DETAIL:-Detail}"
     printf '%s\n' "────────────────────────────────────────────────────────"
 
     # Log dizini kontrolü
     if [[ ! -d "$log_dir" ]]; then
-        printf '%b!%b Log dizini bulunamadı: %s\n' "${YELLOW}" "${NC}" "$log_dir"
-        printf '%s\n' "  Henüz güncelleme yapılmamış olabilir."
+        printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_HISTORY_NO_DIR:-Log directory not found: %s}" "$log_dir")"
+        printf '%s\n' "  ${MSG_HISTORY_NO_DIR_HINT:-No updates may have been performed yet.}"
         return 0
     fi
 
@@ -839,32 +839,30 @@ do_history() {
                 ((found++)) || true
 
                 # Log içeriğini analiz et
-                local status="?"
+                local status="${MSG_HISTORY_STATUS_UNKNOWN:-?}"
                 local detail=""
 
                 # Başarı/hata durumu
                 if grep -q "ERROR:" "$log_file" 2>/dev/null; then
-                    status="${RED}HATA${NC}"
+                    status="${RED}${MSG_HISTORY_STATUS_ERROR:-ERROR}${NC}"
                     local err_count
                     err_count=$(grep -c "ERROR:" "$log_file" 2>/dev/null) || err_count=0
-                    detail="$err_count hata"
+                    detail="$(printf "${MSG_HISTORY_DETAIL_ERRORS:-%d error(s)}" "$err_count")"
                 elif grep -q "SUCCESS:" "$log_file" 2>/dev/null; then
-                    status="${GREEN}OK${NC}"
-                    # Paket sayısını bulmaya çalış
-                    # "X packages upgraded" veya "X güncelleme" gibi pattern
+                    status="${GREEN}${MSG_HISTORY_STATUS_OK:-OK}${NC}"
                     local pkg_line
                     pkg_line=$(grep -E "(packages upgraded|paket güncellendi|upgraded\.|güncelleme)" "$log_file" 2>/dev/null | head -1) || true
                     if [[ -n "$pkg_line" ]]; then
                         detail="$pkg_line"
                     else
-                        detail="Başarılı"
+                        detail="${MSG_HISTORY_DETAIL_SUCCESS:-Successful}"
                     fi
                 elif grep -q "DRY-RUN:" "$log_file" 2>/dev/null; then
-                    status="${YELLOW}DRY${NC}"
-                    detail="Simülasyon"
+                    status="${YELLOW}${MSG_HISTORY_STATUS_DRY:-DRY}${NC}"
+                    detail="${MSG_HISTORY_DETAIL_SIMULATION:-Simulation}"
                 else
-                    status="${YELLOW}?${NC}"
-                    detail="Belirsiz"
+                    status="${YELLOW}${MSG_HISTORY_STATUS_UNKNOWN:-?}${NC}"
+                    detail="${MSG_HISTORY_DETAIL_UNKNOWN:-Unknown}"
                 fi
 
                 printf '%-12s %-8s %b%-10s%b %s\n' "$log_date" "${hour}:${minute}" "" "$status" "" "$detail"
@@ -874,10 +872,10 @@ do_history() {
 
     printf '\n'
     if [[ $found -eq 0 ]]; then
-        printf '%b!%b Son %d günde güncelleme kaydı bulunamadı.\n' "${YELLOW}" "${NC}" "$days"
+        printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_HISTORY_NO_LOGS:-No update records found in the last %d days.}" "$days")"
     else
         printf '%s\n' "────────────────────────────────────────────────────────"
-        printf 'Toplam: %d kayıt\n' "$found"
+        printf '%s\n' "$(printf "${MSG_HISTORY_TOTAL:-Total: %d records}" "$found")"
     fi
 }
 
@@ -886,34 +884,31 @@ do_doctor() {
     local errors=0
     local warnings=0
 
-    printf '%b%s%b\n' "${BLUE}${BOLD}" "BigFive Doctor - Sistem Sağlık Kontrolü" "${NC}"
+    printf '%b%s%b\n' "${BLUE}${BOLD}" "${MSG_DOCTOR_TITLE:-BigFive Doctor - System Health Check}" "${NC}"
     printf '%s\n' "══════════════════════════════════════════════════════"
     printf '\n'
 
     # 1. Config dosyası kontrolü
-    printf '%b[1/6]%b Config dosyası... ' "${BLUE}" "${NC}"
+    printf '%b[1/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_CONFIG:-Config file...}"
     if [[ -f "$CONFIG_FILE" ]]; then
-        # Syntax check - source edip hata var mı?
         if bash -n "$CONFIG_FILE" 2>/dev/null; then
-            printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$CONFIG_FILE"
+            printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_CONFIG_OK:-%s}" "$CONFIG_FILE")"
         else
-            printf '%b✗%b Syntax hatası: %s\n' "${RED}" "${NC}" "$CONFIG_FILE"
+            printf '%b✗%b %s\n' "${RED}" "${NC}" "$(printf "${MSG_DOCTOR_CONFIG_SYNTAX_ERR:-Syntax error: %s}" "$CONFIG_FILE")"
             ((errors++)) || true
         fi
     else
-        printf '%b-%b Yok (varsayılan ayarlar kullanılacak)\n' "${YELLOW}" "${NC}"
+        printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_CONFIG_NONE:-Not found (default settings will be used)}"
     fi
 
     # 2. Gerekli komutlar
-    printf '%b[2/6]%b Gerekli komutlar... ' "${BLUE}" "${NC}"
+    printf '%b[2/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_REQUIRED:-Required commands...}"
     local missing_cmds=()
 
-    # curl veya wget
     if ! command -v curl &>/dev/null && ! command -v wget &>/dev/null; then
         missing_cmds+=("curl/wget")
     fi
 
-    # Paket yöneticisi
     local pm_found=false
     for pm in apt-get dnf pacman zypper apk; do
         if command -v "$pm" &>/dev/null; then
@@ -922,18 +917,18 @@ do_doctor() {
         fi
     done
     if [[ "$pm_found" == "false" ]]; then
-        missing_cmds+=("paket-yöneticisi")
+        missing_cmds+=("package-manager")
     fi
 
     if [[ ${#missing_cmds[@]} -eq 0 ]]; then
-        printf '%b✓%b Tümü mevcut\n' "${GREEN}" "${NC}"
+        printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_CMDS_OK:-All present}"
     else
-        printf '%b✗%b Eksik: %s\n' "${RED}" "${NC}" "${missing_cmds[*]}"
+        printf '%b✗%b %s\n' "${RED}" "${NC}" "$(printf "${MSG_DOCTOR_CMDS_MISSING:-Missing: %s}" "${missing_cmds[*]}")"
         ((errors++)) || true
     fi
 
     # 3. Opsiyonel komutlar
-    printf '%b[3/6]%b Opsiyonel komutlar... ' "${BLUE}" "${NC}"
+    printf '%b[3/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_OPTIONAL:-Optional commands...}"
     local optional_status=()
     command -v jq &>/dev/null && optional_status+=("jq:✓") || optional_status+=("jq:✗")
     command -v fwupdmgr &>/dev/null && optional_status+=("fwupd:✓") || optional_status+=("fwupd:✗")
@@ -942,23 +937,23 @@ do_doctor() {
     printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${optional_status[*]}"
 
     # 4. Disk alanı
-    printf '%b[4/6]%b Disk alanı... ' "${BLUE}" "${NC}"
+    printf '%b[4/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_DISK:-Disk space...}"
     local available_mb
     available_mb=$(df -m / 2>/dev/null | awk 'NR==2 {print $4}')
     if [[ -n "$available_mb" ]]; then
         if [[ "$available_mb" -ge 500 ]]; then
-            printf '%b✓%b %sMB mevcut (min: 500MB)\n' "${GREEN}" "${NC}" "$available_mb"
+            printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_DISK_OK:-%sMB available (min: 500MB)}" "$available_mb")"
         else
-            printf '%b✗%b %sMB mevcut (min: 500MB gerekli)\n' "${RED}" "${NC}" "$available_mb"
+            printf '%b✗%b %s\n' "${RED}" "${NC}" "$(printf "${MSG_DOCTOR_DISK_LOW:-%sMB available (min: 500MB required)}" "$available_mb")"
             ((errors++)) || true
         fi
     else
-        printf '%b?%b Kontrol edilemedi\n' "${YELLOW}" "${NC}"
+        printf '%b?%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_DISK_UNKNOWN:-Could not check}"
         ((warnings++)) || true
     fi
 
     # 5. İnternet bağlantısı
-    printf '%b[5/6]%b İnternet bağlantısı... ' "${BLUE}" "${NC}"
+    printf '%b[5/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_INTERNET:-Internet connectivity...}"
     local net_ok=false
     if command -v curl &>/dev/null; then
         curl --proto '=https' --tlsv1.2 -s -f -m 5 "https://raw.githubusercontent.com" >/dev/null 2>&1 && net_ok=true
@@ -966,14 +961,14 @@ do_doctor() {
         wget --secure-protocol=TLSv1_2 -q --spider --timeout=5 "https://raw.githubusercontent.com" 2>/dev/null && net_ok=true
     fi
     if [[ "$net_ok" == "true" ]]; then
-        printf '%b✓%b GitHub erişilebilir\n' "${GREEN}" "${NC}"
+        printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_NET_OK:-GitHub reachable}"
     else
-        printf '%b✗%b GitHub erişilemiyor\n' "${RED}" "${NC}"
+        printf '%b✗%b %s\n' "${RED}" "${NC}" "${MSG_DOCTOR_NET_FAIL:-GitHub unreachable}"
         ((errors++)) || true
     fi
 
     # 6. Dil dosyaları
-    printf '%b[6/6]%b Dil dosyaları... ' "${BLUE}" "${NC}"
+    printf '%b[6/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_LANG:-Language files...}"
     local lang_ok=0 lang_missing=0
     for lang in tr en; do
         if [[ -f "/usr/share/bigfive-updater/lang/${lang}.sh" ]] || [[ -f "$(dirname "$0")/lang/${lang}.sh" ]]; then
@@ -983,9 +978,9 @@ do_doctor() {
         fi
     done
     if [[ $lang_missing -eq 0 ]]; then
-        printf '%b✓%b %d dil dosyası mevcut\n' "${GREEN}" "${NC}" "$lang_ok"
+        printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_LANG_OK:-%d language files present}" "$lang_ok")"
     else
-        printf '%b-%b %d mevcut, %d eksik\n' "${YELLOW}" "${NC}" "$lang_ok" "$lang_missing"
+        printf '%b-%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_DOCTOR_LANG_PARTIAL:-%d present, %d missing}" "$lang_ok" "$lang_missing")"
         ((warnings++)) || true
     fi
 
@@ -993,13 +988,13 @@ do_doctor() {
     printf '\n'
     printf '%s\n' "══════════════════════════════════════════════════════"
     if [[ $errors -eq 0 && $warnings -eq 0 ]]; then
-        printf '%b✓ Sistem sağlıklı - BigFive kullanıma hazır%b\n' "${GREEN}" "${NC}"
+        printf '%b✓ %s%b\n' "${GREEN}" "${MSG_DOCTOR_SUMMARY_OK:-System healthy - BigFive ready to use}" "${NC}"
         return 0
     elif [[ $errors -eq 0 ]]; then
-        printf '%b! %d uyarı - BigFive çalışabilir%b\n' "${YELLOW}" "$warnings" "${NC}"
+        printf '%b! %s%b\n' "${YELLOW}" "$(printf "${MSG_DOCTOR_SUMMARY_WARN:-%d warning(s) - BigFive can run}" "$warnings")" "${NC}"
         return 0
     else
-        printf '%b✗ %d hata, %d uyarı - Sorunları düzeltin%b\n' "${RED}" "$errors" "$warnings" "${NC}"
+        printf '%b✗ %s%b\n' "${RED}" "$(printf "${MSG_DOCTOR_SUMMARY_ERR:-%d error(s), %d warning(s) - Please fix issues}" "$errors" "$warnings")" "${NC}"
         return 1
     fi
 }

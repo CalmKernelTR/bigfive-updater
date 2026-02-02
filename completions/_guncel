@@ -1,9 +1,9 @@
 #compdef guncel updater bigfive
 # Zsh completion for guncel/updater/bigfive
-# ARCB Wider Updater v5.4+
+# BigFive Updater v6.1.0+
 # Install: sudo cp _guncel /usr/share/zsh/site-functions/_guncel
 
-local -a backends
+local -a backends languages
 backends=(
     'snapshot:Skip/only snapshot creation'
     'flatpak:Skip/only Flatpak updates'
@@ -17,6 +17,11 @@ backends=(
     'apk:Skip/only APK (Alpine)'
 )
 
+languages=(
+    'tr:Turkish'
+    'en:English'
+)
+
 _arguments -s \
     '(- *)--help[Show help message]' \
     '--auto[Non-interactive mode for cron/automation]' \
@@ -28,10 +33,16 @@ _arguments -s \
     '--skip[Skip specific backends]:backend:->backends' \
     '--only[Run only specific backends]:backend:->backends' \
     '--uninstall[Uninstall guncel from system]' \
-    '--purge[Remove all files including logs (use with --uninstall)]'
+    '--purge[Remove all files including logs (use with --uninstall)]' \
+    '--doctor[Run system health check]' \
+    '--history[Show update history for last N days]:days:' \
+    '--lang[Set output language]:language:->languages'
 
 case "$state" in
     backends)
         _describe -t backends 'backend' backends
+        ;;
+    languages)
+        _describe -t languages 'language' languages
         ;;
 esac

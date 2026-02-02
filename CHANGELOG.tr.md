@@ -5,6 +5,53 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [6.1.0] - 2026-02-02 "BigFive Edition - Echo"
+### Eklenenler
+- **--doctor komutu:** 6 diagnostik test ile sistem sağlık kontrolü
+  - Config dosyası syntax doğrulama
+  - Gerekli komut kontrolü (curl/wget)
+  - Opsiyonel komut kontrolü (flatpak, snap, fwupd, timeshift, snapper)
+  - Disk alanı doğrulama (minimum 500MB)
+  - İnternet bağlantı testi (GitHub erişilebilirliği)
+  - Dil dosyaları kontrolü
+- **--history [N] komutu:** Güncelleme geçmişi görüntüleyici
+  - Son N günün güncelleme loglarını gösterir (varsayılan: 7)
+  - Tarih, saat, durum (OK/HATA/DRY) ve detayları görüntüler
+  - `/var/log/bigfive-updater/` dizininden log dosyalarını parse eder
+- **Yeni komutlar için i18n:** Her iki dil dosyasına ~50 MSG_ değişkeni eklendi
+  - Sağlık kontrolü çıktısı için `MSG_DOCTOR_*` mesajları
+  - Geçmiş görüntüleme için `MSG_HISTORY_*` mesajları
+  - --help için `MSG_HELP_OPT_DOCTOR` ve `MSG_HELP_OPT_HISTORY`
+- **Shell completion güncellemeleri:** Tüm shell'lere --doctor, --history, --lang eklendi
+  - Bash: `completions/guncel.bash`
+  - Zsh: `completions/_guncel`
+  - Fish: `completions/guncel.fish`
+
+### Düzeltilenler
+- **Güvenlik iyileştirmeleri:**
+  - `safe_source()`: Kaynak almadan önce config dosyası sahiplik ve izin doğrulama
+  - `safe_mktemp()`: Doğru izinlerle güvenli geçici dosya oluşturma
+  - --auto modu için NOPASSWD kontrolü (E041 hata kodu)
+  - Root olmayan kullanıcılar için sahiplik kontrolü gevşetildi
+- **ShellCheck düzeltmeleri:** Kullanılmayan değişkenler kaldırıldı (SC2034)
+  - History fonksiyonunda `pkg_count`
+  - release.sh'de `bad_commits`
+
+### Değişenler
+- **release.sh:** Dev-V1.3.1'e güncellendi
+  - `get_current_version()` hata yönetimi eklendi
+  - Commit ve tag'ler için GPG imzalama
+  - Injection önleme için `escape_for_sed()`
+  - X.Y.Z format kontrolü için `validate_version()`
+  - Rollback için `cleanup_on_error()` trap
+- **install.sh:** Night-V1.4.2'ye güncellendi
+  - TLS 1.3 desteği olmayan eski sistemler için wget fallback
+- **Man sayfaları:** 6.1.0 sürümüne güncellendi
+  - --doctor ve --history dokümantasyonu eklendi
+  - Yeni komutlar için örnekler eklendi
+
+---
+
 ## [6.0.2] - 2026-01-30 "BigFive Edition - Echo"
 ### Eklenenler
 - **Disk Alanı Kontrolü:** Güncelleme öncesi disk alanı kontrolü

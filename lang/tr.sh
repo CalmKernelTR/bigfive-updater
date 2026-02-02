@@ -144,3 +144,56 @@ MSG_SUMMARY_REBOOT_NOT_REQUIRED="Gerekli değil"
 MSG_CONFIRM_CONTINUE="Devam etmek istiyor musunuz? [E/h]"
 MSG_RESTORE_ATTEMPT="Yedekten geri yükleme deneniyor..."
 MSG_DNF_LOCK_FAILED="DNF kilidi alınamadı, DNF güncellemesi atlanıyor."
+
+# ============================================
+# v6.1.0 - DOCTOR Mesajları
+# ============================================
+MSG_DOCTOR_TITLE="BigFive Doctor - Sistem Sağlık Kontrolü"
+MSG_DOCTOR_CHECK_CONFIG="Config dosyası..."
+MSG_DOCTOR_CHECK_REQUIRED="Gerekli komutlar..."
+MSG_DOCTOR_CHECK_OPTIONAL="Opsiyonel komutlar..."
+MSG_DOCTOR_CHECK_DISK="Disk alanı..."
+MSG_DOCTOR_CHECK_INTERNET="İnternet bağlantısı..."
+MSG_DOCTOR_CHECK_LANG="Dil dosyaları..."
+MSG_DOCTOR_CONFIG_OK="%s"
+MSG_DOCTOR_CONFIG_SYNTAX_ERR="Syntax hatası: %s"
+MSG_DOCTOR_CONFIG_NONE="Yok (varsayılan ayarlar kullanılacak)"
+MSG_DOCTOR_CMDS_OK="Tümü mevcut"
+MSG_DOCTOR_CMDS_MISSING="Eksik: %s"
+MSG_DOCTOR_DISK_OK="%sMB mevcut (min: 500MB)"
+MSG_DOCTOR_DISK_LOW="%sMB mevcut (min: 500MB gerekli)"
+MSG_DOCTOR_DISK_UNKNOWN="Kontrol edilemedi"
+MSG_DOCTOR_NET_OK="GitHub erişilebilir"
+MSG_DOCTOR_NET_FAIL="GitHub erişilemiyor"
+MSG_DOCTOR_LANG_OK="%d dil dosyası mevcut"
+MSG_DOCTOR_LANG_PARTIAL="%d mevcut, %d eksik"
+MSG_DOCTOR_SUMMARY_OK="Sistem sağlıklı - BigFive kullanıma hazır"
+MSG_DOCTOR_SUMMARY_WARN="%d uyarı - BigFive çalışabilir"
+MSG_DOCTOR_SUMMARY_ERR="%d hata, %d uyarı - Sorunları düzeltin"
+
+# ============================================
+# v6.1.0 - HISTORY Mesajları
+# ============================================
+MSG_HISTORY_TITLE="BigFive Update History - Son %d Gün"
+MSG_HISTORY_COL_DATE="Tarih"
+MSG_HISTORY_COL_TIME="Saat"
+MSG_HISTORY_COL_STATUS="Durum"
+MSG_HISTORY_COL_DETAIL="Detay"
+MSG_HISTORY_NO_DIR="Log dizini bulunamadı: %s"
+MSG_HISTORY_NO_DIR_HINT="Henüz güncelleme yapılmamış olabilir."
+MSG_HISTORY_NO_LOGS="Son %d günde güncelleme kaydı bulunamadı."
+MSG_HISTORY_TOTAL="Toplam: %d kayıt"
+MSG_HISTORY_STATUS_OK="OK"
+MSG_HISTORY_STATUS_ERROR="HATA"
+MSG_HISTORY_STATUS_DRY="DRY"
+MSG_HISTORY_STATUS_UNKNOWN="?"
+MSG_HISTORY_DETAIL_SUCCESS="Başarılı"
+MSG_HISTORY_DETAIL_ERRORS="%d hata"
+MSG_HISTORY_DETAIL_SIMULATION="Simülasyon"
+MSG_HISTORY_DETAIL_UNKNOWN="Belirsiz"
+
+# ============================================
+# v6.1.0 - HELP Mesajları (Ek)
+# ============================================
+MSG_HELP_OPT_DOCTOR="  --doctor            Sistem sağlık kontrolü (config, bağımlılıklar, disk, ağ)"
+MSG_HELP_OPT_HISTORY="  --history [N]       Son N günün güncelleme geçmişi (varsayılan: 7)"

@@ -45,6 +45,8 @@ bigfive --quiet     # Quiet mode / Sessiz mod
 guncel --auto       # Automatic mode / Otomatik mod
 guncel --dry-run    # Preview updates / Güncellemeleri önizle
 guncel --lang en    # English output / İngilizce çıktı (v6.0+)
+guncel --doctor     # System health check / Sistem sağlık kontrolü (v6.1+)
+guncel --history    # Update history / Güncelleme geçmişi (v6.1+)
 guncel --help       # Help / Yardım
 ```
 
@@ -58,8 +60,8 @@ This project uses two separate version systems:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v6.0.2 (BigFive Edition - Echo) | Her özellik/fix'te / Every feature/fix |
-| `install.sh` (installer) | Night-Vx.x.x | Night-V1.4.1 | Sadece kurulum değiştiğinde / Only when install logic changes |
+| `guncel` (main script) | SemVer (x.x.x) | v6.1.0 (BigFive Edition - Echo) | Her özellik/fix'te / Every feature/fix |
+| `install.sh` (installer) | Night-Vx.x.x | Night-V1.4.2 | Sadece kurulum değiştiğinde / Only when install logic changes |
 
 **Neden ayrı? / Why separate?**
 - Ana script sık güncellenir, installer nadiren değişir
@@ -91,6 +93,8 @@ This project uses two separate version systems:
 - ✅ Automatic Backup: Rollback capability
 - ✅ TLS 1.2+ Hardening: Secure downloads
 - ✅ Multi-Language (v6.0+): `--lang tr|en`, `BIGFIVE_LANG` env var
+- ✅ System Health Check (v6.1+): `--doctor` for diagnostics
+- ✅ Update History (v6.1+): `--history [N]` for last N days
 
 ---
 

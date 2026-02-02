@@ -144,3 +144,56 @@ MSG_SUMMARY_REBOOT_NOT_REQUIRED="Not required"
 MSG_CONFIRM_CONTINUE="Do you want to continue? [Y/n]"
 MSG_RESTORE_ATTEMPT="Attempting restore from backup..."
 MSG_DNF_LOCK_FAILED="Could not acquire DNF lock, skipping DNF update."
+
+# ============================================
+# v6.1.0 - DOCTOR Messages
+# ============================================
+MSG_DOCTOR_TITLE="BigFive Doctor - System Health Check"
+MSG_DOCTOR_CHECK_CONFIG="Config file..."
+MSG_DOCTOR_CHECK_REQUIRED="Required commands..."
+MSG_DOCTOR_CHECK_OPTIONAL="Optional commands..."
+MSG_DOCTOR_CHECK_DISK="Disk space..."
+MSG_DOCTOR_CHECK_INTERNET="Internet connectivity..."
+MSG_DOCTOR_CHECK_LANG="Language files..."
+MSG_DOCTOR_CONFIG_OK="%s"
+MSG_DOCTOR_CONFIG_SYNTAX_ERR="Syntax error: %s"
+MSG_DOCTOR_CONFIG_NONE="Not found (default settings will be used)"
+MSG_DOCTOR_CMDS_OK="All present"
+MSG_DOCTOR_CMDS_MISSING="Missing: %s"
+MSG_DOCTOR_DISK_OK="%sMB available (min: 500MB)"
+MSG_DOCTOR_DISK_LOW="%sMB available (min: 500MB required)"
+MSG_DOCTOR_DISK_UNKNOWN="Could not check"
+MSG_DOCTOR_NET_OK="GitHub reachable"
+MSG_DOCTOR_NET_FAIL="GitHub unreachable"
+MSG_DOCTOR_LANG_OK="%d language files present"
+MSG_DOCTOR_LANG_PARTIAL="%d present, %d missing"
+MSG_DOCTOR_SUMMARY_OK="System healthy - BigFive ready to use"
+MSG_DOCTOR_SUMMARY_WARN="%d warning(s) - BigFive can run"
+MSG_DOCTOR_SUMMARY_ERR="%d error(s), %d warning(s) - Please fix issues"
+
+# ============================================
+# v6.1.0 - HISTORY Messages
+# ============================================
+MSG_HISTORY_TITLE="BigFive Update History - Last %d Days"
+MSG_HISTORY_COL_DATE="Date"
+MSG_HISTORY_COL_TIME="Time"
+MSG_HISTORY_COL_STATUS="Status"
+MSG_HISTORY_COL_DETAIL="Detail"
+MSG_HISTORY_NO_DIR="Log directory not found: %s"
+MSG_HISTORY_NO_DIR_HINT="No updates may have been performed yet."
+MSG_HISTORY_NO_LOGS="No update records found in the last %d days."
+MSG_HISTORY_TOTAL="Total: %d records"
+MSG_HISTORY_STATUS_OK="OK"
+MSG_HISTORY_STATUS_ERROR="ERROR"
+MSG_HISTORY_STATUS_DRY="DRY"
+MSG_HISTORY_STATUS_UNKNOWN="?"
+MSG_HISTORY_DETAIL_SUCCESS="Successful"
+MSG_HISTORY_DETAIL_ERRORS="%d error(s)"
+MSG_HISTORY_DETAIL_SIMULATION="Simulation"
+MSG_HISTORY_DETAIL_UNKNOWN="Unknown"
+
+# ============================================
+# v6.1.0 - HELP Messages (Additional)
+# ============================================
+MSG_HELP_OPT_DOCTOR="  --doctor            System health check (config, dependencies, disk, network)"
+MSG_HELP_OPT_HISTORY="  --history [N]       Show update history for last N days (default: 7)"

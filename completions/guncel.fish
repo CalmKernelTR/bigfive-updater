@@ -1,5 +1,5 @@
 # Fish completion for guncel/updater/bigfive
-# ARCB Wider Updater v5.4+
+# BigFive Updater v6.1.0+
 # Install: sudo cp guncel.fish /usr/share/fish/vendor_completions.d/guncel.fish
 
 # Disable file completion
@@ -9,6 +9,9 @@ complete -c bigfive -f
 
 # Backend values for --skip and --only
 set -l backends snapshot flatpak snap fwupd system apt dnf pacman zypper apk
+
+# Language values for --lang
+set -l languages tr en
 
 # Main options
 complete -c guncel -c updater -c bigfive -l help -d 'Show help message'
@@ -20,6 +23,9 @@ complete -c guncel -c updater -c bigfive -l json -d 'Output lightweight JSON for
 complete -c guncel -c updater -c bigfive -l json-full -d 'Output detailed JSON for SIEM/audit'
 complete -c guncel -c updater -c bigfive -l uninstall -d 'Uninstall guncel from system'
 complete -c guncel -c updater -c bigfive -l purge -d 'Remove all files including logs (use with --uninstall)'
+complete -c guncel -c updater -c bigfive -l doctor -d 'Run system health check'
+complete -c guncel -c updater -c bigfive -l history -d 'Show update history for last N days'
+complete -c guncel -c updater -c bigfive -l lang -d 'Set output language' -xa "$languages"
 
 # --skip option with backend values
 complete -c guncel -c updater -c bigfive -l skip -d 'Skip specific backends' -xa "$backends"
