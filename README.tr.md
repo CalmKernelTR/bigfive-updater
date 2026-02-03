@@ -319,7 +319,7 @@ BIGFIVE_LANG=en guncel          # Environment variable ile
 | Değer | Açıklama |
 |-------|----------|
 | `snapshot` | Timeshift/Snapper yedekleme |
-| `flatpak` | Flatpak güncellemeleri |
+| `flatpak` | Flatpak güncellemeleri (sadece sistem geneli) |
 | `snap` | Snap güncellemeleri |
 | `fwupd` | Firmware güncellemeleri |
 | `system` | Tüm sistem paket yöneticileri (APT/DNF/Pacman/Zypper/APK) |
@@ -328,6 +328,8 @@ BIGFIVE_LANG=en guncel          # Environment variable ile
 | `pacman` | Sadece Pacman (Arch Linux) |
 | `zypper` | Sadece Zypper (openSUSE) |
 | `apk` | Sadece APK (Alpine Linux) |
+
+> **Not:** Flatpak güncellemeleri sadece sistem geneli (system-wide) kurulumları kapsar. Kullanıcı kurulumları için `flatpak update --user` komutunu kullanın.
 
 ---
 

@@ -5,6 +5,22 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [6.2.0] - 2026-02-03 "Fluent Edition - Foxtrot"
+### Eklenenler
+- **GPG imza doğrulaması:** Self-update için GPG imza doğrulaması eklendi
+  - Yeni fonksiyon: `verify_gpg_signature()` - SHA256SUMS.asc dosyasını doğrular
+  - Public key otomatik olarak GitHub'dan indirilir ve import edilir
+  - GPG yoksa uyarı ile devam eder (graceful degradation)
+  - Geçersiz imza E032 hata kodu ile reddedilir
+- **Yeni URL sabitleri:**
+  - `GITHUB_SHA256_SIG_URL`: İmza dosyası için
+  - `GITHUB_PUBKEY_URL`: Public key için
+
+### Değişenler
+- **Codename:** Echo → Foxtrot (v6.2.x minor serisi)
+
+---
+
 ## [6.1.1] - 2026-02-03 "Fluent Edition - Echo"
 ### Düzeltilenler
 - **Timeout parametreleri:** `download_file()` ve bağlantı kontrollerinde timeout eklendi

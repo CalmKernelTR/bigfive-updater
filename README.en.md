@@ -205,7 +205,7 @@ BIGFIVE_LANG=en guncel          # Via environment variable
 | Value | Description |
 |-------|-------------|
 | `snapshot` | Timeshift/Snapper backup |
-| `flatpak` | Flatpak updates |
+| `flatpak` | Flatpak updates (system-wide only) |
 | `snap` | Snap updates |
 | `fwupd` | Firmware updates |
 | `system` | All system package managers (APT/DNF/Pacman/Zypper/APK) |
@@ -214,6 +214,8 @@ BIGFIVE_LANG=en guncel          # Via environment variable
 | `pacman` | Pacman only (Arch Linux) |
 | `zypper` | Zypper only (openSUSE) |
 | `apk` | APK only (Alpine Linux) |
+
+> **Note:** Flatpak updates only cover system-wide installations. For user installations, use `flatpak update --user`.
 
 ---
 
