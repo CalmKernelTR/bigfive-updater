@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # BigFive Updater - English Language File
 # Language: English (en)
-# Version: 6.0.0 Echo Edition
+# Version: 6.2.0 Foxtrot Edition
 # Encoding: UTF-8
 
 # ============================================
@@ -40,6 +40,7 @@ MSG_INFO_FLATPAK_COUNT="Flatpak: %d applications updated."
 MSG_INFO_SNAP_COUNT="Snap: %d packages updated."
 MSG_INFO_FIRMWARE_NONE="Firmware: No upgradable devices found."
 MSG_INFO_FIRMWARE_COUNT="Firmware: %d updates."
+MSG_INFO_GPG_OK="GPG signature verification successful."
 
 # ============================================
 # SUCCESS - Success Messages
@@ -64,6 +65,10 @@ MSG_WARN_SNAPPER_FAILED="Snapper snapshot creation failed."
 MSG_WARN_FLATPAK_ERROR="Flatpak encountered an error."
 MSG_WARN_SNAP_ERROR="Snap encountered an error."
 MSG_WARN_FIRMWARE_FAILED="Firmware check failed (exit code: %d)"
+MSG_WARN_GPG_MISSING="GPG not found, skipping signature verification."
+MSG_WARN_GPG_KEY_FAIL="Could not download public key, skipping GPG verification."
+MSG_WARN_GPG_IMPORT_FAIL="Could not import public key, skipping GPG verification."
+MSG_WARN_GPG_SIG_MISSING="SHA256SUMS.asc not found, skipping GPG verification."
 
 # ============================================
 # ERROR - Error Messages
@@ -76,6 +81,7 @@ MSG_ERR_APT_LOCK="Could not release APT locks."
 MSG_ERR_DNF_LOCK="DNF lock timeout!"
 MSG_ERR_ALREADY_RUNNING="Another update process is already running."
 MSG_ERR_NO_INTERNET="Could not establish internet connection."
+MSG_ERR_GPG_FAIL="GPG signature verification failed! Update cancelled."
 
 # ============================================
 # HINTS - Solution Suggestions
@@ -88,6 +94,7 @@ MSG_HINT_APT_LOCK="Another update may be running. Check with 'sudo lsof /var/lib
 MSG_HINT_DNF_LOCK="Find running process with 'pgrep -a dnf' or wait. Close GNOME Software if open."
 MSG_HINT_ALREADY_RUNNING="Check with 'pgrep -a guncel'. If needed, remove lock with 'sudo rm %s'"
 MSG_HINT_NO_INTERNET="Test connection with 'ping -c 1 google.com'. Check DNS or network settings."
+MSG_HINT_GPG_FAIL="File may have been tampered. Manual install: curl -fsSL https://raw.githubusercontent.com/CalmKernelTR/bigfive-updater/main/install.sh | sudo bash"
 
 # ============================================
 # HELP - Help Text

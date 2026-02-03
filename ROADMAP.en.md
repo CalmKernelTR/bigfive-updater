@@ -101,7 +101,21 @@ Short-term improvements building on existing infrastructure.
 - [ ] install.sh improvements: wget TLS flag modernize, grep portability, message clarity, variable cleanup
 - [x] ~~Hook false positive fix~~ (completed in claude-code-skills repo, Fase 5)
 
-### v6.2.0 "Fluent Edition - Chrom" - Server Automation
+### v6.2.0 "Fluent Edition - Foxtrot" - GPG Self-Update ✅
+
+GPG signature verification for self-update.
+
+- [x] **GPG signature verification:** `verify_gpg_signature()` function
+  - SHA256SUMS.asc file validation
+  - Public key auto-downloaded from GitHub
+  - Graceful degradation: warns if GPG not installed
+  - Invalid signature rejected with E032 error code
+- [x] README Flatpak system-wide note added
+- [x] Timeout parameters (curl/wget)
+- [x] Arch Linux reboot detection (kernel module directory)
+- [x] DNF5 compatibility (Fedora 41+)
+
+### v6.3.0 "Fluent Edition - Chrom" - Server Automation
 
 Automation features for server administrators.
 
@@ -147,7 +161,8 @@ Fully integrated server automation experience.
 | v5.3-5.4 | BigFive | Beacon | JSON + Shell |
 | v5.5 | BigFive | Dream | Rebranding |
 | v6.0-6.1 | Fluent | Echo | i18n, diagnostics |
-| v6.2+ | Fluent | Chrom | Server automation |
+| v6.2 | Fluent | Foxtrot | GPG self-update |
+| v6.3+ | Fluent | Chrom | Server automation |
 | v7.0+ | Zenith | TBD | - |
 
 ---

@@ -101,7 +101,21 @@ Kısa vadeli iyileştirmeler — mevcut altyapının üzerine.
 - [ ] install.sh iyileştirmeleri: wget TLS flag modernize, grep portability, mesaj netliği, değişken cleanup
 - [x] ~~Hook false positive fix~~ (claude-code-skills reposunda tamamlandı, Fase 5)
 
-### v6.2.0 "Fluent Edition - Chrom" - Server Automation
+### v6.2.0 "Fluent Edition - Foxtrot" - GPG Self-Update ✅
+
+Self-update için GPG imza doğrulaması.
+
+- [x] **GPG imza doğrulaması:** `verify_gpg_signature()` fonksiyonu
+  - SHA256SUMS.asc dosyası doğrulaması
+  - Public key GitHub'dan otomatik indirilir
+  - Graceful degradation: GPG yoksa uyarı ile devam
+  - Geçersiz imza E032 hata kodu ile reddedilir
+- [x] README'lere Flatpak system-wide notu eklendi
+- [x] Timeout parametreleri (curl/wget)
+- [x] Arch Linux reboot kontrolü (kernel modül dizini)
+- [x] DNF5 uyumluluğu (Fedora 41+)
+
+### v6.3.0 "Fluent Edition - Chrom" - Server Automation
 
 Sunucu yöneticileri için otomasyon özellikleri.
 
@@ -147,7 +161,8 @@ Tam entegre server automation deneyimi.
 | v5.3-5.4 | BigFive | Beacon | JSON + Shell |
 | v5.5 | BigFive | Dream | Rebranding |
 | v6.0-6.1 | Fluent | Echo | i18n, diagnostics |
-| v6.2+ | Fluent | Chrom | Server automation |
+| v6.2 | Fluent | Foxtrot | GPG self-update |
+| v6.3+ | Fluent | Chrom | Server automation |
 | v7.0+ | Zenith | TBD | - |
 
 ---

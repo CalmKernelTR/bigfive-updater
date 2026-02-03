@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # BigFive Updater - Türkçe Dil Dosyası
 # Language: Turkish (tr)
-# Version: 6.0.0 Echo Edition
+# Version: 6.2.0 Foxtrot Edition
 # Encoding: UTF-8
 
 # ============================================
@@ -40,6 +40,7 @@ MSG_INFO_FLATPAK_COUNT="Flatpak: %d uygulama güncellendi."
 MSG_INFO_SNAP_COUNT="Snap: %d paket güncellendi."
 MSG_INFO_FIRMWARE_NONE="Firmware: Güncellenebilir cihaz bulunamadı."
 MSG_INFO_FIRMWARE_COUNT="Firmware: %d güncelleme."
+MSG_INFO_GPG_OK="GPG imza doğrulaması başarılı."
 
 # ============================================
 # SUCCESS - Başarı Mesajları
@@ -64,6 +65,10 @@ MSG_WARN_SNAPPER_FAILED="Snapper snapshot oluşturulamadı."
 MSG_WARN_FLATPAK_ERROR="Flatpak hata verdi."
 MSG_WARN_SNAP_ERROR="Snap hata verdi."
 MSG_WARN_FIRMWARE_FAILED="Firmware kontrolü başarısız (exit code: %d)"
+MSG_WARN_GPG_MISSING="GPG bulunamadı, imza doğrulama atlanıyor."
+MSG_WARN_GPG_KEY_FAIL="Public key indirilemedi, GPG doğrulama atlanıyor."
+MSG_WARN_GPG_IMPORT_FAIL="Public key import edilemedi, GPG doğrulama atlanıyor."
+MSG_WARN_GPG_SIG_MISSING="SHA256SUMS.asc bulunamadı, GPG doğrulama atlanıyor."
 
 # ============================================
 # ERROR - Hata Mesajları
@@ -76,6 +81,7 @@ MSG_ERR_APT_LOCK="APT kilitleri kaldırılamadı."
 MSG_ERR_DNF_LOCK="DNF kilidi zaman aşımı!"
 MSG_ERR_ALREADY_RUNNING="Başka bir güncelleme işlemi zaten çalışıyor."
 MSG_ERR_NO_INTERNET="İnternet bağlantısı kurulamadı."
+MSG_ERR_GPG_FAIL="GPG imza doğrulaması başarısız! Güncelleme iptal edildi."
 
 # ============================================
 # HINTS - Çözüm Önerileri
@@ -88,6 +94,7 @@ MSG_HINT_APT_LOCK="Başka bir güncelleme çalışıyor olabilir. 'sudo lsof /va
 MSG_HINT_DNF_LOCK="'pgrep -a dnf' ile çalışan işlemi bulun veya bekleyin. GNOME Software açıksa kapatın."
 MSG_HINT_ALREADY_RUNNING="'pgrep -a guncel' ile kontrol edin. Gerekirse 'sudo rm %s' ile kilidi kaldırın."
 MSG_HINT_NO_INTERNET="'ping -c 1 google.com' ile bağlantıyı test edin. DNS veya ağ ayarlarını kontrol edin."
+MSG_HINT_GPG_FAIL="Dosya değiştirilmiş olabilir. Manuel kurulum: curl -fsSL https://raw.githubusercontent.com/CalmKernelTR/bigfive-updater/main/install.sh | sudo bash"
 
 # ============================================
 # HELP - Yardım Metinleri
