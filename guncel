@@ -405,6 +405,13 @@ check_reboot_required() {
         fi
     fi
 
+    # v6.1.1: Arch Linux / Generic: Kernel modül dizini kontrolü
+    # Kernel güncellemesi sonrası eski modül dizini silinir
+    if [[ ! -d "/usr/lib/modules/$(uname -r)" ]]; then
+        echo "yes"
+        return
+    fi
+
     echo "no"
 }
 
@@ -694,14 +701,11 @@ setup_logging() {
         chmod 700 "$LOG_DIR" 2>/dev/null || true
     fi
 
-    local deleted_count
-    # Logrotate handles log cleanup now
-    # deleted_count=$(find "$LOG_DIR" -name "update_*.log" -type f -mtime +30 -print -delete | wc -l)
-    deleted_count=0
+    # v6.1.1: deleted_count kaldırıldı - logrotate log temizliğini yönetiyor
 
     touch "$LOG_FILE"
     chmod 600 "$LOG_FILE"
-    
+
     {
         echo "=================================================="
         echo "BigFive Updater v$VERSION ($EDITION Edition - $CODENAME)"
@@ -715,9 +719,6 @@ setup_logging() {
         echo "Skip       : snapshot=$SKIP_SNAPSHOT flatpak=$SKIP_FLATPAK snap=$SKIP_SNAP fwupd=$SKIP_FWUPD pkg_manager=$SKIP_PKG_MANAGER"
         echo "Only Mode  : ${ONLY_MODE:-none}"
         echo "=================================================="
-        if [[ "$deleted_count" -gt 0 ]]; then
-            echo "INFO: $deleted_count adet eski log dosyası temizlendi."
-        fi
     } >> "$LOG_FILE"
 }
 
@@ -726,10 +727,11 @@ download_file() {
     local output="$2"
 
     # TLS 1.2+ zorunlu (güvenlik için)
+    # v6.1.1: Timeout parametreleri eklendi (asılı kalma önleme)
     if command -v curl &> /dev/null; then
-        curl --proto '=https' --tlsv1.2 -fsSL "$url" -o "$output"
+        curl --proto '=https' --tlsv1.2 -fsSL --connect-timeout 10 --max-time 300 "$url" -o "$output"
     elif command -v wget &> /dev/null; then
-        wget --secure-protocol=TLSv1_2 -qO "$output" "$url"
+        wget --secure-protocol=TLSv1_2 --timeout=30 --tries=2 -qO "$output" "$url"
     else
         print_error_with_hint "${MSG_ERR_NO_CURL:-Sistemde 'curl' veya 'wget' bulunamadı!}" \
             "${MSG_HINT_INSTALL_CURL:-apt install curl veya dnf install curl ile kurabilirsiniz.}" "E001"
@@ -772,10 +774,11 @@ check_connectivity() {
     
     local raw_ok=false
     # TLS 1.2+ zorunlu (güvenlik için)
+    # v6.1.1: Timeout parametreleri eklendi
     if command -v curl &> /dev/null; then
-        if curl --proto '=https' --tlsv1.2 -s -I -f -L -A "$UA" "$GITHUB_RAW_URL" > /dev/null; then raw_ok=true; fi
+        if curl --proto '=https' --tlsv1.2 -s -I -f -L --connect-timeout 10 --max-time 30 -A "$UA" "$GITHUB_RAW_URL" > /dev/null; then raw_ok=true; fi
     elif command -v wget &> /dev/null; then
-        if wget --secure-protocol=TLSv1_2 -q --spider --user-agent="$UA" "$GITHUB_RAW_URL"; then raw_ok=true; fi
+        if wget --secure-protocol=TLSv1_2 --timeout=10 -q --spider --user-agent="$UA" "$GITHUB_RAW_URL"; then raw_ok=true; fi
     fi
     
     if [[ "$raw_ok" == "true" ]]; then
@@ -1150,7 +1153,8 @@ wait_for_dnf_lock() {
     local max_attempts=30
     local attempt=0
     while [ $attempt -lt $max_attempts ]; do
-        if ! pgrep -x dnf >/dev/null && ! pgrep -x yum >/dev/null && ! pgrep -x rpm >/dev/null; then
+        # v6.1.1: dnf5 eklendi (Fedora 41+)
+        if ! pgrep -x dnf >/dev/null && ! pgrep -x dnf5 >/dev/null && ! pgrep -x yum >/dev/null && ! pgrep -x rpm >/dev/null; then
             return 0
         fi
         print_warning "$(printf "${MSG_WARN_DNF_LOCK_WAIT:-DNF kilidi bekleniyor... (%d/%d)}" "$((attempt+1))" "$max_attempts")"
