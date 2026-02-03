@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.1.1] - 2026-02-03 "Fluent Edition - Echo"
+### Fixed
+- **Timeout parameters:** Added timeouts to `download_file()` and connection checks
+  - curl: `--connect-timeout 10 --max-time 300`
+  - wget: `--timeout=30 --tries=2`
+  - Prevents hanging on slow connections or firewall issues
+- **Arch Linux reboot detection:** Added kernel module directory check
+  - If `/usr/lib/modules/$(uname -r)` doesn't exist, reboot is required
+- **DNF5 compatibility:** Added `dnf5` to `wait_for_dnf_lock()` pgrep check (Fedora 41+)
+- **Code cleanup:** Removed unused `deleted_count` variable (logrotate handles cleanup)
+
+---
+
 ## [6.1.0] - 2026-02-02 "Fluent Edition - Echo"
 ### Added
 - **--doctor command:** System health check with 6 diagnostic tests

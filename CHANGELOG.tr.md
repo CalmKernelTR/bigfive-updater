@@ -5,6 +5,19 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [6.1.1] - 2026-02-03 "Fluent Edition - Echo"
+### Düzeltilenler
+- **Timeout parametreleri:** `download_file()` ve bağlantı kontrollerinde timeout eklendi
+  - curl: `--connect-timeout 10 --max-time 300`
+  - wget: `--timeout=30 --tries=2`
+  - Yavaş bağlantı veya firewall durumunda asılı kalma önlendi
+- **Arch Linux reboot kontrolü:** Kernel modül dizini kontrolü eklendi
+  - `/usr/lib/modules/$(uname -r)` yoksa reboot gerekli
+- **DNF5 uyumluluğu:** `wait_for_dnf_lock()` fonksiyonuna `dnf5` eklendi (Fedora 41+)
+- **Kod temizliği:** Kullanılmayan `deleted_count` değişkeni kaldırıldı (logrotate yönetiyor)
+
+---
+
 ## [6.1.0] - 2026-02-02 "Fluent Edition - Echo"
 ### Eklenenler
 - **--doctor komutu:** 6 diagnostik test ile sistem sağlık kontrolü
