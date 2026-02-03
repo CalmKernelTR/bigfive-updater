@@ -7,7 +7,7 @@
 #
 
 # --- AYARLAR ---
-VERSION="6.2.0"
+VERSION="6.2.1"
 EDITION="Fluent"
 CODENAME="Foxtrot"
 
@@ -743,6 +743,7 @@ download_file() {
 }
 
 # v6.2.0: GPG imza doğrulaması (self-update güvenliği için)
+# v6.2.1: GNUPGHOME izolasyonu eklendi (keyring kirliliği önlenir)
 # Returns: 0=verified, 1=failed, 2=skipped (gpg not available)
 verify_gpg_signature() {
     local sha256_file="$1"
@@ -754,27 +755,51 @@ verify_gpg_signature() {
         return 2
     fi
 
-    local temp_pubkey
+    local temp_pubkey temp_gpghome old_gnupghome
     temp_pubkey="$(safe_mktemp gpg_pubkey)" || return 2
-    trap 'rm -f "$temp_pubkey"' RETURN
+    temp_gpghome="$(mktemp -d "${TMPDIR:-/tmp}/bigfive_gpg_XXXXXX")" || {
+        rm -f "$temp_pubkey"
+        return 2
+    }
+    chmod 700 "$temp_gpghome"
+
+    # Cleanup trap: hem dosya hem dizin temizle
+    trap 'rm -f "$temp_pubkey"; rm -rf "$temp_gpghome"' RETURN
+
+    # İzole GPG keyring kullan (sistem keyring'i kirletmez)
+    old_gnupghome="${GNUPGHOME:-}"
+    export GNUPGHOME="$temp_gpghome"
+
+    # Helper: GNUPGHOME restore
+    _restore_gnupghome() {
+        if [[ -n "$old_gnupghome" ]]; then
+            export GNUPGHOME="$old_gnupghome"
+        else
+            unset GNUPGHOME
+        fi
+    }
 
     # Public key indir
     if ! download_file "$GITHUB_PUBKEY_URL" "$temp_pubkey" 2>/dev/null; then
+        _restore_gnupghome
         print_warning "${MSG_WARN_GPG_KEY_FAIL:-Public key indirilemedi, GPG doğrulama atlanıyor.}"
         return 2
     fi
 
-    # Public key import (--batch sessiz mod)
+    # Public key import (izole keyring'e)
     if ! gpg --batch --yes --import "$temp_pubkey" 2>/dev/null; then
+        _restore_gnupghome
         print_warning "${MSG_WARN_GPG_IMPORT_FAIL:-Public key import edilemedi, GPG doğrulama atlanıyor.}"
         return 2
     fi
 
     # İmza doğrula
     if gpg --batch --verify "$sha256_sig_file" "$sha256_file" 2>/dev/null; then
+        _restore_gnupghome
         print_info "${MSG_INFO_GPG_OK:-GPG imza doğrulaması başarılı.}"
         return 0
     else
+        _restore_gnupghome
         print_error_with_hint "${MSG_ERR_GPG_FAIL:-GPG imza doğrulaması başarısız! Güncelleme iptal edildi.}" \
             "${MSG_HINT_GPG_FAIL:-Dosya değiştirilmiş olabilir. Manuel kurulum: curl -fsSL .../install.sh | sudo bash}" "E032"
         return 1

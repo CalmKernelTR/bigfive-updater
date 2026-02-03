@@ -5,6 +5,15 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [6.2.1] - 2026-02-03 "Fluent Edition - Foxtrot"
+### Düzeltilenler
+- **GPG keyring izolasyonu:** `GNUPGHOME` ile izole temp keyring kullanımı
+  - Sistem/root GPG keyring'i artık kirletilmiyor
+  - Her doğrulamada temiz, geçici keyring oluşturulur
+  - Doğrulama sonrası otomatik cleanup
+
+---
+
 ## [6.2.0] - 2026-02-03 "Fluent Edition - Foxtrot"
 ### Eklenenler
 - **GPG imza doğrulaması:** Self-update için GPG imza doğrulaması eklendi
