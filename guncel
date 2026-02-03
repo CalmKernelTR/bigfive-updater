@@ -7,9 +7,9 @@
 #
 
 # --- AYARLAR ---
-VERSION="6.1.1"
+VERSION="6.2.0"
 EDITION="Fluent"
-CODENAME="Echo"
+CODENAME="Foxtrot"
 
 # --- i18n (v6.0.0) ---
 LANG_DIR="/usr/share/bigfive-updater/lang"
@@ -19,6 +19,9 @@ LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 # v5.4.5: Releases URL kullan (CDN cache sorunu önlenir - raw.githubusercontent.com cache'lenebilir)
 GITHUB_RAW_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/guncel"
 GITHUB_SHA256_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS"
+# v6.2.0: GPG imza doğrulaması URL'leri
+GITHUB_SHA256_SIG_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS.asc"
+GITHUB_PUBKEY_URL="https://raw.githubusercontent.com/CalmKernelTR/bigfive-updater/main/pubkey.asc"
 CONFIG_FILE="/etc/bigfive-updater.conf"
 
 # STRICT MODE
@@ -739,6 +742,45 @@ download_file() {
     fi
 }
 
+# v6.2.0: GPG imza doğrulaması (self-update güvenliği için)
+# Returns: 0=verified, 1=failed, 2=skipped (gpg not available)
+verify_gpg_signature() {
+    local sha256_file="$1"
+    local sha256_sig_file="$2"
+
+    # GPG kurulu mu?
+    if ! command -v gpg &>/dev/null; then
+        print_warning "${MSG_WARN_GPG_MISSING:-GPG bulunamadı, imza doğrulama atlanıyor.}"
+        return 2
+    fi
+
+    local temp_pubkey
+    temp_pubkey="$(safe_mktemp gpg_pubkey)" || return 2
+    trap 'rm -f "$temp_pubkey"' RETURN
+
+    # Public key indir
+    if ! download_file "$GITHUB_PUBKEY_URL" "$temp_pubkey" 2>/dev/null; then
+        print_warning "${MSG_WARN_GPG_KEY_FAIL:-Public key indirilemedi, GPG doğrulama atlanıyor.}"
+        return 2
+    fi
+
+    # Public key import (--batch sessiz mod)
+    if ! gpg --batch --yes --import "$temp_pubkey" 2>/dev/null; then
+        print_warning "${MSG_WARN_GPG_IMPORT_FAIL:-Public key import edilemedi, GPG doğrulama atlanıyor.}"
+        return 2
+    fi
+
+    # İmza doğrula
+    if gpg --batch --verify "$sha256_sig_file" "$sha256_file" 2>/dev/null; then
+        print_info "${MSG_INFO_GPG_OK:-GPG imza doğrulaması başarılı.}"
+        return 0
+    else
+        print_error_with_hint "${MSG_ERR_GPG_FAIL:-GPG imza doğrulaması başarısız! Güncelleme iptal edildi.}" \
+            "${MSG_HINT_GPG_FAIL:-Dosya değiştirilmiş olabilir. Manuel kurulum: curl -fsSL .../install.sh | sudo bash}" "E032"
+        return 1
+    fi
+}
+
 # v6.0.2: Disk alanı kontrolü
 check_disk_space() {
     local min_mb="${1:-500}"  # Varsayılan: 500MB
@@ -1029,11 +1071,12 @@ check_self_update() {
 
     local REMOTE_FILE; REMOTE_FILE="$(safe_mktemp guncel_remote)" || return
     local TEMP_SHA256; TEMP_SHA256="$(safe_mktemp guncel_sha256)" || return
+    local TEMP_SHA256_SIG; TEMP_SHA256_SIG="$(safe_mktemp guncel_sha256_sig)" || return
     local REMOTE_HASH
     local LOCAL_HASH
-    
+
     # Cleanup on exit
-    trap 'rm -f "$REMOTE_FILE" "$TEMP_SHA256"' RETURN
+    trap 'rm -f "$REMOTE_FILE" "$TEMP_SHA256" "$TEMP_SHA256_SIG"' RETURN
     
     if ! download_file "$GITHUB_RAW_URL" "$REMOTE_FILE"; then return; fi
 
@@ -1048,8 +1091,24 @@ check_self_update() {
     if [[ "$REMOTE_HASH" != "$LOCAL_HASH" && -n "$REMOTE_HASH" ]]; then
         printf '\n%s[!] Yeni sürüm mevcut!%s\n' "${YELLOW}" "${NC}"
         
-        # SHA256 doğrulama (v3.6.0)
+        # v6.2.0: GPG + SHA256 doğrulama (güvenlik iyileştirmesi)
         if download_file "$GITHUB_SHA256_URL" "$TEMP_SHA256" 2>/dev/null; then
+            # GPG imza doğrulaması (v6.2.0)
+            if download_file "$GITHUB_SHA256_SIG_URL" "$TEMP_SHA256_SIG" 2>/dev/null; then
+                local gpg_result
+                verify_gpg_signature "$TEMP_SHA256" "$TEMP_SHA256_SIG"
+                gpg_result=$?
+                if [[ $gpg_result -eq 1 ]]; then
+                    # GPG doğrulama başarısız - güncelleme iptal
+                    echo "[$(date '+%F %T')] ERROR: GPG signature verification failed" >> "$LOG_FILE"
+                    return 1
+                fi
+                # gpg_result=0 (verified) veya 2 (skipped) - devam et
+            else
+                print_warning "${MSG_WARN_GPG_SIG_MISSING:-SHA256SUMS.asc bulunamadı, GPG doğrulama atlanıyor.}"
+            fi
+
+            # SHA256 doğrulama (v3.6.0)
             local EXPECTED
             # v5.4.4 FIX: Sadece "guncel" dosyasını yakala (guncel.bash, guncel.8 değil)
             EXPECTED=$(grep -E "  guncel$" "$TEMP_SHA256" 2>/dev/null | awk '{print $1}')
