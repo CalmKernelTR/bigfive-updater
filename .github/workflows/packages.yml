@@ -9,6 +9,9 @@ on:
         description: 'Version to build (e.g., 6.0.2)'
         required: true
 
+permissions:
+  contents: write
+
 env:
   VERSION: ${{ github.event.release.tag_name || github.event.inputs.version }}
 
