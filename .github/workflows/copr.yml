@@ -65,14 +65,13 @@ jobs:
 
       # COPR upload (requires COPR_API_TOKEN secret)
       - name: Upload to COPR
-        if: github.event_name == 'release'
         env:
           COPR_API_TOKEN: ${{ secrets.COPR_API_TOKEN }}
         run: |
           if [ -n "$COPR_API_TOKEN" ]; then
             mkdir -p ~/.config
             echo "$COPR_API_TOKEN" > ~/.config/copr
-            copr-cli build calmkernel/bigfive-updater ~/rpmbuild/SRPMS/*.src.rpm
+            copr-cli build tahmet/bigfive-updater ~/rpmbuild/SRPMS/*.src.rpm
           else
             echo "COPR_API_TOKEN not set, skipping upload"
           fi
