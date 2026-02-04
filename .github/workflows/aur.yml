@@ -1,0 +1,123 @@
+# AUR package publish workflow
+# Automatically publishes to AUR on new releases
+
+name: AUR Publish
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 6.4.0)'
+        required: true
+
+env:
+  AUR_PACKAGE: bigfive-updater
+
+jobs:
+  aur-publish:
+    name: Publish to AUR
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set version
+        id: version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VER="${{ github.event.inputs.version }}"
+          else
+            VER="${{ github.event.release.tag_name }}"
+          fi
+          VER="${VER#v}"
+          echo "version=$VER" >> $GITHUB_OUTPUT
+
+      - name: Setup SSH for AUR
+        env:
+          AUR_SSH_KEY: ${{ secrets.AUR_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$AUR_SSH_KEY" > ~/.ssh/aur
+          chmod 600 ~/.ssh/aur
+          echo "Host aur.archlinux.org" >> ~/.ssh/config
+          echo "  IdentityFile ~/.ssh/aur" >> ~/.ssh/config
+          echo "  User aur" >> ~/.ssh/config
+          ssh-keyscan aur.archlinux.org >> ~/.ssh/known_hosts
+
+      - name: Clone AUR repository
+        env:
+          PKG: ${{ env.AUR_PACKAGE }}
+        run: |
+          git clone "ssh://aur@aur.archlinux.org/${PKG}.git" aur-repo
+          cd aur-repo
+          git config user.name "Ahmet T"
+          git config user.email "ahm3t0t@users.noreply.github.com"
+
+      - name: Calculate new checksum
+        id: checksum
+        env:
+          VER: ${{ steps.version.outputs.version }}
+        run: |
+          TARBALL_URL="https://github.com/CalmKernelTR/bigfive-updater/archive/v${VER}.tar.gz"
+          SHA256=$(curl -sL "$TARBALL_URL" | sha256sum | awk '{print $1}')
+          echo "sha256=$SHA256" >> $GITHUB_OUTPUT
+          echo "Calculated SHA256 for v${VER}: ${SHA256}"
+
+      - name: Update PKGBUILD
+        env:
+          VER: ${{ steps.version.outputs.version }}
+          SHA256: ${{ steps.checksum.outputs.sha256 }}
+        run: |
+          cd aur-repo
+          sed -i "s/^pkgver=.*/pkgver=${VER}/" PKGBUILD
+          sed -i "s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+          sed -i "s/^sha256sums=.*/sha256sums=('${SHA256}')/" PKGBUILD
+          echo "Updated PKGBUILD:"
+          grep -E "^pkgver=|^pkgrel=|^sha256sums=" PKGBUILD
+
+      - name: Generate .SRCINFO
+        env:
+          VER: ${{ steps.version.outputs.version }}
+          SHA256: ${{ steps.checksum.outputs.sha256 }}
+        run: |
+          cd aur-repo
+          cat > .SRCINFO << SRCEOF
+          pkgbase = bigfive-updater
+          	pkgdesc = Multi-distro Linux system updater with security features
+          	pkgver = ${VER}
+          	pkgrel = 1
+          	url = https://github.com/CalmKernelTR/bigfive-updater
+          	arch = any
+          	license = MIT
+          	depends = bash
+          	depends = curl
+          	optdepends = flatpak: Flatpak application updates
+          	optdepends = snapd: Snap package updates
+          	optdepends = fwupd: Firmware updates
+          	optdepends = snapper: Btrfs/LVM snapshot support
+          	optdepends = timeshift: System restore point support
+          	optdepends = gnupg: GPG signature verification
+          	provides = guncel
+          	provides = updater
+          	provides = bigfive
+          	source = bigfive-updater-${VER}.tar.gz::https://github.com/CalmKernelTR/bigfive-updater/archive/v${VER}.tar.gz
+          	sha256sums = ${SHA256}
+
+          pkgname = bigfive-updater
+          SRCEOF
+          echo "Generated .SRCINFO"
+
+      - name: Commit and push to AUR
+        env:
+          VER: ${{ steps.version.outputs.version }}
+          PKG: ${{ env.AUR_PACKAGE }}
+        run: |
+          cd aur-repo
+          git add PKGBUILD .SRCINFO
+          git diff --cached --quiet && echo "No changes to commit" && exit 0
+          git commit -m "Update to version ${VER}"
+          git push origin master
+          echo "✅ Published to AUR: https://aur.archlinux.org/packages/${PKG}"
