@@ -5,6 +5,15 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [6.3.1] - 2026-02-05 "Fluent Edition - Golf"
+### Düzeltilenler
+- **Container detection kritik fix:** `systemd-detect-virt` exit code sorunu
+  - Container dışında çalışırken exit 1 döner
+  - `set -e` ile kombinasyonda script erken sonlanıyordu
+  - `|| true` eklenerek düzeltildi
+
+---
+
 ## [6.3.0] - 2026-02-05 "Fluent Edition - Golf"
 ### Eklenenler
 - **Cron jitter desteği:** `--jitter N` parametresi ile sunucu yükü dağıtımı

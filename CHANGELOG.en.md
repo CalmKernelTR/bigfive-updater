@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.3.1] - 2026-02-05 "Fluent Edition - Golf"
+### Fixed
+- **Container detection critical fix:** `systemd-detect-virt` exit code issue
+  - Returns exit 1 when running outside containers
+  - Combined with `set -e` caused script to exit prematurely
+  - Fixed by adding `|| true`
+
+---
+
 ## [6.3.0] - 2026-02-05 "Fluent Edition - Golf"
 ### Added
 - **Cron jitter support:** `--jitter N` parameter for server load distribution
