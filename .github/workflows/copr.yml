@@ -1,0 +1,78 @@
+# COPR package build workflow
+# Builds and publishes RPM packages to Fedora COPR
+
+name: COPR Build
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to build (e.g., 6.4.0)'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  copr-build:
+    name: Build RPM for COPR
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:latest
+
+    env:
+      INPUT_VERSION: ${{ github.event.inputs.version }}
+      REF_NAME: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install build dependencies
+        run: |
+          dnf install -y rpm-build rpmdevtools copr-cli
+
+      - name: Setup RPM build environment
+        run: |
+          rpmdev-setuptree
+          cp packaging/rpm/bigfive-updater.spec ~/rpmbuild/SPECS/
+
+      - name: Download source tarball
+        run: |
+          VERSION="${INPUT_VERSION:-$REF_NAME}"
+          VERSION="${VERSION#v}"  # Remove 'v' prefix if present
+          cd ~/rpmbuild/SOURCES
+          curl -sL "https://github.com/CalmKernelTR/bigfive-updater/archive/v${VERSION}.tar.gz" \
+            -o "bigfive-updater-${VERSION}.tar.gz"
+
+      - name: Update spec version
+        run: |
+          VERSION="${INPUT_VERSION:-$REF_NAME}"
+          VERSION="${VERSION#v}"
+          sed -i "s/^Version:.*/Version:        ${VERSION}/" ~/rpmbuild/SPECS/bigfive-updater.spec
+
+      - name: Build SRPM
+        run: |
+          rpmbuild -bs ~/rpmbuild/SPECS/bigfive-updater.spec
+
+      - name: Upload SRPM artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: srpm
+          path: ~/rpmbuild/SRPMS/*.src.rpm
+
+      # COPR upload (requires COPR_API_TOKEN secret)
+      - name: Upload to COPR
+        if: github.event_name == 'release'
+        env:
+          COPR_API_TOKEN: ${{ secrets.COPR_API_TOKEN }}
+        run: |
+          if [ -n "$COPR_API_TOKEN" ]; then
+            mkdir -p ~/.config
+            echo "$COPR_API_TOKEN" > ~/.config/copr
+            copr-cli build calmkernel/bigfive-updater ~/rpmbuild/SRPMS/*.src.rpm
+          else
+            echo "COPR_API_TOKEN not set, skipping upload"
+          fi
