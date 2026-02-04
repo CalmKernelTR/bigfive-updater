@@ -7,7 +7,7 @@
 #
 
 # --- AYARLAR ---
-VERSION="6.3.0"
+VERSION="6.3.1"
 EDITION="Fluent"
 CODENAME="Golf"
 
@@ -879,7 +879,8 @@ check_container_environment() {
     # systemd-detect-virt (if available)
     elif command -v systemd-detect-virt &>/dev/null; then
         local virt_type
-        virt_type=$(systemd-detect-virt --container 2>/dev/null)
+        # v6.3.1: || true - container dışında exit 1 döner, set -e ile çakışır
+        virt_type=$(systemd-detect-virt --container 2>/dev/null || true)
         if [[ "$virt_type" != "none" && -n "$virt_type" ]]; then
             in_container=true
             container_type="$virt_type"
