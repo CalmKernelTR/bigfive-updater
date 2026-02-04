@@ -2476,7 +2476,7 @@ run_hooks "post"
 print_final_summary
 
 # v6.4.0: Notification
-local total_updates=$((APT_COUNT + DNF_COUNT + PACMAN_COUNT + ZYPPER_COUNT + APK_COUNT + FLATPAK_COUNT + SNAP_COUNT + FWUPD_COUNT))
+total_updates=$((APT_COUNT + DNF_COUNT + PACMAN_COUNT + ZYPPER_COUNT + APK_COUNT + FLATPAK_COUNT + SNAP_COUNT + FWUPD_COUNT))
 if [[ "$total_updates" -gt 0 ]]; then
     send_notification "success" "$total_updates paket güncellendi"
 else
