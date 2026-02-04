@@ -7,9 +7,9 @@
 #
 
 # --- AYARLAR ---
-VERSION="6.3.1"
+VERSION="6.4.0"
 EDITION="Fluent"
-CODENAME="Golf"
+CODENAME="Hotel"
 
 # --- i18n (v6.0.0) ---
 LANG_DIR="/usr/share/bigfive-updater/lang"
@@ -90,6 +90,13 @@ QUIET_MODE=false
 AUTO_MODE=false
 JITTER_MAX="${BIGFIVE_JITTER:-0}"  # v6.3.0: Cron jitter (seconds)
 DRY_RUN=false
+SECURITY_ONLY=false  # v6.4.0: Sadece güvenlik güncellemeleri
+
+# --- v6.4.0: HOOKS VE NOTIFICATION ---
+HOOKS_DIR="/etc/bigfive-updater.d"
+NOTIFY_URL="${BIGFIVE_NOTIFY_URL:-}"  # ntfy/gotify/webhook URL
+NOTIFY_ON_SUCCESS="${BIGFIVE_NOTIFY_SUCCESS:-true}"
+NOTIFY_ON_ERROR="${BIGFIVE_NOTIFY_ERROR:-true}"
 
 # --- YENİ v3.6.0: SKIP/ONLY BAYRAKLARI ---
 SKIP_SNAPSHOT=false
@@ -896,6 +903,113 @@ check_container_environment() {
     return 0
 }
 
+# v6.4.0: Pre/post hook runner
+run_hooks() {
+    local hook_type="$1"  # pre veya post
+    local hook_dir="${HOOKS_DIR}/${hook_type}.d"
+
+    [[ ! -d "$hook_dir" ]] && return 0
+
+    local hook_count=0
+    local hook_failed=0
+
+    for hook in "$hook_dir"/*; do
+        [[ ! -f "$hook" ]] && continue
+        [[ ! -x "$hook" ]] && continue
+
+        hook_count=$((hook_count + 1))
+        local hook_name
+        hook_name=$(basename "$hook")
+
+        if [[ "$QUIET_MODE" != "true" ]]; then
+            print_info "$(printf "${MSG_HOOK_RUNNING:-Hook çalıştırılıyor: %s}" "$hook_name")"
+        fi
+
+        echo "[$(date '+%F %T')] HOOK ($hook_type): $hook_name" >> "$LOG_FILE"
+
+        if ! "$hook" >> "$LOG_FILE" 2>&1; then
+            hook_failed=$((hook_failed + 1))
+            print_warning "$(printf "${MSG_HOOK_FAILED:-Hook başarısız: %s}" "$hook_name")"
+            echo "[$(date '+%F %T')] HOOK FAILED: $hook_name" >> "$LOG_FILE"
+        fi
+    done
+
+    if [[ "$hook_count" -gt 0 && "$QUIET_MODE" != "true" ]]; then
+        print_info "$(printf "${MSG_HOOK_COMPLETE:-%d hook çalıştırıldı (%d başarısız)}" "$hook_count" "$hook_failed")"
+    fi
+
+    return 0
+}
+
+# v6.4.0: Notification sender (ntfy/gotify/webhook)
+send_notification() {
+    local status="$1"  # success veya error
+    local message="$2"
+
+    [[ -z "$NOTIFY_URL" ]] && return 0
+
+    # Config kontrolü
+    if [[ "$status" == "success" && "$NOTIFY_ON_SUCCESS" != "true" ]]; then
+        return 0
+    fi
+    if [[ "$status" == "error" && "$NOTIFY_ON_ERROR" != "true" ]]; then
+        return 0
+    fi
+
+    local title="BigFive Updater"
+    local priority="default"
+    local hostname
+    hostname=$(hostname 2>/dev/null || echo "unknown")
+
+    if [[ "$status" == "error" ]]; then
+        title="⚠️ BigFive Updater - Hata"
+        priority="high"
+    else
+        title="✅ BigFive Updater - Başarılı"
+    fi
+
+    # URL tipini tespit et ve uygun format kullan
+    local notify_result=false
+
+    # ntfy.sh format
+    if [[ "$NOTIFY_URL" =~ ntfy\.(sh|example\.com) ]] || [[ "$NOTIFY_URL" =~ /ntfy/ ]]; then
+        if curl -s -o /dev/null -w "%{http_code}" \
+            -H "Title: $title" \
+            -H "Priority: $priority" \
+            -H "Tags: $([ "$status" == "success" ] && echo "white_check_mark" || echo "warning")" \
+            -d "$hostname: $message" \
+            "$NOTIFY_URL" 2>/dev/null | grep -q "^2"; then
+            notify_result=true
+        fi
+    # gotify format
+    elif [[ "$NOTIFY_URL" =~ /message ]] || [[ "$NOTIFY_URL" =~ gotify ]]; then
+        if curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"title\":\"$title\",\"message\":\"$hostname: $message\",\"priority\":$([ "$status" == "success" ] && echo "5" || echo "8")}" \
+            "$NOTIFY_URL" 2>/dev/null | grep -q "^2"; then
+            notify_result=true
+        fi
+    # Generic webhook (JSON POST)
+    else
+        if curl -s -o /dev/null -w "%{http_code}" \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"status\":\"$status\",\"title\":\"$title\",\"message\":\"$message\",\"hostname\":\"$hostname\",\"version\":\"$VERSION\"}" \
+            "$NOTIFY_URL" 2>/dev/null | grep -q "^2"; then
+            notify_result=true
+        fi
+    fi
+
+    if [[ "$notify_result" == "true" ]]; then
+        echo "[$(date '+%F %T')] NOTIFY: Sent to $NOTIFY_URL" >> "$LOG_FILE"
+    else
+        echo "[$(date '+%F %T')] NOTIFY: Failed to send to $NOTIFY_URL" >> "$LOG_FILE"
+    fi
+
+    return 0
+}
+
 check_connectivity() {
     if [[ "$QUIET_MODE" != "true" ]]; then
         printf '%s[~] Bağlantı kontrol ediliyor... %s' "${YELLOW}" "${NC}"
@@ -1421,6 +1535,13 @@ update_apt() {
     fi
 
     wait_for_lock
+
+    # v6.4.0: Security-only uyarısı (APT native destek yok)
+    if [[ "$SECURITY_ONLY" == "true" ]]; then
+        print_warning "${MSG_WARN_SECURITY_APT:-APT için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak.}"
+        print_info "${MSG_HINT_SECURITY_APT:-Öneri: unattended-upgrades paketi ile otomatik güvenlik güncellemeleri yapılandırın.}"
+    fi
+
     print_header "${MSG_HEADER_APT_UPDATE:-APT: Güncelleme Başlıyor}"
 
     if [[ "$VERBOSE_MODE" == "true" ]]; then
@@ -1500,10 +1621,17 @@ update_dnf() {
     local dnf_temp
     dnf_temp=$(safe_mktemp dnf_update) || return 1
 
+    # v6.4.0: Security-only mode
+    local dnf_cmd="dnf upgrade --refresh -y"
+    if [[ "$SECURITY_ONLY" == "true" ]]; then
+        dnf_cmd="dnf upgrade --security --refresh -y"
+        print_info "${MSG_INFO_SECURITY_ONLY:-Sadece güvenlik güncellemeleri uygulanıyor...}"
+    fi
+
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        dnf upgrade --refresh -y 2>&1 | tee -a "$LOG_FILE" | tee "$dnf_temp"
+        $dnf_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$dnf_temp"
     else
-        dnf upgrade --refresh -y 2>&1 | tee "$dnf_temp" >> "$LOG_FILE"
+        $dnf_cmd 2>&1 | tee "$dnf_temp" >> "$LOG_FILE"
     fi
 
     # DNF sayacını parse et - v5.4.7 FIX: DNF5 formatı desteği
@@ -1531,6 +1659,12 @@ update_pacman() {
     if ! command -v pacman &> /dev/null; then return 1; fi
     if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
     if ! should_run_backend "pacman"; then return 1; fi
+
+    # v6.4.0: Security-only uyarısı (Pacman native destek yok)
+    if [[ "$SECURITY_ONLY" == "true" ]]; then
+        print_warning "${MSG_WARN_SECURITY_PACMAN:-Pacman için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak.}"
+        print_info "${MSG_HINT_SECURITY_PACMAN:-Öneri: arch-audit paketi ile güvenlik açıklarını kontrol edebilirsiniz.}"
+    fi
 
     print_header "${MSG_HEADER_PACMAN_UPDATE:-Pacman: Güncelleme}"
 
@@ -1633,10 +1767,17 @@ update_zypper() {
     fi
 
     # Güncelleme yap
+    # v6.4.0: Security-only mode
+    local zypper_cmd="zypper --non-interactive update"
+    if [[ "$SECURITY_ONLY" == "true" ]]; then
+        zypper_cmd="zypper --non-interactive patch --category security"
+        print_info "${MSG_INFO_SECURITY_ONLY:-Sadece güvenlik güncellemeleri uygulanıyor...}"
+    fi
+
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        zypper --non-interactive update 2>&1 | tee -a "$LOG_FILE" | tee "$zypper_temp"
+        $zypper_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$zypper_temp"
     else
-        zypper --non-interactive update 2>&1 | tee "$zypper_temp" >> "$LOG_FILE"
+        $zypper_cmd 2>&1 | tee "$zypper_temp" >> "$LOG_FILE"
     fi
 
     # v5.5.2 FIX: Zypper çıktısından gerçek güncelleme sayısını parse et
@@ -1675,6 +1816,11 @@ update_apk() {
     if ! command -v apk &> /dev/null; then return 1; fi
     if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
     if ! should_run_backend "apk"; then return 1; fi
+
+    # v6.4.0: Security-only uyarısı (APK native destek yok)
+    if [[ "$SECURITY_ONLY" == "true" ]]; then
+        print_warning "${MSG_WARN_SECURITY_APK:-APK için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak.}"
+    fi
 
     print_header "${MSG_HEADER_APK_UPDATE:-APK: Güncelleme}"
 
@@ -2135,6 +2281,7 @@ show_help() {
     echo "${MSG_HELP_OPT_VERBOSE:-  --verbose           Detaylı çıktı modu (Tüm komut çıktılarını gösterir)}"
     echo "${MSG_HELP_OPT_QUIET:-  --quiet             Sessiz mod (Sadece hata ve özet gösterir)}"
     echo "${MSG_HELP_OPT_DRYRUN:-  --dry-run           Kuru çalıştırma (Ne yapılacağını göster, yapma)}"
+    echo "${MSG_HELP_OPT_SECURITY:-  --security-only     Sadece güvenlik güncellemeleri (DNF/Zypper)}"
     echo "${MSG_HELP_OPT_JSON:-  --json              JSON çıktı (monitoring sistemleri için)}"
     echo "${MSG_HELP_OPT_JSON_FULL:-  --json-full         Detaylı JSON çıktı (SIEM/audit için)}"
     echo "${MSG_HELP_OPT_SKIP:-  --skip <backend>    Belirtilen backendleri atla (virgul ile ayir)}"
@@ -2155,6 +2302,7 @@ show_help() {
     echo "${MSG_HELP_EX_VERBOSE:-  guncel --verbose              -> Detaylı çıktı ile güncelleme}"
     echo "${MSG_HELP_EX_QUIET:-  guncel --quiet                -> Sessiz güncelleme (sadece özet)}"
     echo "${MSG_HELP_EX_DRYRUN:-  guncel --dry-run              -> Güncellemeleri listele (uygulamadan)}"
+    echo "${MSG_HELP_EX_SECURITY:-  guncel --security-only        -> Sadece güvenlik güncellemeleri (DNF/Zypper)}"
     echo "${MSG_HELP_EX_JSON:-  guncel --json                 -> Monitoring için JSON çıktı (Zabbix/Nagios)}"
     echo "${MSG_HELP_EX_JSON_FULL:-  guncel --json-full            -> SIEM için detaylı JSON (Wazuh/Splunk)}"
     echo "${MSG_HELP_EX_SKIP:-  guncel --skip flatpak,snap    -> Flatpak ve Snap atla}"
@@ -2188,6 +2336,7 @@ while [[ $# -gt 0 ]]; do
         --verbose) VERBOSE_MODE="true"; shift ;;
         --quiet) QUIET_MODE="true"; shift ;;
         --dry-run) DRY_RUN="true"; shift ;;
+        --security-only) SECURITY_ONLY="true"; shift ;;
         --json) JSON_MODE="json"; QUIET_MODE="true"; shift ;;
         --json-full) JSON_MODE="json-full"; QUIET_MODE="true"; shift ;;
         --skip)
@@ -2314,10 +2463,25 @@ if [[ "$QUIET_MODE" != "true" ]]; then
 fi
 
 create_snapshot
+
+# v6.4.0: Pre-update hooks
+run_hooks "pre"
+
 perform_updates
+
+# v6.4.0: Post-update hooks
+run_hooks "post"
 
 # Bitiş özeti
 print_final_summary
+
+# v6.4.0: Notification
+total_updates=$((APT_COUNT + DNF_COUNT + PACMAN_COUNT + ZYPPER_COUNT + APK_COUNT + FLATPAK_COUNT + SNAP_COUNT + FWUPD_COUNT))
+if [[ "$total_updates" -gt 0 ]]; then
+    send_notification "success" "$total_updates paket güncellendi"
+else
+    send_notification "success" "Sistem güncel, güncelleme yok"
+fi
 
 # v5.3.0: JSON output
 if [[ "$JSON_MODE" != "none" ]]; then
