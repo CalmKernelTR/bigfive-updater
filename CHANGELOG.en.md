@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.4.0] - 2026-02-05 "Fluent Edition - Hotel"
+### Added
+- **--security-only flag:** Apply only security updates
+  - DNF (Fedora/RHEL): Native support via `dnf upgrade --security`
+  - Zypper (openSUSE): Native support via `zypper patch --category security`
+  - APT/Pacman/APK: Warning message (no native support)
+- **Pre/Post Update Hooks:** Custom scripts before/after updates
+  - Hook directory: `/etc/bigfive-updater.d/{pre,post}.d/`
+  - Executable scripts run automatically
+  - Hook results logged to log file
+- **Notification system:** Update notifications
+  - ntfy.sh support (open source push notifications)
+  - Gotify support (self-hosted)
+  - Generic webhook support (JSON POST)
+  - `BIGFIVE_NOTIFY_URL` environment variable
+  - `NOTIFY_ON_SUCCESS` / `NOTIFY_ON_ERROR` settings
+
+### Changed
+- **Codename:** Golf → Hotel (v6.4.x minor series)
+
+---
+
 ## [6.3.1] - 2026-02-05 "Fluent Edition - Golf"
 ### Fixed
 - **Container detection critical fix:** `systemd-detect-virt` exit code issue
