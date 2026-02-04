@@ -10,7 +10,7 @@ jobs:
     name: ShellCheck
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run ShellCheck
         run: shellcheck -x guncel install.sh release.sh
 
@@ -18,7 +18,7 @@ jobs:
     name: Bash Syntax
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Check syntax
         run: bash -n guncel && bash -n install.sh && bash -n release.sh
 
@@ -26,7 +26,7 @@ jobs:
     name: BATS Unit Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install BATS
         run: |
           sudo apt-get update
@@ -67,7 +67,7 @@ jobs:
       image: ${{ matrix.image }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install dependencies
         run: ${{ matrix.install_deps }}

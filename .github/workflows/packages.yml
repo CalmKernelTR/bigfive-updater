@@ -31,7 +31,7 @@ jobs:
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Update PKGBUILD version
         run: |
@@ -50,7 +50,7 @@ jobs:
           su builder -c "makepkg -sf --noconfirm"
 
       - name: Upload Arch package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: arch-package
           path: packaging/aur/*.pkg.tar.zst
@@ -73,7 +73,7 @@ jobs:
           chmod 777 /var/cache/distfiles
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Update APKBUILD version
         run: |
@@ -103,7 +103,7 @@ jobs:
           find /home/builder/packages -name "*.apk" -exec cp {} alpine-packages/ \;
 
       - name: Upload Alpine packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: alpine-packages
           path: alpine-packages/*.apk
@@ -115,13 +115,13 @@ jobs:
     if: github.event_name == 'release'
     steps:
       - name: Download Arch package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: arch-package
           path: packages/
 
       - name: Download Alpine packages
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: alpine-packages
           path: packages/
