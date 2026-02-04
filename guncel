@@ -7,7 +7,7 @@
 #
 
 # --- AYARLAR ---
-VERSION="6.2.2"
+VERSION="6.2.3"
 EDITION="Fluent"
 CODENAME="Foxtrot"
 
@@ -210,9 +210,14 @@ print_header() {
 }
 
 print_error() {
+    # v6.2.3: JSON modunda stdout'a yazma (tutarlılık için print_error_with_hint ile aynı davranış)
+    if [[ "$JSON_MODE" != "none" ]]; then
+        echo "[$(date '+%F %T')] ERROR: $1" >> "$LOG_FILE"
+        add_json_error "$1"
+        return
+    fi
     printf '%s[X] HATA: %s %s\n' "${RED}${BOLD}" "$1" "${NC}"
     echo "[$(date '+%F %T')] ERROR: $1" >> "$LOG_FILE"
-    # JSON modunda error'ı kaydet
     add_json_error "$1"
 }
 

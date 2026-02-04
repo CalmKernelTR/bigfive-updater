@@ -5,6 +5,15 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [6.2.3] - 2026-02-05 "Fluent Edition - Foxtrot"
+### Düzeltilenler
+- **JSON modunda print_error tutarlılığı:** `print_error()` fonksiyonu artık JSON modunda stdout'a yazmıyor
+  - `print_error_with_hint()` ile aynı davranış sağlandı
+  - JSON çıktısı artık tamamen sessiz (sadece JSON + log)
+  - Monitoring sistemleri için temiz JSON output garantisi
+
+---
+
 ## [6.2.2] - 2026-02-03 "Fluent Edition - Foxtrot"
 ### Düzeltilenler
 - **wget timeout iyileştirmesi:** Detaylı timeout parametreleri eklendi

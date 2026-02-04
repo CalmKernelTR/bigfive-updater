@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.2.3] - 2026-02-05 "Fluent Edition - Foxtrot"
+### Fixed
+- **JSON mode print_error consistency:** `print_error()` function no longer writes to stdout in JSON mode
+  - Now behaves the same as `print_error_with_hint()`
+  - JSON output is now completely silent (only JSON + log)
+  - Guarantees clean JSON output for monitoring systems
+
+---
+
 ## [6.2.2] - 2026-02-03 "Fluent Edition - Foxtrot"
 ### Fixed
 - **wget timeout improvement:** Added detailed timeout parameters
