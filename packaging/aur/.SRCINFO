@@ -1,8 +1,8 @@
 pkgbase = bigfive-updater
-	pkgdesc = Armored, Smart, Multi-Distro Update Tool for Linux Systems
-	pkgver = 6.0.2
+	pkgdesc = Multi-distro Linux system updater with security features
+	pkgver = 6.4.0
 	pkgrel = 1
-	url = https://github.com/ahm3t0t/bigfive-updater
+	url = https://github.com/CalmKernelTR/bigfive-updater
 	arch = any
 	license = MIT
 	depends = bash
@@ -12,9 +12,11 @@ pkgbase = bigfive-updater
 	optdepends = fwupd: Firmware updates
 	optdepends = snapper: Btrfs/LVM snapshot support
 	optdepends = timeshift: System restore point support
+	optdepends = gnupg: GPG signature verification
 	provides = guncel
 	provides = updater
-	source = bigfive-updater-6.0.2.tar.gz::https://github.com/ahm3t0t/bigfive-updater/archive/v6.0.2.tar.gz
-	sha256sums = a40ce496c241fd60368da51a962372399666e083656f5b8115d26fd8f87957c1
+	provides = bigfive
+	source = bigfive-updater-6.4.0.tar.gz::https://github.com/CalmKernelTR/bigfive-updater/archive/v6.4.0.tar.gz
+	sha256sums = 4b4249bc17c040b1ced1e59f56c71c6d28b8626bd94b40272edd339fd6f6a3ba
 
 pkgname = bigfive-updater

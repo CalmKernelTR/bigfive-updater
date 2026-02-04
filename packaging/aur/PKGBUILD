@@ -1,12 +1,12 @@
 # Maintainer: Ahmet T <ahm3t0t@users.noreply.github.com>
-# https://github.com/ahm3t0t/bigfive-updater
+# https://github.com/CalmKernelTR/bigfive-updater
 
 pkgname=bigfive-updater
-pkgver=6.0.2
+pkgver=6.4.0
 pkgrel=1
-pkgdesc="Armored, Smart, Multi-Distro Update Tool for Linux Systems"
+pkgdesc="Multi-distro Linux system updater with security features"
 arch=('any')
-url="https://github.com/ahm3t0t/bigfive-updater"
+url="https://github.com/CalmKernelTR/bigfive-updater"
 license=('MIT')
 depends=('bash' 'curl')
 optdepends=(
@@ -15,10 +15,11 @@ optdepends=(
     'fwupd: Firmware updates'
     'snapper: Btrfs/LVM snapshot support'
     'timeshift: System restore point support'
+    'gnupg: GPG signature verification'
 )
-provides=('guncel' 'updater')
+provides=('guncel' 'updater' 'bigfive')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
-sha256sums=('a40ce496c241fd60368da51a962372399666e083656f5b8115d26fd8f87957c1')
+sha256sums=('4b4249bc17c040b1ced1e59f56c71c6d28b8626bd94b40272edd339fd6f6a3ba')
 
 package() {
     cd "${srcdir}/${pkgname}-${pkgver}"

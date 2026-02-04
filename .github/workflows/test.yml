@@ -5,15 +5,10 @@ on:
     branches: [ "main" ]
   pull_request:
 
-jobs:
-  shellcheck:
-    name: ShellCheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Run ShellCheck
-        run: shellcheck -x guncel install.sh release.sh
+# Note: ShellCheck is run in ci.yml (ShellCheck Lint job)
+# This workflow focuses on syntax and install tests
 
+jobs:
   syntax-check:
     name: Bash Syntax
     runs-on: ubuntu-latest

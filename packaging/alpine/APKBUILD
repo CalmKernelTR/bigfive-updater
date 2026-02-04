@@ -1,16 +1,16 @@
 # Contributor: Ahmet T <ahm3t0t@users.noreply.github.com>
 # Maintainer: Ahmet T <ahm3t0t@users.noreply.github.com>
 pkgname=bigfive-updater
-pkgver=6.0.2
+pkgver=6.4.0
 pkgrel=0
-pkgdesc="Armored, Smart, Multi-Distro Update Tool for Linux Systems"
-url="https://github.com/ahm3t0t/bigfive-updater"
+pkgdesc="Multi-distro Linux system updater with security features"
+url="https://github.com/CalmKernelTR/bigfive-updater"
 arch="noarch"
 license="MIT"
 depends="bash curl"
 makedepends=""
 subpackages="$pkgname-doc $pkgname-bash-completion $pkgname-zsh-completion $pkgname-fish-completion"
-source="$pkgname-$pkgver.tar.gz::https://github.com/ahm3t0t/bigfive-updater/archive/v$pkgver.tar.gz"
+source="$pkgname-$pkgver.tar.gz::https://github.com/CalmKernelTR/bigfive-updater/archive/v$pkgver.tar.gz"
 
 build() {
 	# Nothing to build, it's a shell script
