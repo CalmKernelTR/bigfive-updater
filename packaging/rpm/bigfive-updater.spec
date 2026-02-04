@@ -46,7 +46,7 @@ ln -s guncel %{buildroot}%{_bindir}/updater
 ln -s guncel %{buildroot}%{_bindir}/bigfive
 
 # Man page
-install -Dm644 man/guncel.8 %{buildroot}%{_mandir}/man8/guncel.8
+install -Dm644 docs/guncel.8 %{buildroot}%{_mandir}/man8/guncel.8
 
 # Bash completion
 install -Dm644 completions/guncel.bash %{buildroot}%{_datadir}/bash-completion/completions/guncel
@@ -76,7 +76,7 @@ install -dm755 %{buildroot}%{_localstatedir}/log/%{name}
 
 %files
 %license LICENSE
-%doc README.md README.tr.md CHANGELOG.md CHANGELOG.tr.md
+%doc README.md README.tr.md CHANGELOG.en.md CHANGELOG.tr.md
 %{_bindir}/guncel
 %{_bindir}/updater
 %{_bindir}/bigfive
