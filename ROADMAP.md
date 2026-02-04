@@ -82,58 +82,56 @@
 
 ## 🔜 Planned Features
 
-### v6.1.0 "Echo" - Diagnostics & CI
+### v6.1.0 "Fluent Edition - Echo" - Diagnostics & CI ✅
 
 Short-term improvements building on existing infrastructure.
 
 - [x] `--history [N]` command: Parse log files and display update summary for the last N days
-  - Default: N=7 (last 7 days)
-  - Output: date, time, status (OK/HATA/DRY), details
-  - Log format: `/var/log/bigfive-updater/update_YYYYMMDD_HHMMSS.log`
-- [x] `--doctor` command: Config validation, dependency check, disk space, internet connectivity in one command
-  - Config file syntax check
-  - Required commands: curl/wget, package manager
-  - Optional commands: jq, fwupd, flatpak, snap
-  - Disk space: minimum 500MB free
-  - Internet: GitHub raw URL ping
-  - Lang files: existence check
-- [ ] GitHub Actions CI matrix build: Automatic 5-distro testing on every PR (Docker base images ready)
-- [ ] install.sh improvements: wget TLS flag modernize, grep portability, message clarity, variable cleanup
-- [x] ~~Hook false positive fix~~ (completed in claude-code-skills repo, Fase 5)
+- [x] `--doctor` command: Config validation, dependency check, disk space, internet connectivity
+- [x] GitHub Actions CI matrix build: Automatic 5-distro testing on every PR
+- [x] 170 BATS tests
 
 ### v6.2.0 "Fluent Edition - Foxtrot" - GPG Self-Update ✅
 
 GPG signature verification for self-update.
 
 - [x] **GPG signature verification:** `verify_gpg_signature()` function
-  - SHA256SUMS.asc file validation
-  - Public key auto-downloaded from GitHub
-  - Graceful degradation: warns if GPG not installed
-  - Invalid signature rejected with E032 error code
 - [x] README Flatpak system-wide note added
 - [x] Timeout parameters (curl/wget)
 - [x] Arch Linux reboot detection (kernel module directory)
 - [x] DNF5 compatibility (Fedora 41+)
 
-### v6.3.0 "Fluent Edition - Chrom" - Server Automation
+### v6.3.0 "Fluent Edition - Golf" - Cron & Container ✅
 
-Automation features for server administrators.
+Server environment improvements.
 
-- [ ] **Notification system:** Post `--auto` update notifications
-  - Webhook (Slack, Discord, Teams, generic HTTP)
-  - Email (SMTP)
-  - Config file settings (`CONFIG_NOTIFY_*`)
-- [ ] `--security-only` flag: Apply security updates only (APT/DNF/Zypper supported)
-- [ ] **Pre/post update hooks:** `/etc/bigfive-updater/hooks.d/{pre,post}-update.sh` — user-defined scripts (backup, service restart, etc.)
+- [x] **Cron jitter:** `--jitter` parameter for random delay (0-300s)
+- [x] **Container detection:** Docker/Podman/LXC/systemd-nspawn environment awareness
+- [x] JSON print_error fix (v6.2.3)
 
-### v7.0.0 "Zenith Edition" - Notification Templates & Setup
+### v6.4.0 "Fluent Edition - Hotel" - Server Automation ✅
+
+Full server automation features.
+
+- [x] **`--security-only` flag:** Apply security updates only (APT/DNF/Zypper)
+- [x] **Pre/post update hooks:** `/etc/bigfive-updater.d/{pre,post}.d/` directories
+- [x] **Notification system:** ntfy, gotify, generic webhook support
+- [x] **COPR Repository:** `dnf copr enable tahmet/bigfive-updater`
+- [x] RPM packaging (Fedora/RHEL/CentOS)
+
+### v6.5.0 "Fluent Edition" - Quality & Security
+
+- [ ] Vulnerability scanning integration (--doctor --security)
+- [ ] GitHub Wiki documentation
+- [ ] Gentoo (emerge) support consideration
+
+### v7.0.0 "Zenith Edition" - Advanced Setup
 
 Fully integrated server automation experience.
 
-- [ ] Notification template system (Slack Block Kit, Discord embed, Teams card formats)
 - [ ] `guncel --setup` interactive first-run wizard (config + notification + cron)
 - [ ] systemd timer generation (`guncel --timer create`)
-- [ ] Notification config validation (`guncel --doctor --notify-test`)
+- [ ] Notification template system (Slack Block Kit, Discord embed)
 
 ---
 
@@ -162,7 +160,8 @@ Fully integrated server automation experience.
 | v5.5 | BigFive | Dream | Rebranding |
 | v6.0-6.1 | Fluent | Echo | i18n, diagnostics |
 | v6.2 | Fluent | Foxtrot | GPG self-update |
-| v6.3+ | Fluent | Chrom | Server automation |
+| v6.3 | Fluent | Golf | Cron jitter, container |
+| v6.4 | Fluent | Hotel | Server automation |
 | v7.0+ | Zenith | TBD | - |
 
 ---
@@ -172,12 +171,13 @@ Fully integrated server automation experience.
 | Idea | Decision | Rationale |
 |------|----------|-----------|
 | GUI / Web UI | ❌ Rejected | BigFive is a CLI tool. External tools can integrate via JSON output |
-| DEB/RPM packaging | ❌ Rejected | curl + GPG installation is sufficient, maintenance burden too high |
+| DEB packaging | ⏳ Deferred | PPA requires separate effort, COPR is priority |
 | Desktop notifications | ❌ Rejected | Server-focused tool, desktop notification is out of scope |
 | Rust migration | ❌ Deferred | Bash is sufficient, POSIX compatibility is an advantage |
-| Plugin system | ❌ Deferred | Low complexity/benefit ratio |
-| Parallel updates | ❌ Deferred | Race condition risk, too complex |
+| Plugin system | ❌ Rejected | Maintenance nightmare, low benefit |
+| Parallel updates | ❌ Rejected | Race condition risk, too complex |
 | Snap/Flatpak package | ❌ Rejected | Requires root access and package manager, incompatible with sandbox |
+| Telemetry | ❌ Rejected | Privacy concerns |
 
 ---
 
