@@ -5,6 +5,24 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [6.3.0] - 2026-02-05 "Fluent Edition - Golf"
+### Eklenenler
+- **Cron jitter desteği:** `--jitter N` parametresi ile sunucu yükü dağıtımı
+  - Cron job'ları için rastgele gecikme (0-N saniye)
+  - `BIGFIVE_JITTER` environment variable desteği
+  - Çok sayıda sunucu aynı anda güncelleme yapmasını önler
+- **Container ortamı tespiti:** Docker/Podman/LXC ortamlarında uyarı
+  - `/.dockerenv` dosya kontrolü (Docker)
+  - `/run/.containerenv` dosya kontrolü (Podman)
+  - `/proc/1/cgroup` içerik analizi (diğer container'lar)
+  - `systemd-detect-virt --container` komutu (systemd tabanlı)
+  - Container içinde güncellemelerin kalıcı olmadığı uyarısı
+
+### Değişenler
+- **Codename:** Foxtrot → Golf (v6.3.x minor serisi)
+
+---
+
 ## [6.2.3] - 2026-02-05 "Fluent Edition - Foxtrot"
 ### Düzeltilenler
 - **JSON modunda print_error tutarlılığı:** `print_error()` fonksiyonu artık JSON modunda stdout'a yazmıyor

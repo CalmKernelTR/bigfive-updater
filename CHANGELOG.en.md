@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.3.0] - 2026-02-05 "Fluent Edition - Golf"
+### Added
+- **Cron jitter support:** `--jitter N` parameter for server load distribution
+  - Random delay (0-N seconds) for cron jobs
+  - `BIGFIVE_JITTER` environment variable support
+  - Prevents many servers updating at the same time
+- **Container environment detection:** Warning for Docker/Podman/LXC environments
+  - `/.dockerenv` file check (Docker)
+  - `/run/.containerenv` file check (Podman)
+  - `/proc/1/cgroup` content analysis (other containers)
+  - `systemd-detect-virt --container` command (systemd-based)
+  - Warning that updates in containers are not persistent
+
+### Changed
+- **Codename:** Foxtrot → Golf (v6.3.x minor series)
+
+---
+
 ## [6.2.3] - 2026-02-05 "Fluent Edition - Foxtrot"
 ### Fixed
 - **JSON mode print_error consistency:** `print_error()` function no longer writes to stdout in JSON mode

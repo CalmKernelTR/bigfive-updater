@@ -7,9 +7,9 @@
 #
 
 # --- AYARLAR ---
-VERSION="6.2.3"
+VERSION="6.3.0"
 EDITION="Fluent"
-CODENAME="Foxtrot"
+CODENAME="Golf"
 
 # --- i18n (v6.0.0) ---
 LANG_DIR="/usr/share/bigfive-updater/lang"
