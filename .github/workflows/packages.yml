@@ -50,7 +50,7 @@ jobs:
           su builder -c "makepkg -sf --noconfirm"
 
       - name: Upload Arch package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: arch-package
           path: packaging/aur/*.pkg.tar.zst
@@ -103,7 +103,7 @@ jobs:
           find /home/builder/packages -name "*.apk" -exec cp {} alpine-packages/ \;
 
       - name: Upload Alpine packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: alpine-packages
           path: alpine-packages/*.apk

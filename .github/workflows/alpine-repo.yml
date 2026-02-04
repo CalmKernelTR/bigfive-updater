@@ -103,7 +103,7 @@ jobs:
           abuild-sign -k /home/builder/.abuild/bigfive@ahm3t0t.rsa APKINDEX.tar.gz
 
       - name: Upload repo artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: alpine-repo
           path: repo/
