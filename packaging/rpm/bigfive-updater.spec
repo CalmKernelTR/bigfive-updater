@@ -4,7 +4,7 @@ Release:        1%{?dist}
 Summary:        Multi-distro Linux system updater with security features
 License:        MIT
 URL:            https://github.com/CalmKernelTR/bigfive-updater
-Source0:        https://github.com/CalmKernelTR/bigfive-updater/archive/v%{version}.tar.gz
+Source0:        %{name}-%{version}.tar.gz
 
 BuildArch:      noarch
 BuildRequires:  coreutils
@@ -94,14 +94,14 @@ install -dm755 %{buildroot}%{_localstatedir}/log/%{name}
 %dir %{_localstatedir}/log/%{name}
 
 %changelog
-* Wed Feb 05 2026 Ahmet Kaan Sever <ahmet@calmkernel.net> - 6.4.0-1
+* Wed Feb 04 2026 Ahmet Kaan Sever <ahmet@calmkernel.net> - 6.4.0-1
 - New features: --security-only, pre/post hooks, notifications
 - Codename: Fluent Edition Hotel
 
-* Wed Feb 05 2026 Ahmet Kaan Sever <ahmet@calmkernel.net> - 6.3.1-1
+* Wed Feb 04 2026 Ahmet Kaan Sever <ahmet@calmkernel.net> - 6.3.1-1
 - Critical fix: systemd-detect-virt exit code issue
 
-* Wed Feb 05 2026 Ahmet Kaan Sever <ahmet@calmkernel.net> - 6.3.0-1
+* Wed Feb 04 2026 Ahmet Kaan Sever <ahmet@calmkernel.net> - 6.3.0-1
 - New features: cron jitter, container detection
 - Codename: Fluent Edition Golf
 
