@@ -88,6 +88,7 @@ NC=$'\033[0m'
 VERBOSE_MODE=false
 QUIET_MODE=false
 AUTO_MODE=false
+JITTER_MAX="${BIGFIVE_JITTER:-0}"  # v6.3.0: Cron jitter (seconds)
 DRY_RUN=false
 
 # --- YENİ v3.6.0: SKIP/ONLY BAYRAKLARI ---
@@ -839,6 +840,57 @@ check_disk_space() {
 
     if [[ "$QUIET_MODE" != "true" ]]; then
         print_info "$(printf "${MSG_INFO_DISK_OK:-Disk alanı yeterli: %sMB mevcut.}" "$available_mb")"
+    fi
+    return 0
+}
+
+# v6.3.0: Cron jitter - random delay for load distribution
+# Server farms'ta tüm makinelerin aynı anda güncelleme yapmasını önler
+apply_jitter() {
+    local max_delay="${1:-0}"
+
+    if [[ "$max_delay" -gt 0 ]]; then
+        local delay=$((RANDOM % max_delay))
+        if [[ "$QUIET_MODE" != "true" ]]; then
+            print_info "$(printf "${MSG_INFO_JITTER:-Cron jitter: %d saniye bekleniyor (max: %d)...}" "$delay" "$max_delay")"
+        fi
+        sleep "$delay"
+    fi
+}
+
+# v6.3.0: Container ortamı tespiti
+# Docker/Podman/LXC içinde çalışırken uyarı verir
+check_container_environment() {
+    local in_container=false
+    local container_type=""
+
+    # Docker detection
+    if [[ -f /.dockerenv ]]; then
+        in_container=true
+        container_type="Docker"
+    # Podman detection (containerenv file)
+    elif [[ -f /run/.containerenv ]]; then
+        in_container=true
+        container_type="Podman"
+    # cgroup-based detection (Docker/Podman/LXC)
+    elif grep -qE '(docker|kubepods|containerd|lxc)' /proc/1/cgroup 2>/dev/null; then
+        in_container=true
+        container_type="Container"
+    # systemd-detect-virt (if available)
+    elif command -v systemd-detect-virt &>/dev/null; then
+        local virt_type
+        virt_type=$(systemd-detect-virt --container 2>/dev/null)
+        if [[ "$virt_type" != "none" && -n "$virt_type" ]]; then
+            in_container=true
+            container_type="$virt_type"
+        fi
+    fi
+
+    if [[ "$in_container" == "true" ]]; then
+        print_warning_with_hint \
+            "$(printf "${MSG_WARN_CONTAINER:-Container ortamı tespit edildi: %s}" "$container_type")" \
+            "${MSG_HINT_CONTAINER:-Container güncellemeleri kalıcı değildir. Host sistemini güncellemek için container dışında çalıştırın.}"
+        # Return 0 - sadece uyarı, engelleme yok
     fi
     return 0
 }
@@ -2078,6 +2130,7 @@ show_help() {
     echo ""
     echo "${MSG_HELP_OPTIONS:-Seçenekler:}"
     echo "${MSG_HELP_OPT_AUTO:-  --auto              Otomatik mod (Onay sormadan günceller)}"
+    echo "${MSG_HELP_OPT_JITTER:-  --jitter <sn>       Cron jitter (0-N saniye arası rastgele bekleme)}"
     echo "${MSG_HELP_OPT_VERBOSE:-  --verbose           Detaylı çıktı modu (Tüm komut çıktılarını gösterir)}"
     echo "${MSG_HELP_OPT_QUIET:-  --quiet             Sessiz mod (Sadece hata ve özet gösterir)}"
     echo "${MSG_HELP_OPT_DRYRUN:-  --dry-run           Kuru çalıştırma (Ne yapılacağını göster, yapma)}"
@@ -2121,6 +2174,16 @@ show_help() {
 while [[ $# -gt 0 ]]; do
     case $1 in
         --auto) AUTO_MODE="true"; shift ;;
+        --jitter)
+            # v6.3.0: Random delay for cron job load distribution
+            if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
+                JITTER_MAX="$2"
+                shift 2
+            else
+                printf '%sHATA: --jitter için saniye cinsinden değer gerekli (örn: --jitter 3600)%s\n' "${RED}" "${NC}"
+                exit 1
+            fi
+            ;;
         --verbose) VERBOSE_MODE="true"; shift ;;
         --quiet) QUIET_MODE="true"; shift ;;
         --dry-run) DRY_RUN="true"; shift ;;
@@ -2193,6 +2256,9 @@ if [[ "$VERBOSE_MODE" == "true" && "$QUIET_MODE" == "true" ]]; then
     exit 1
 fi
 
+# v6.3.0: Cron jitter - check_root'tan önce uygula (user space'te bekle)
+apply_jitter "$JITTER_MAX"
+
 check_root
 
 # --- FLOCK: Eşzamanlı çalışma kilidi ---
@@ -2217,6 +2283,9 @@ setup_logging
 if ! check_disk_space 500; then
     exit 1
 fi
+
+# v6.3.0: Container ortamı kontrolü (uyarı amaçlı, engellemez)
+check_container_environment
 
 if ! check_connectivity; then
     print_error_with_hint "${MSG_ERR_NO_INTERNET:-İnternet bağlantısı kurulamadı.}" \
