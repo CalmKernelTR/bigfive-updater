@@ -66,23 +66,24 @@ Tüm kod ShellCheck'ten geçmeli:
 shellcheck -x guncel install.sh release.sh
 ```
 
-### Girintileme
+### Girintileme (Google Shell Style Guide)
 
-- **4 space** kullan (tab değil)
+- **2 space** kullan (tab değil) - [Google Shell Style Guide](https://google.github.io/styleguide/shellguide.html)
 - Nested bloklar için tutarlı girintileme
+- Format kontrolü: `shfmt -d -i 2 -ci -sr guncel`
 
 ```bash
-# Doğru
+# Doğru (2 space - Google style)
 if [[ "$condition" == "true" ]]; then
-    echo "4 space indent"
-    if [[ "$nested" == "true" ]]; then
-        echo "8 space for nested"
-    fi
+  echo "2 space indent"
+  if [[ "$nested" == "true" ]]; then
+    echo "4 space for nested"
+  fi
 fi
 
-# Yanlış
+# Yanlış (4 space)
 if [[ "$condition" == "true" ]]; then
-  echo "2 space - wrong"
+    echo "4 space - wrong"
 fi
 ```
 
@@ -344,9 +345,28 @@ docker run --rm -v "$(pwd):/app" alpine:3.20 sh -c "apk add bash curl && bash /a
 
 | Bileşen | Test Sayısı | Durum |
 |---------|-------------|-------|
-| guncel.bats | 60 | Geçti |
-| install.bats | 35 | Geçti |
-| **Toplam** | **138** | Geçti |
+| guncel.bats | 134 | ✅ |
+| install.bats | 39 | ✅ |
+| **Toplam** | **173** | ✅ |
+
+### Code Coverage
+
+Codecov ile test coverage takip edilir:
+- **Dashboard:** https://app.codecov.io/gh/CalmKernelTR/bigfive-updater
+- **Badge:** README.md'de görünür
+- **CI:** Her PR'da coverage raporu oluşturulur
+
+Coverage çalıştırma (lokal):
+```bash
+# kcov kurulumu (Ubuntu)
+sudo apt-get install -y cmake libcurl4-openssl-dev libdw-dev binutils-dev zlib1g-dev
+git clone --depth 1 https://github.com/SimonKagstrom/kcov.git /tmp/kcov
+cd /tmp/kcov && mkdir build && cd build && cmake .. && make -j$(nproc) && sudo make install
+
+# Coverage toplama
+kcov --include-path=$(pwd)/guncel ./coverage ./guncel --help
+kcov --include-path=$(pwd)/guncel ./coverage ./guncel --doctor
+```
 
 ---
 
