@@ -161,13 +161,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y bats
 
-      - name: Install kcov from releases
+      - name: Build kcov from source
         run: |
-          # kcov is not in Ubuntu 24.04 repos, install from GitHub releases
-          wget -q https://github.com/SimonKagstrom/kcov/releases/download/v42/kcov-amd64.tar.gz
-          tar xzf kcov-amd64.tar.gz
-          sudo cp usr/local/bin/kcov /usr/local/bin/
-          sudo chmod +x /usr/local/bin/kcov
+          # Install build dependencies
+          sudo apt-get install -y cmake libcurl4-openssl-dev libdw-dev binutils-dev zlib1g-dev
+          # Clone and build kcov
+          git clone --depth 1 https://github.com/SimonKagstrom/kcov.git /tmp/kcov
+          cd /tmp/kcov
+          mkdir build && cd build
+          cmake ..
+          make -j$(nproc)
+          sudo make install
           kcov --version
 
       - name: Run guncel.bats with coverage
