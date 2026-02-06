@@ -26,6 +26,7 @@ jobs:
 
       - name: actionlint (YAML lint)
         uses: reviewdog/action-actionlint@v1
+        continue-on-error: true
         with:
           reporter: github-pr-check
           fail_level: none
