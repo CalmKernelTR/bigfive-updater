@@ -119,7 +119,15 @@ Full server automation features.
 - [x] **COPR Repository:** `dnf copr enable tahmet/bigfive-updater`
 - [x] RPM packaging (Fedora/RHEL/CentOS)
 
-### v6.5.0 "Fluent Edition" - Quality & Security
+### v6.5.0 "Fluent Edition - India" - Quality & Security ✅
+
+- [x] **Expanded --doctor:** 6 → 9 health checks (permissions, GPG, lock file)
+- [x] **Security hardening:** rm -rf protection, timeout mechanisms
+- [x] **i18n:** New TR/EN translations for doctor checks
+- [ ] Vulnerability scanning integration (--doctor --security) → v6.6.0
+- [ ] GitHub Wiki documentation → v6.6.0
+
+### v6.6.0 "Fluent Edition - Juliet" - Documentation & Vuln Scanning
 
 - [ ] Vulnerability scanning integration (--doctor --security)
 - [ ] GitHub Wiki documentation

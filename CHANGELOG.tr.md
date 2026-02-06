@@ -5,6 +5,27 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [6.5.0] - 2026-02-06 "Fluent Edition - India"
+### Eklenenler
+- **Genişletilmiş --doctor komutu:** 6 → 9 sağlık kontrolü
+  - [7/9] Dosya izinleri kontrolü: guncel (755/700), config (644/600), log dizini (750/700)
+  - [8/9] GPG keyring durumu: GPG mevcut mu, kaç anahtar var
+  - [9/9] Kilit dosyası kontrolü: Eski veya aktif instance tespiti
+- **i18n genişletildi:** Yeni doctor kontrolleri için TR/EN çeviriler
+
+### Değişenler
+- **Codename:** Hotel → India (v6.5.x minor serisi)
+- **Testler:** 170 → 173 BATS test (3 yeni doctor testi)
+
+### Güvenlik
+- **rm -rf boş string koruması:** Tüm rm -rf kullanımları boş değişken kontrolü yapıyor
+- **Timeout mekanizmaları:** Package manager operasyonlarına timeout eklendi
+  - Refresh/update: 600s (10 dakika)
+  - Upgrade: 1800s (30 dakika)
+  - GPG verify: 30s
+
+---
+
 ## [6.4.0] - 2026-02-05 "Fluent Edition - Hotel"
 ### Eklenenler
 - **--security-only flag:** Sadece güvenlik güncellemelerini uygula

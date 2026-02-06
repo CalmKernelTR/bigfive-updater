@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.5.0] - 2026-02-06 "Fluent Edition - India"
+### Added
+- **Expanded --doctor command:** 6 → 9 health checks
+  - [7/9] File permissions check: guncel (755/700), config (644/600), log dir (750/700)
+  - [8/9] GPG keyring status: GPG availability, key count
+  - [9/9] Lock file detection: Stale or active instance detection
+- **i18n expanded:** TR/EN translations for new doctor checks
+
+### Changed
+- **Codename:** Hotel → India (v6.5.x minor series)
+- **Tests:** 170 → 173 BATS tests (3 new doctor tests)
+
+### Security
+- **rm -rf empty string protection:** All rm -rf usages verify non-empty variables
+- **Timeout mechanisms:** Added timeouts to package manager operations
+  - Refresh/update: 600s (10 minutes)
+  - Upgrade: 1800s (30 minutes)
+  - GPG verify: 30s
+
+---
+
 ## [6.4.0] - 2026-02-05 "Fluent Edition - Hotel"
 ### Added
 - **--security-only flag:** Apply only security updates
