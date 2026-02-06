@@ -166,7 +166,7 @@ jobs:
           # kcov is not in Ubuntu 24.04 repos, install from GitHub releases
           wget -q https://github.com/SimonKagstrom/kcov/releases/download/v42/kcov-amd64.tar.gz
           tar xzf kcov-amd64.tar.gz
-          sudo cp kcov-amd64/usr/local/bin/kcov /usr/local/bin/
+          sudo cp usr/local/bin/kcov /usr/local/bin/
           sudo chmod +x /usr/local/bin/kcov
           kcov --version
 
