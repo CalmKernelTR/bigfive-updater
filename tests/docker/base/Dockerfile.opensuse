@@ -1,6 +1,6 @@
 # BigFive Updater - openSUSE Base Image
 # Pre-installed dependencies for faster testing
-FROM opensuse/leap:15.6
+FROM opensuse/leap:42.3
 
 LABEL maintainer="meet@calmkernel.tr"
 LABEL description="BigFive test base image - openSUSE Leap 15.6"
