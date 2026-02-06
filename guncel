@@ -781,8 +781,8 @@ verify_gpg_signature() {
     }
     chmod 700 "$temp_gpghome"
 
-    # Cleanup trap: hem dosya hem dizin temizle
-    trap 'rm -f "$temp_pubkey"; rm -rf "$temp_gpghome"' RETURN
+    # Cleanup trap: hem dosya hem dizin temizle (boş string koruması ile)
+    trap '[[ -n "$temp_pubkey" ]] && rm -f "$temp_pubkey"; [[ -n "$temp_gpghome" && -d "$temp_gpghome" ]] && rm -rf "$temp_gpghome"' RETURN
 
     # İzole GPG keyring kullan (sistem keyring'i kirletmez)
     old_gnupghome="${GNUPGHOME:-}"
@@ -811,8 +811,8 @@ verify_gpg_signature() {
         return 2
     fi
 
-    # İmza doğrula
-    if gpg --batch --verify "$sha256_sig_file" "$sha256_file" 2>/dev/null; then
+    # İmza doğrula (30 saniye timeout)
+    if timeout 30 gpg --batch --verify "$sha256_sig_file" "$sha256_file" 2>/dev/null; then
         _restore_gnupghome
         print_info "${MSG_INFO_GPG_OK:-GPG imza doğrulaması başarılı.}"
         return 0
@@ -1544,10 +1544,11 @@ update_apt() {
 
     print_header "${MSG_HEADER_APT_UPDATE:-APT: Güncelleme Başlıyor}"
 
+    # APT update (10 dakika timeout)
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        apt-get update 2>&1 | tee -a "$LOG_FILE"
+        timeout 600 apt-get update 2>&1 | tee -a "$LOG_FILE"
     else
-        apt-get update >> "$LOG_FILE" 2>&1
+        timeout 600 apt-get update >> "$LOG_FILE" 2>&1
     fi
 
     print_header "${MSG_HEADER_APT_UPGRADE:-APT: Dist-Upgrade}"
@@ -1567,10 +1568,11 @@ update_apt() {
         done <<< "$apt_simulate"
     fi
 
+    # APT dist-upgrade (30 dakika timeout)
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        apt-get dist-upgrade -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+        timeout 1800 apt-get dist-upgrade -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
     else
-        apt-get dist-upgrade -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
+        timeout 1800 apt-get dist-upgrade -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
     fi
 
     print_header "${MSG_HEADER_APT_CLEANUP:-APT: Temizlik}"
@@ -1628,10 +1630,11 @@ update_dnf() {
         print_info "${MSG_INFO_SECURITY_ONLY:-Sadece güvenlik güncellemeleri uygulanıyor...}"
     fi
 
+    # DNF upgrade (30 dakika timeout)
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        $dnf_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$dnf_temp"
+        timeout 1800 $dnf_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$dnf_temp"
     else
-        $dnf_cmd 2>&1 | tee "$dnf_temp" >> "$LOG_FILE"
+        timeout 1800 $dnf_cmd 2>&1 | tee "$dnf_temp" >> "$LOG_FILE"
     fi
 
     # DNF sayacını parse et - v5.4.7 FIX: DNF5 formatı desteği
@@ -1671,11 +1674,11 @@ update_pacman() {
     local pacman_temp
     pacman_temp=$(safe_mktemp pacman_update) || return 1
 
-    # Önce veritabanını güncelle
+    # Önce veritabanını güncelle (10 dakika timeout)
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        pacman -Sy 2>&1 | tee -a "$LOG_FILE"
+        timeout 600 pacman -Sy 2>&1 | tee -a "$LOG_FILE"
     else
-        pacman -Sy >> "$LOG_FILE" 2>&1
+        timeout 600 pacman -Sy >> "$LOG_FILE" 2>&1
     fi
 
     # Güncellenecek paket sayısını al
@@ -1696,11 +1699,12 @@ update_pacman() {
         done <<< "$pacman_updates"
     fi
 
+    # Pacman upgrade (30 dakika timeout)
     if [[ "$PACMAN_COUNT" -gt 0 ]]; then
         if [[ "$VERBOSE_MODE" == "true" ]]; then
-            pacman -Su --noconfirm 2>&1 | tee -a "$LOG_FILE" | tee "$pacman_temp"
+            timeout 1800 pacman -Su --noconfirm 2>&1 | tee -a "$LOG_FILE" | tee "$pacman_temp"
         else
-            pacman -Su --noconfirm 2>&1 | tee "$pacman_temp" >> "$LOG_FILE"
+            timeout 1800 pacman -Su --noconfirm 2>&1 | tee "$pacman_temp" >> "$LOG_FILE"
         fi
     fi
 
@@ -1739,11 +1743,11 @@ update_zypper() {
     local zypper_temp
     zypper_temp=$(safe_mktemp zypper_update) || return 1
 
-    # Repo'ları yenile
+    # Repo'ları yenile (10 dakika timeout)
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        zypper refresh 2>&1 | tee -a "$LOG_FILE"
+        timeout 600 zypper refresh 2>&1 | tee -a "$LOG_FILE"
     else
-        zypper refresh >> "$LOG_FILE" 2>&1
+        timeout 600 zypper refresh >> "$LOG_FILE" 2>&1
     fi
 
     # Güncellenecek paket sayısını al - v5.4.7 FIX: Doğru parsing
@@ -1774,10 +1778,11 @@ update_zypper() {
         print_info "${MSG_INFO_SECURITY_ONLY:-Sadece güvenlik güncellemeleri uygulanıyor...}"
     fi
 
+    # Zypper update (30 dakika timeout)
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        $zypper_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$zypper_temp"
+        timeout 1800 $zypper_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$zypper_temp"
     else
-        $zypper_cmd 2>&1 | tee "$zypper_temp" >> "$LOG_FILE"
+        timeout 1800 $zypper_cmd 2>&1 | tee "$zypper_temp" >> "$LOG_FILE"
     fi
 
     # v5.5.2 FIX: Zypper çıktısından gerçek güncelleme sayısını parse et
@@ -1824,11 +1829,11 @@ update_apk() {
 
     print_header "${MSG_HEADER_APK_UPDATE:-APK: Güncelleme}"
 
-    # Repo'ları güncelle
+    # Repo'ları güncelle (10 dakika timeout)
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        apk update 2>&1 | tee -a "$LOG_FILE"
+        timeout 600 apk update 2>&1 | tee -a "$LOG_FILE"
     else
-        apk update >> "$LOG_FILE" 2>&1
+        timeout 600 apk update >> "$LOG_FILE" 2>&1
     fi
 
     # Güncellenecek paket sayısını al
@@ -1851,11 +1856,11 @@ update_apk() {
         done <<< "$apk_updates"
     fi
 
-    # Güncelleme yap
+    # Güncelleme yap (30 dakika timeout)
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        apk upgrade 2>&1 | tee -a "$LOG_FILE"
+        timeout 1800 apk upgrade 2>&1 | tee -a "$LOG_FILE"
     else
-        apk upgrade >> "$LOG_FILE" 2>&1
+        timeout 1800 apk upgrade >> "$LOG_FILE" 2>&1
     fi
 
     # Cache temizliği
@@ -2236,8 +2241,8 @@ do_uninstall() {
         rm -f "/etc/logrotate.d/bigfive-updater" && removed_items+=("Logrotate: /etc/logrotate.d/bigfive-updater")
     fi
 
-    # Log dizini
-    if [[ -d "$LOG_DIR" ]]; then
+    # Log dizini (boş string koruması ile)
+    if [[ -n "$LOG_DIR" && -d "$LOG_DIR" ]]; then
         if [[ "${1:-}" == "--purge" ]]; then
             rm -rf "$LOG_DIR" && removed_items+=("Log dizini: $LOG_DIR")
         else

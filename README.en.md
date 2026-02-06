@@ -73,6 +73,22 @@ Performs Snapshot (Backup), Repository Updates, Flatpak/Snap and Firmware checks
 * **Update History (v6.1.0):**
     * `--history [N]` to view last N days of update logs (default: 7).
     * Shows date, time, status, and details of each run.
+* **Cron Jitter (v6.3.0):**
+    * `--jitter [N]` for random delay (0-N seconds, default: 300).
+    * Prevents "thundering herd" effect on mirror servers.
+* **Container Detection (v6.3.0):**
+    * Automatic detection of Docker/Podman/LXC containers.
+    * Skips snapshots and some operations in container mode.
+* **Security Updates (v6.4.0):**
+    * `--security-only` to apply only security updates.
+    * Native support for DNF and Zypper.
+    * Alternative tool suggestions for APT/Pacman/APK.
+* **Pre/Post Hooks (v6.4.0):**
+    * `/etc/bigfive-updater.d/pre-*.sh` - Scripts before updates.
+    * `/etc/bigfive-updater.d/post-*.sh` - Scripts after updates.
+* **Notification System (v6.4.0):**
+    * Support for ntfy.sh, Gotify, and webhooks.
+    * Automatic notifications on success/failure.
 * **Config File Support (v3.6.0):**
     * Define default settings in `/etc/bigfive-updater.conf`.
 * **SHA256 Verification (v3.6.0):**
@@ -98,8 +114,8 @@ This project uses **two separate version systems**:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v6.1.0 (Fluent Edition - Echo) | Every feature/fix |
-| `install.sh` (installer) | Night-Vx.x.x | Night-V1.4.2 | Only when install logic changes |
+| `guncel` (main script) | SemVer (x.x.x) | v6.4.0 (Fluent Edition - Hotel) | Every feature/fix |
+| `install.sh` (installer) | Night-Vx.x.x | Night-V1.4.3 | Only when install logic changes |
 
 **Naming Convention:**
 - **Edition** = Major series name (e.g., "BigFive" for v5.x = 5 package managers)

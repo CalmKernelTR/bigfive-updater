@@ -1,5 +1,5 @@
-% GUNCEL(8) BigFive Updater 6.1.0
-% Ahmet T. <ahm3t0t@users.noreply.github.com>
+% GUNCEL(8) BigFive Updater 6.4.0
+% Ahmet T. <meet@calmkernel.tr>
 % February 2026
 
 # NAME
@@ -78,6 +78,15 @@ systems.
 **--history** *[N]*
 :   Show update history for the last N days (default: 7). Displays date,
     time, status, and details of each update run from the log directory.
+
+**--jitter** *[N]*
+:   Add random delay (0-N seconds, default: 300) before starting updates.
+    Useful for cron jobs to avoid thundering herd on mirrors. (v6.3.0+)
+
+**--security-only**
+:   Only apply security updates. Supported natively by DNF and Zypper.
+    For APT/Pacman/APK, shows a warning and suggests alternatives like
+    unattended-upgrades or arch-audit. (v6.4.0+)
 
 **--help**
 :   Display help message and exit.
@@ -182,6 +191,30 @@ Show last 14 days of update history:
 **130**
 :   Interrupted by user (Ctrl+C).
 
+# HOOKS (v6.4.0+)
+
+BigFive supports pre and post update hooks for custom automation:
+
+*/etc/bigfive-updater.d/pre-*.sh*
+:   Scripts executed before updates begin.
+
+*/etc/bigfive-updater.d/post-*.sh*
+:   Scripts executed after updates complete.
+
+Example hook (*/etc/bigfive-updater.d/post-notify.sh*):
+
+    #!/bin/bash
+    curl -d "Updates completed on $(hostname)" https://ntfy.sh/my-topic
+
+# NOTIFICATIONS (v6.4.0+)
+
+Configure notifications in */etc/bigfive-updater.conf*:
+
+    NOTIFY_ON_SUCCESS=true
+    NOTIFY_ON_FAILURE=true
+    NOTIFY_URL=https://ntfy.sh/my-topic
+    # Supported: ntfy.sh, Gotify, generic webhooks
+
 # CONFIGURATION
 
 Configuration file format (*/etc/bigfive-updater.conf*):
@@ -198,6 +231,17 @@ Configuration file format (*/etc/bigfive-updater.conf*):
 
     # Snapshot timeout (seconds)
     CONFIG_SNAPSHOT_TIMEOUT=300
+
+    # Jitter (random delay) for cron jobs (v6.3.0+)
+    CONFIG_JITTER=300
+
+    # Security-only mode (v6.4.0+)
+    CONFIG_SECURITY_ONLY=false
+
+    # Notifications (v6.4.0+)
+    NOTIFY_ON_SUCCESS=true
+    NOTIFY_ON_FAILURE=true
+    NOTIFY_URL=https://ntfy.sh/my-topic
 
 # SEE ALSO
 

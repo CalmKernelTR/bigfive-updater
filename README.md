@@ -61,8 +61,8 @@ This project uses two separate version systems:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v6.1.0 (Fluent Edition - Echo) | Her özellik/fix'te / Every feature/fix |
-| `install.sh` (installer) | Night-Vx.x.x | Night-V1.4.2 | Sadece kurulum değiştiğinde / Only when install logic changes |
+| `guncel` (main script) | SemVer (x.x.x) | v6.4.0 (Fluent Edition - Hotel) | Her özellik/fix'te / Every feature/fix |
+| `install.sh` (installer) | Night-Vx.x.x | Night-V1.4.3 | Sadece kurulum değiştiğinde / Only when install logic changes |
 
 **Neden ayrı? / Why separate?**
 - Ana script sık güncellenir, installer nadiren değişir
@@ -96,6 +96,11 @@ This project uses two separate version systems:
 - ✅ Multi-Language (v6.0+): `--lang tr|en`, `BIGFIVE_LANG` env var
 - ✅ System Health Check (v6.1+): `--doctor` for diagnostics
 - ✅ Update History (v6.1+): `--history [N]` for last N days
+- ✅ Cron Jitter (v6.3+): `--jitter [N]` for random delay
+- ✅ Container Detection (v6.3+): Auto-detect Docker/Podman/LXC
+- ✅ Security Updates (v6.4+): `--security-only` for security patches
+- ✅ Pre/Post Hooks (v6.4+): Custom automation scripts
+- ✅ Notifications (v6.4+): ntfy.sh, Gotify, webhook support
 
 ---
 

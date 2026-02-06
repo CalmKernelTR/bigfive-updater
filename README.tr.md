@@ -110,6 +110,22 @@ Tek komut. Hepsi bir arada. Güvenli ve izlenebilir.
 * **Güncelleme Geçmişi (v6.1.0):**
     * `--history [N]` ile son N günün güncelleme loglarını görüntüleme (varsayılan: 7).
     * Her çalıştırmanın tarih, saat, durum ve detaylarını gösterir.
+* **Cron Jitter (v6.3.0):**
+    * `--jitter [N]` ile rastgele gecikme (0-N saniye, varsayılan: 300).
+    * Mirror sunuculara "thundering herd" etkisini önler.
+* **Container Algılama (v6.3.0):**
+    * Docker/Podman/LXC container içinde çalıştığını otomatik tespit eder.
+    * Container modunda snapshot ve bazı işlemler atlanır.
+* **Güvenlik Güncellemeleri (v6.4.0):**
+    * `--security-only` ile sadece güvenlik güncellemelerini uygulayın.
+    * DNF ve Zypper için native destek.
+    * APT/Pacman/APK için alternatif araç önerileri.
+* **Pre/Post Hooks (v6.4.0):**
+    * `/etc/bigfive-updater.d/pre-*.sh` - Güncelleme öncesi scriptler.
+    * `/etc/bigfive-updater.d/post-*.sh` - Güncelleme sonrası scriptler.
+* **Bildirim Sistemi (v6.4.0):**
+    * ntfy.sh, Gotify ve webhook desteği.
+    * Başarı/başarısızlık durumunda otomatik bildirim.
 * **Config Dosyası Desteği (v3.6.0):**
     * `/etc/bigfive-updater.conf` ile varsayılan ayarları tanımlayın.
 * **SHA256 Doğrulama (v3.6.0):**
@@ -135,8 +151,8 @@ Bu proje **iki ayrı versiyon sistemi** kullanır:
 
 | Bileşen | Format | Güncel | Güncelleme Sıklığı |
 |---------|--------|--------|--------------------|
-| `guncel` (ana script) | SemVer (x.x.x) | v6.1.0 (Fluent Edition - Echo) | Her özellik/fix'te |
-| `install.sh` (kurulum) | Night-Vx.x.x | Night-V1.4.2 | Sadece kurulum mantığı değiştiğinde |
+| `guncel` (ana script) | SemVer (x.x.x) | v6.4.0 (Fluent Edition - Hotel) | Her özellik/fix'te |
+| `install.sh` (kurulum) | Night-Vx.x.x | Night-V1.4.3 | Sadece kurulum mantığı değiştiğinde |
 
 **İsimlendirme Kuralı:**
 - **Edition** = Major seri adı (örn: "BigFive" v5.x için = 5 paket yöneticisi)
