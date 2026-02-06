@@ -174,20 +174,25 @@ jobs:
           sudo make install
           kcov --version
 
-      - name: Run guncel.bats with coverage
-        run: |
-          kcov --bash-handle-sh-invocation --include-path=$(pwd) ./coverage bats tests/guncel.bats
+      - name: Run BATS tests
+        run: bats tests/guncel.bats tests/install.bats
 
-      - name: Run install.bats with coverage
+      - name: Generate coverage for guncel
         run: |
-          kcov --bash-handle-sh-invocation --include-path=$(pwd) ./coverage bats tests/install.bats
+          # Run guncel with various flags through kcov
+          kcov --include-path=$(pwd)/guncel ./coverage ./guncel --help || true
+          kcov --include-path=$(pwd)/guncel ./coverage ./guncel --version || true
+          kcov --include-path=$(pwd)/guncel ./coverage ./guncel --doctor || true
+          kcov --include-path=$(pwd)/guncel ./coverage ./guncel --dry-run || true
+          kcov --include-path=$(pwd)/guncel ./coverage ./guncel --history || true
+          kcov --include-path=$(pwd)/guncel ./coverage ./guncel --json --dry-run || true
 
       - name: Debug coverage output
         run: |
-          echo "=== Coverage directory contents ==="
-          find ./coverage -type f -name "*.xml" | head -5
-          echo "=== Cobertura content sample ==="
-          cat ./coverage/bats*/cobertura.xml 2>/dev/null | head -50 || echo "No cobertura.xml found"
+          echo "=== Coverage files ==="
+          find ./coverage -name "cobertura.xml" -exec ls -la {} \;
+          echo "=== Coverage summary ==="
+          grep -h "line-rate" ./coverage/*/cobertura.xml 2>/dev/null | head -5 || echo "No coverage data"
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
