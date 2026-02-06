@@ -15,3 +15,15 @@ updates:
       - "dependencies"
       - "github-actions"
     open-pull-requests-limit: 5
+
+  # Docker dependencies (base images in tests)
+  - package-ecosystem: "docker"
+    directory: "/tests/docker/base"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "ci(docker)"
+    labels:
+      - "dependencies"
+      - "docker"
+    open-pull-requests-limit: 3

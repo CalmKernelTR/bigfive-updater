@@ -24,10 +24,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install ShellCheck
+      - name: actionlint (YAML lint)
+        uses: reviewdog/action-actionlint@v1
+        with:
+          reporter: github-pr-check
+          fail_on_error: false
+
+      - name: Install tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y shellcheck
+          sudo apt-get install -y shellcheck shfmt
 
       - name: Bash syntax check
         run: |
@@ -35,9 +41,14 @@ jobs:
           bash -n install.sh
           bash -n release.sh
 
-      - name: ShellCheck (errors only)
+      - name: ShellCheck (warnings)
         run: |
-          shellcheck -S error guncel install.sh release.sh
+          shellcheck -S warning guncel install.sh release.sh
+
+      - name: shfmt check (Google style)
+        run: |
+          # Check only, don't modify (-d = diff, -i 2 = 2 space indent)
+          shfmt -d -i 2 -ci -sr guncel install.sh release.sh || echo "::warning::Code style differs from Google Shell Style Guide"
 
   # ==================== Multi-Distro Matrix Test ====================
   multi-distro:
