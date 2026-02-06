@@ -56,3 +56,8 @@ Cargo.lock
 .artifacts/
 .claude-notes
 gist-claude-notes.txt
+
+# =========================
+# Audit reports (local only)
+# =========================
+.*-audit-report.md
