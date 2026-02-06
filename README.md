@@ -2,6 +2,7 @@
 
 [![CI Status](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/ci.yml/badge.svg)](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/ci.yml)
 [![Tests](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/test.yml/badge.svg)](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/CalmKernelTR/bigfive-updater/graph/badge.svg)](https://codecov.io/gh/CalmKernelTR/bigfive-updater)
 [![Branch Protection](https://img.shields.io/badge/main-protected-blue)](https://github.com/CalmKernelTR/bigfive-updater/rules)
 [![Latest Release](https://img.shields.io/github/v/release/CalmKernelTR/bigfive-updater?sort=semver&label=Version)](https://github.com/CalmKernelTR/bigfive-updater/releases)
 [![License](https://img.shields.io/github/license/CalmKernelTR/bigfive-updater)](https://github.com/CalmKernelTR/bigfive-updater/blob/main/LICENSE)

@@ -146,7 +146,7 @@ jobs:
           echo "  ${DISTRO} (${PKG_MGR}) - ALL TESTS PASSED"
           echo "========================================"
 
-  # ==================== BATS Unit Tests ====================
+  # ==================== BATS Unit Tests with Coverage ====================
   bats:
     name: BATS Tests
     runs-on: ubuntu-latest
@@ -156,16 +156,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Install BATS
+      - name: Install BATS and kcov
         run: |
           sudo apt-get update
-          sudo apt-get install -y bats
+          sudo apt-get install -y bats kcov
 
-      - name: Run guncel.bats
-        run: bats tests/guncel.bats
+      - name: Run guncel.bats with coverage
+        run: |
+          kcov --include-pattern=guncel ./coverage bats tests/guncel.bats
 
-      - name: Run install.bats
-        run: bats tests/install.bats
+      - name: Run install.bats with coverage
+        run: |
+          kcov --include-pattern=install.sh ./coverage bats tests/install.bats
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          directory: ./coverage
+          fail_ci_if_error: false
+          verbose: true
 
   # ==================== Summary ====================
   ci-success:
