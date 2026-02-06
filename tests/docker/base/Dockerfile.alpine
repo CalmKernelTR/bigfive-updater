@@ -1,6 +1,6 @@
 # BigFive Updater - Alpine Base Image
 # Pre-installed dependencies for faster testing
-FROM alpine:3.20
+FROM alpine:3.23
 
 LABEL maintainer="meet@calmkernel.tr"
 LABEL description="BigFive test base image - Alpine 3.20"
