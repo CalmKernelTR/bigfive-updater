@@ -43,7 +43,7 @@ jobs:
           gpg --batch --yes --armor --detach-sign install.sh
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           name: "BigFive Updater ${{ github.ref_name }}"
           generate_release_notes: true
