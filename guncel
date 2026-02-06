@@ -13,7 +13,7 @@ CODENAME="India"
 
 # --- i18n (v6.0.0) ---
 LANG_DIR="/usr/share/bigfive-updater/lang"
-BIGFIVE_LANG="${BIGFIVE_LANG:-}"  # Env var ile override
+BIGFIVE_LANG="${BIGFIVE_LANG:-}" # Env var ile override
 LOG_DIR="/var/log/bigfive-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 # v5.4.5: Releases URL kullan (CDN cache sorunu önlenir - raw.githubusercontent.com cache'lenebilir)
@@ -37,43 +37,43 @@ umask 0077
 # Root olarak çalışırken: root-owned ve world-writable olmayan dosyaları source et
 # Non-root olarak çalışırken: sadece world-writable kontrolü (test/dev ortamı)
 safe_source() {
-    local file="$1"
-    local file_owner file_perms
+  local file="$1"
+  local file_owner file_perms
 
-    if [[ ! -f "$file" ]]; then
-        return 1
+  if [[ ! -f "$file" ]]; then
+    return 1
+  fi
+
+  # World-writable kontrolü (others write bit = 2) - her zaman kontrol et
+  file_perms=$(stat -c '%a' "$file" 2> /dev/null) || return 1
+  if [[ "${file_perms: -1}" =~ [2367] ]]; then
+    printf '%s[!] Güvenlik: %s world-writable, atlanıyor%s\n' "${YELLOW:-}" "$file" "${NC:-}" >&2
+    return 1
+  fi
+
+  # Root olarak çalışırken ownership kontrolü yap
+  if [[ $EUID -eq 0 ]]; then
+    file_owner=$(stat -c '%u' "$file" 2> /dev/null) || return 1
+    if [[ "$file_owner" != "0" ]]; then
+      printf '%s[!] Güvenlik: %s root tarafından sahiplenilmemiş, atlanıyor%s\n' "${YELLOW:-}" "$file" "${NC:-}" >&2
+      return 1
     fi
+  fi
 
-    # World-writable kontrolü (others write bit = 2) - her zaman kontrol et
-    file_perms=$(stat -c '%a' "$file" 2>/dev/null) || return 1
-    if [[ "${file_perms: -1}" =~ [2367] ]]; then
-        printf '%s[!] Güvenlik: %s world-writable, atlanıyor%s\n' "${YELLOW:-}" "$file" "${NC:-}" >&2
-        return 1
-    fi
-
-    # Root olarak çalışırken ownership kontrolü yap
-    if [[ $EUID -eq 0 ]]; then
-        file_owner=$(stat -c '%u' "$file" 2>/dev/null) || return 1
-        if [[ "$file_owner" != "0" ]]; then
-            printf '%s[!] Güvenlik: %s root tarafından sahiplenilmemiş, atlanıyor%s\n' "${YELLOW:-}" "$file" "${NC:-}" >&2
-            return 1
-        fi
-    fi
-
-    # shellcheck source=/dev/null
-    source "$file"
+  # shellcheck source=/dev/null
+  source "$file"
 }
 
 # GÜVENLİK: Güvenli temp dosya oluşturma
 # TMPDIR manipülasyonuna karşı koruma
 safe_mktemp() {
-    local prefix="${1:-bigfive}"
-    local tmpfile
-    tmpfile=$(mktemp "/tmp/${prefix}_XXXXXX") || {
-        printf '%s[!] Temp dosya oluşturulamadı%s\n' "${RED:-}" "${NC:-}" >&2
-        return 1
-    }
-    printf '%s' "$tmpfile"
+  local prefix="${1:-bigfive}"
+  local tmpfile
+  tmpfile=$(mktemp "/tmp/${prefix}_XXXXXX") || {
+    printf '%s[!] Temp dosya oluşturulamadı%s\n' "${RED:-}" "${NC:-}" >&2
+    return 1
+  }
+  printf '%s' "$tmpfile"
 }
 
 # Renkler (ANSI-C quoting ile)
@@ -88,13 +88,13 @@ NC=$'\033[0m'
 VERBOSE_MODE=false
 QUIET_MODE=false
 AUTO_MODE=false
-JITTER_MAX="${BIGFIVE_JITTER:-0}"  # v6.3.0: Cron jitter (seconds)
+JITTER_MAX="${BIGFIVE_JITTER:-0}" # v6.3.0: Cron jitter (seconds)
 DRY_RUN=false
-SECURITY_ONLY=false  # v6.4.0: Sadece güvenlik güncellemeleri
+SECURITY_ONLY=false # v6.4.0: Sadece güvenlik güncellemeleri
 
 # --- v6.4.0: HOOKS VE NOTIFICATION ---
 HOOKS_DIR="/etc/bigfive-updater.d"
-NOTIFY_URL="${BIGFIVE_NOTIFY_URL:-}"  # ntfy/gotify/webhook URL
+NOTIFY_URL="${BIGFIVE_NOTIFY_URL:-}" # ntfy/gotify/webhook URL
 NOTIFY_ON_SUCCESS="${BIGFIVE_NOTIFY_SUCCESS:-true}"
 NOTIFY_ON_ERROR="${BIGFIVE_NOTIFY_ERROR:-true}"
 
@@ -118,7 +118,7 @@ FWUPD_COUNT=0
 SNAPSHOT_NAME=""
 
 # --- JSON OUTPUT MOD (v5.3.0) ---
-JSON_MODE="none"  # none, json, json-full
+JSON_MODE="none" # none, json, json-full
 
 # --- JSON DATA COLLECTION ---
 declare -a JSON_PACKAGES=()
@@ -132,24 +132,24 @@ ORIGINAL_ARGS=("$@")
 
 # --- YENİ v3.6.0: CONFIG DOSYASI YÜKLEME ---
 load_config() {
-    if [ -f "$CONFIG_FILE" ] && safe_source "$CONFIG_FILE"; then
-        # Config'den gelen değerleri uygula
-        VERBOSE_MODE="${CONFIG_VERBOSE:-$VERBOSE_MODE}"
-        QUIET_MODE="${CONFIG_QUIET:-$QUIET_MODE}"
-        AUTO_MODE="${CONFIG_AUTO:-$AUTO_MODE}"
-        SKIP_SNAPSHOT="${CONFIG_SKIP_SNAPSHOT:-$SKIP_SNAPSHOT}"
-        SKIP_FLATPAK="${CONFIG_SKIP_FLATPAK:-$SKIP_FLATPAK}"
-        SKIP_SNAP="${CONFIG_SKIP_SNAP:-$SKIP_SNAP}"
-        SKIP_FWUPD="${CONFIG_SKIP_FWUPD:-$SKIP_FWUPD}"
-        SKIP_PKG_MANAGER="${CONFIG_SKIP_PKG_MANAGER:-$SKIP_PKG_MANAGER}"
-        # JSON modu (v5.3+)
-        JSON_MODE="${CONFIG_JSON_MODE:-$JSON_MODE}"
-        # Renk ayarları (opsiyonel)
-        RED="${CONFIG_COLOR_RED:-$RED}"
-        GREEN="${CONFIG_COLOR_GREEN:-$GREEN}"
-        YELLOW="${CONFIG_COLOR_YELLOW:-$YELLOW}"
-        BLUE="${CONFIG_COLOR_BLUE:-$BLUE}"
-    fi
+  if [ -f "$CONFIG_FILE" ] && safe_source "$CONFIG_FILE"; then
+    # Config'den gelen değerleri uygula
+    VERBOSE_MODE="${CONFIG_VERBOSE:-$VERBOSE_MODE}"
+    QUIET_MODE="${CONFIG_QUIET:-$QUIET_MODE}"
+    AUTO_MODE="${CONFIG_AUTO:-$AUTO_MODE}"
+    SKIP_SNAPSHOT="${CONFIG_SKIP_SNAPSHOT:-$SKIP_SNAPSHOT}"
+    SKIP_FLATPAK="${CONFIG_SKIP_FLATPAK:-$SKIP_FLATPAK}"
+    SKIP_SNAP="${CONFIG_SKIP_SNAP:-$SKIP_SNAP}"
+    SKIP_FWUPD="${CONFIG_SKIP_FWUPD:-$SKIP_FWUPD}"
+    SKIP_PKG_MANAGER="${CONFIG_SKIP_PKG_MANAGER:-$SKIP_PKG_MANAGER}"
+    # JSON modu (v5.3+)
+    JSON_MODE="${CONFIG_JSON_MODE:-$JSON_MODE}"
+    # Renk ayarları (opsiyonel)
+    RED="${CONFIG_COLOR_RED:-$RED}"
+    GREEN="${CONFIG_COLOR_GREEN:-$GREEN}"
+    YELLOW="${CONFIG_COLOR_YELLOW:-$YELLOW}"
+    BLUE="${CONFIG_COLOR_BLUE:-$BLUE}"
+  fi
 }
 
 # Config'i yükle (argümanlardan önce, argümanlar override eder)
@@ -157,45 +157,45 @@ load_config
 
 # --- i18n: DİL DOSYASI YÜKLEME (v6.0.0) ---
 load_language() {
-    local lang_code="${1:-}"
-    local lang_file=""
+  local lang_code="${1:-}"
+  local lang_file=""
 
-    # 1. Parametre ile belirtilen dil
-    # 2. BIGFIVE_LANG env var
-    # 3. Sistem LANG (tr_TR.UTF-8 -> tr)
-    # 4. Varsayılan: tr
-    if [[ -n "$lang_code" ]]; then
-        : # Parametre olarak alındı, değişiklik yok
-    elif [[ -n "$BIGFIVE_LANG" ]]; then
-        lang_code="$BIGFIVE_LANG"
-    elif [[ -n "${LANG:-}" ]]; then
-        lang_code="${LANG%%_*}"  # tr_TR.UTF-8 -> tr
-        lang_code="${lang_code%%.*}"  # tr.UTF-8 -> tr
-    else
-        lang_code="tr"
-    fi
+  # 1. Parametre ile belirtilen dil
+  # 2. BIGFIVE_LANG env var
+  # 3. Sistem LANG (tr_TR.UTF-8 -> tr)
+  # 4. Varsayılan: tr
+  if [[ -n "$lang_code" ]]; then
+    : # Parametre olarak alındı, değişiklik yok
+  elif [[ -n "$BIGFIVE_LANG" ]]; then
+    lang_code="$BIGFIVE_LANG"
+  elif [[ -n "${LANG:-}" ]]; then
+    lang_code="${LANG%%_*}"      # tr_TR.UTF-8 -> tr
+    lang_code="${lang_code%%.*}" # tr.UTF-8 -> tr
+  else
+    lang_code="tr"
+  fi
 
-    # Desteklenen diller: tr, en
-    case "$lang_code" in
-        tr|TR|tr_TR*) lang_code="tr" ;;
-        en|EN|en_US*|en_GB*|C|POSIX) lang_code="en" ;;
-        *) lang_code="tr" ;;  # Varsayılan
-    esac
+  # Desteklenen diller: tr, en
+  case "$lang_code" in
+    tr | TR | tr_TR*) lang_code="tr" ;;
+    en | EN | en_US* | en_GB* | C | POSIX) lang_code="en" ;;
+    *) lang_code="tr" ;; # Varsayılan
+  esac
 
-    # Dil dosyasını bul
-    # 1. Kurulu dizin
-    # 2. Geliştirme dizini (script'in yanında)
-    if [[ -f "$LANG_DIR/${lang_code}.sh" ]]; then
-        lang_file="$LANG_DIR/${lang_code}.sh"
-    elif [[ -f "$(dirname "$0")/lang/${lang_code}.sh" ]]; then
-        lang_file="$(dirname "$0")/lang/${lang_code}.sh"
-    else
-        # Dil dosyası bulunamadı - varsayılan string'ler kullanılacak
-        return 0
-    fi
+  # Dil dosyasını bul
+  # 1. Kurulu dizin
+  # 2. Geliştirme dizini (script'in yanında)
+  if [[ -f "$LANG_DIR/${lang_code}.sh" ]]; then
+    lang_file="$LANG_DIR/${lang_code}.sh"
+  elif [[ -f "$(dirname "$0")/lang/${lang_code}.sh" ]]; then
+    lang_file="$(dirname "$0")/lang/${lang_code}.sh"
+  else
+    # Dil dosyası bulunamadı - varsayılan string'ler kullanılacak
+    return 0
+  fi
 
-    # Dil dosyasını yükle (güvenlik kontrolü ile)
-    safe_source "$lang_file" || true
+  # Dil dosyasını yükle (güvenlik kontrolü ile)
+  safe_source "$lang_file" || true
 }
 
 # Dili yükle (argüman parse'dan önce varsayılan ile)
@@ -203,436 +203,439 @@ load_language ""
 
 # --- TRAP & LOGGING ---
 finish_logging() {
-    local ec=$?
-    if [ -f "$LOG_FILE" ]; then
-        echo "[$(date '+%F %T')] INFO: Finished with exit_code=$ec" >> "$LOG_FILE"
-    fi
+  local ec=$?
+  if [ -f "$LOG_FILE" ]; then
+    echo "[$(date '+%F %T')] INFO: Finished with exit_code=$ec" >> "$LOG_FILE"
+  fi
 }
 trap finish_logging EXIT
 
 print_header() {
-    if [[ "$QUIET_MODE" == "true" ]]; then return; fi
-    printf '\n%s>>> %s %s\n' "${BLUE}${BOLD}" "$1" "${NC}"
-    printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
-    echo "[$(date '+%F %T')] >>> $1" >> "$LOG_FILE"
+  if [[ "$QUIET_MODE" == "true" ]]; then return; fi
+  printf '\n%s>>> %s %s\n' "${BLUE}${BOLD}" "$1" "${NC}"
+  printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+  echo "[$(date '+%F %T')] >>> $1" >> "$LOG_FILE"
 }
 
 print_error() {
-    # v6.2.3: JSON modunda stdout'a yazma (tutarlılık için print_error_with_hint ile aynı davranış)
-    if [[ "$JSON_MODE" != "none" ]]; then
-        echo "[$(date '+%F %T')] ERROR: $1" >> "$LOG_FILE"
-        add_json_error "$1"
-        return
-    fi
-    printf '%s[X] HATA: %s %s\n' "${RED}${BOLD}" "$1" "${NC}"
+  # v6.2.3: JSON modunda stdout'a yazma (tutarlılık için print_error_with_hint ile aynı davranış)
+  if [[ "$JSON_MODE" != "none" ]]; then
     echo "[$(date '+%F %T')] ERROR: $1" >> "$LOG_FILE"
     add_json_error "$1"
+    return
+  fi
+  printf '%s[X] HATA: %s %s\n' "${RED}${BOLD}" "$1" "${NC}"
+  echo "[$(date '+%F %T')] ERROR: $1" >> "$LOG_FILE"
+  add_json_error "$1"
 }
 
 # --- v5.6.0: ENHANCED ERROR UX ---
 # Hata mesajı + çözüm önerisi
 print_error_with_hint() {
-    local error_msg="$1"
-    local hint_msg="$2"
-    local error_code="${3:-}"
+  local error_msg="$1"
+  local hint_msg="$2"
+  local error_code="${3:-}"
 
-    # JSON modunda sessiz
-    if [[ "$JSON_MODE" != "none" ]]; then
-        add_json_error "$error_msg"
-        echo "[$(date '+%F %T')] ERROR: $error_msg | HINT: $hint_msg" >> "$LOG_FILE"
-        return
-    fi
-
-    # Hata kodu varsa göster
-    if [[ -n "$error_code" ]]; then
-        printf '%s[X] HATA [%s]: %s%s\n' "${RED}${BOLD}" "$error_code" "$error_msg" "${NC}"
-    else
-        printf '%s[X] HATA: %s%s\n' "${RED}${BOLD}" "$error_msg" "${NC}"
-    fi
-    printf '%s    💡 Çözüm: %s%s\n' "${YELLOW}" "$hint_msg" "${NC}"
-    echo "[$(date '+%F %T')] ERROR: $error_msg | HINT: $hint_msg" >> "$LOG_FILE"
+  # JSON modunda sessiz
+  if [[ "$JSON_MODE" != "none" ]]; then
     add_json_error "$error_msg"
+    echo "[$(date '+%F %T')] ERROR: $error_msg | HINT: $hint_msg" >> "$LOG_FILE"
+    return
+  fi
+
+  # Hata kodu varsa göster
+  if [[ -n "$error_code" ]]; then
+    printf '%s[X] HATA [%s]: %s%s\n' "${RED}${BOLD}" "$error_code" "$error_msg" "${NC}"
+  else
+    printf '%s[X] HATA: %s%s\n' "${RED}${BOLD}" "$error_msg" "${NC}"
+  fi
+  printf '%s    💡 Çözüm: %s%s\n' "${YELLOW}" "$hint_msg" "${NC}"
+  echo "[$(date '+%F %T')] ERROR: $error_msg | HINT: $hint_msg" >> "$LOG_FILE"
+  add_json_error "$error_msg"
 }
 
 # Uyarı + öneri
 print_warning_with_hint() {
-    local warn_msg="$1"
-    local hint_msg="$2"
+  local warn_msg="$1"
+  local hint_msg="$2"
 
-    if [[ "$QUIET_MODE" == "true" ]]; then
-        echo "[$(date '+%F %T')] WARN: $warn_msg | HINT: $hint_msg" >> "$LOG_FILE"
-        return
-    fi
-
-    # JSON modunda sessiz
-    if [[ "$JSON_MODE" != "none" ]]; then
-        add_json_warning "$warn_msg"
-        echo "[$(date '+%F %T')] WARN: $warn_msg | HINT: $hint_msg" >> "$LOG_FILE"
-        return
-    fi
-
-    printf '%s[!] UYARI: %s%s\n' "${YELLOW}" "$warn_msg" "${NC}"
-    printf '%s    💡 Öneri: %s%s\n' "${BLUE}" "$hint_msg" "${NC}"
+  if [[ "$QUIET_MODE" == "true" ]]; then
     echo "[$(date '+%F %T')] WARN: $warn_msg | HINT: $hint_msg" >> "$LOG_FILE"
+    return
+  fi
+
+  # JSON modunda sessiz
+  if [[ "$JSON_MODE" != "none" ]]; then
     add_json_warning "$warn_msg"
+    echo "[$(date '+%F %T')] WARN: $warn_msg | HINT: $hint_msg" >> "$LOG_FILE"
+    return
+  fi
+
+  printf '%s[!] UYARI: %s%s\n' "${YELLOW}" "$warn_msg" "${NC}"
+  printf '%s    💡 Öneri: %s%s\n' "${BLUE}" "$hint_msg" "${NC}"
+  echo "[$(date '+%F %T')] WARN: $warn_msg | HINT: $hint_msg" >> "$LOG_FILE"
+  add_json_warning "$warn_msg"
 }
 
 print_warning() {
-    if [[ "$QUIET_MODE" == "true" ]]; then
-        echo "[$(date '+%F %T')] WARN: $1" >> "$LOG_FILE"
-        return
-    fi
-    printf '%s[!] UYARI: %s %s\n' "${YELLOW}" "$1" "${NC}"
+  if [[ "$QUIET_MODE" == "true" ]]; then
     echo "[$(date '+%F %T')] WARN: $1" >> "$LOG_FILE"
+    return
+  fi
+  printf '%s[!] UYARI: %s %s\n' "${YELLOW}" "$1" "${NC}"
+  echo "[$(date '+%F %T')] WARN: $1" >> "$LOG_FILE"
 }
 
 print_success() {
-    if [[ "$QUIET_MODE" == "true" ]]; then
-        echo "[$(date '+%F %T')] SUCCESS: $1" >> "$LOG_FILE"
-        return
-    fi
-    printf '%s[+] %s %s\n' "${GREEN}${BOLD}" "$1" "${NC}"
+  if [[ "$QUIET_MODE" == "true" ]]; then
     echo "[$(date '+%F %T')] SUCCESS: $1" >> "$LOG_FILE"
+    return
+  fi
+  printf '%s[+] %s %s\n' "${GREEN}${BOLD}" "$1" "${NC}"
+  echo "[$(date '+%F %T')] SUCCESS: $1" >> "$LOG_FILE"
 }
 
 print_info() {
-    if [[ "$QUIET_MODE" == "true" ]]; then
-        echo "[$(date '+%F %T')] INFO: $1" >> "$LOG_FILE"
-        return
-    fi
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        printf '%s[i] %s%s\n' "${BLUE}" "$1" "${NC}"
-    fi
+  if [[ "$QUIET_MODE" == "true" ]]; then
     echo "[$(date '+%F %T')] INFO: $1" >> "$LOG_FILE"
+    return
+  fi
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    printf '%s[i] %s%s\n' "${BLUE}" "$1" "${NC}"
+  fi
+  echo "[$(date '+%F %T')] INFO: $1" >> "$LOG_FILE"
 }
 
 # --- v3.8.0: DRY-RUN MESAJI ---
 print_dry_run() {
-    [[ "$JSON_MODE" != "none" ]] && { echo "[$(date '+%F %T')] DRY-RUN: $1" >> "$LOG_FILE"; return; }
-    printf '%s[DRY-RUN] %s%s\n' "${YELLOW}" "$1" "${NC}"
+  [[ "$JSON_MODE" != "none" ]] && {
     echo "[$(date '+%F %T')] DRY-RUN: $1" >> "$LOG_FILE"
+    return
+  }
+  printf '%s[DRY-RUN] %s%s\n' "${YELLOW}" "$1" "${NC}"
+  echo "[$(date '+%F %T')] DRY-RUN: $1" >> "$LOG_FILE"
 }
 
 # --- v5.3.0: JSON OUTPUT HELPER FUNCTIONS ---
 
 # JSON escape fonksiyonu - özel karakterleri escape eder
 json_escape() {
-    local str="$1"
-    str="${str//\\/\\\\}"
-    str="${str//\"/\\\"}"
-    str="${str//$'\n'/\\n}"
-    str="${str//$'\r'/\\r}"
-    str="${str//$'\t'/\\t}"
-    printf '%s' "$str"
+  local str="$1"
+  str="${str//\\/\\\\}"
+  str="${str//\"/\\\"}"
+  str="${str//$'\n'/\\n}"
+  str="${str//$'\r'/\\r}"
+  str="${str//$'\t'/\\t}"
+  printf '%s' "$str"
 }
 
 # Paket bilgisi ekleme (--json-full için)
 add_package_info() {
-    local name="$1" from="$2" to="$3" manager="$4"
-    JSON_PACKAGES+=("{\"name\":\"$(json_escape "$name")\",\"version_from\":\"$(json_escape "$from")\",\"version_to\":\"$(json_escape "$to")\",\"manager\":\"$manager\"}")
+  local name="$1" from="$2" to="$3" manager="$4"
+  JSON_PACKAGES+=("{\"name\":\"$(json_escape "$name")\",\"version_from\":\"$(json_escape "$from")\",\"version_to\":\"$(json_escape "$to")\",\"manager\":\"$manager\"}")
 }
 
 # Warning ekleme
 add_json_warning() {
-    [[ "$JSON_MODE" == "none" ]] && return
-    JSON_WARNINGS+=("\"$(json_escape "$1")\"")
+  [[ "$JSON_MODE" == "none" ]] && return
+  JSON_WARNINGS+=("\"$(json_escape "$1")\"")
 }
 
 # Error ekleme
 add_json_error() {
-    [[ "$JSON_MODE" == "none" ]] && return
-    JSON_ERRORS+=("\"$(json_escape "$1")\"")
+  [[ "$JSON_MODE" == "none" ]] && return
+  JSON_ERRORS+=("\"$(json_escape "$1")\"")
 }
 
 # Package manager status ekleme
 add_pkg_manager_status() {
-    [[ "$JSON_MODE" == "none" ]] && return
-    local name="$1" status="$2" count="${3:-0}" reason="${4:-}"
-    if [[ -n "$reason" ]]; then
-        JSON_PKG_MANAGERS+=("{\"name\":\"$name\",\"status\":\"$status\",\"reason\":\"$reason\"}")
-    else
-        JSON_PKG_MANAGERS+=("{\"name\":\"$name\",\"status\":\"$status\",\"updated_count\":$count}")
-    fi
+  [[ "$JSON_MODE" == "none" ]] && return
+  local name="$1" status="$2" count="${3:-0}" reason="${4:-}"
+  if [[ -n "$reason" ]]; then
+    JSON_PKG_MANAGERS+=("{\"name\":\"$name\",\"status\":\"$status\",\"reason\":\"$reason\"}")
+  else
+    JSON_PKG_MANAGERS+=("{\"name\":\"$name\",\"status\":\"$status\",\"updated_count\":$count}")
+  fi
 }
 
 # Distro bilgisi alma
 get_distro_info() {
-    local distro="" version=""
-    if [[ -f /etc/os-release ]]; then
-        distro=$(grep "^ID=" /etc/os-release | cut -d= -f2 | tr -d '"')
-        version=$(grep "^VERSION_ID=" /etc/os-release | cut -d= -f2 | tr -d '"')
-    fi
-    echo "$distro|$version"
+  local distro="" version=""
+  if [[ -f /etc/os-release ]]; then
+    distro=$(grep "^ID=" /etc/os-release | cut -d= -f2 | tr -d '"')
+    version=$(grep "^VERSION_ID=" /etc/os-release | cut -d= -f2 | tr -d '"')
+  fi
+  echo "$distro|$version"
 }
 
 # --- SİSTEM BİLGİSİ BAŞLIK KUTUSU ---
 print_system_header() {
-    local hostname_str
-    hostname_str=$(hostname 2>/dev/null || echo "unknown")
-    local user_str
-    user_str=$(whoami 2>/dev/null || echo "unknown")
-    local kernel_str
-    kernel_str=$(uname -r 2>/dev/null || echo "unknown")
-    local ram_str
-    ram_str=$(free -h 2>/dev/null | awk '/^Mem:/{print $2}' || echo "N/A")
-    local disk_str
-    disk_str=$(df -h / 2>/dev/null | awk 'NR==2{print $5}' || echo "N/A")
+  local hostname_str
+  hostname_str=$(hostname 2> /dev/null || echo "unknown")
+  local user_str
+  user_str=$(whoami 2> /dev/null || echo "unknown")
+  local kernel_str
+  kernel_str=$(uname -r 2> /dev/null || echo "unknown")
+  local ram_str
+  ram_str=$(free -h 2> /dev/null | awk '/^Mem:/{print $2}' || echo "N/A")
+  local disk_str
+  disk_str=$(df -h / 2> /dev/null | awk 'NR==2{print $5}' || echo "N/A")
 
-    # JSON modunda terminal çıktısı bastırılır
-    if [[ "$JSON_MODE" == "none" ]]; then
-        printf '%s========================================%s\n' "${GREEN}" "${NC}"
-        printf '%s  BIGFIVE-UPDATER v%s (%s Edition)%s\n' "${GREEN}" "${VERSION}" "${EDITION}" "${NC}"
-        [[ "$DRY_RUN" == "true" ]] && printf '%s  [DRY-RUN MODE]%s\n' "${YELLOW}" "${NC}"
-        printf '%s  Host: %s | User: %s%s\n' "${GREEN}" "${hostname_str}" "${user_str}" "${NC}"
-        printf '%s  Kernel: %s%s\n' "${GREEN}" "${kernel_str}" "${NC}"
-        printf '%s  RAM: %s | Disk: %s used%s\n' "${GREEN}" "${ram_str}" "${disk_str}" "${NC}"
-        printf '%s========================================%s\n' "${GREEN}" "${NC}"
-    fi
+  # JSON modunda terminal çıktısı bastırılır
+  if [[ "$JSON_MODE" == "none" ]]; then
+    printf '%s========================================%s\n' "${GREEN}" "${NC}"
+    printf '%s  BIGFIVE-UPDATER v%s (%s Edition)%s\n' "${GREEN}" "${VERSION}" "${EDITION}" "${NC}"
+    [[ "$DRY_RUN" == "true" ]] && printf '%s  [DRY-RUN MODE]%s\n' "${YELLOW}" "${NC}"
+    printf '%s  Host: %s | User: %s%s\n' "${GREEN}" "${hostname_str}" "${user_str}" "${NC}"
+    printf '%s  Kernel: %s%s\n' "${GREEN}" "${kernel_str}" "${NC}"
+    printf '%s  RAM: %s | Disk: %s used%s\n' "${GREEN}" "${ram_str}" "${disk_str}" "${NC}"
+    printf '%s========================================%s\n' "${GREEN}" "${NC}"
+  fi
 
-    # Log'a da yaz
-    {
-        echo "=================================================="
-        echo "PRE-UPDATE SYSTEM INFO"
-        echo "Version    : $VERSION ($EDITION Edition - $CODENAME)"
-        echo "Dry-Run    : $DRY_RUN"
-        echo "Hostname   : $hostname_str"
-        echo "User       : $user_str"
-        echo "Kernel     : $kernel_str"
-        echo "RAM        : $ram_str"
-        echo "Disk Usage : $disk_str"
-        echo "=================================================="
-    } >> "$LOG_FILE"
+  # Log'a da yaz
+  {
+    echo "=================================================="
+    echo "PRE-UPDATE SYSTEM INFO"
+    echo "Version    : $VERSION ($EDITION Edition - $CODENAME)"
+    echo "Dry-Run    : $DRY_RUN"
+    echo "Hostname   : $hostname_str"
+    echo "User       : $user_str"
+    echo "Kernel     : $kernel_str"
+    echo "RAM        : $ram_str"
+    echo "Disk Usage : $disk_str"
+    echo "=================================================="
+  } >> "$LOG_FILE"
 }
 
 # --- REBOOT GEREKLİ Mİ KONTROLÜ ---
 check_reboot_required() {
-    # Returns: "yes" or "no" (internal values, not translated)
-    # Debian/Ubuntu: /var/run/reboot-required dosyası
-    if [[ -f "/var/run/reboot-required" ]]; then
-        echo "yes"
-        return
-    fi
+  # Returns: "yes" or "no" (internal values, not translated)
+  # Debian/Ubuntu: /var/run/reboot-required dosyası
+  if [[ -f "/var/run/reboot-required" ]]; then
+    echo "yes"
+    return
+  fi
 
-    # Fedora/RHEL: needs-restarting komutu
-    if command -v needs-restarting &> /dev/null; then
-        if ! needs-restarting -r &> /dev/null; then
-            echo "yes"
-            return
-        fi
+  # Fedora/RHEL: needs-restarting komutu
+  if command -v needs-restarting &> /dev/null; then
+    if ! needs-restarting -r &> /dev/null; then
+      echo "yes"
+      return
     fi
+  fi
 
-    # v6.1.1: Arch Linux / Generic: Kernel modül dizini kontrolü
-    # Kernel güncellemesi sonrası eski modül dizini silinir
-    if [[ ! -d "/usr/lib/modules/$(uname -r)" ]]; then
-        echo "yes"
-        return
-    fi
+  # v6.1.1: Arch Linux / Generic: Kernel modül dizini kontrolü
+  # Kernel güncellemesi sonrası eski modül dizini silinir
+  if [[ ! -d "/usr/lib/modules/$(uname -r)" ]]; then
+    echo "yes"
+    return
+  fi
 
-    echo "no"
+  echo "no"
 }
 
 # --- FİNAL ÖZET KUTUSU ---
 print_final_summary() {
-    # JSON modunda terminal çıktısı bastırılır
-    [[ "$JSON_MODE" != "none" ]] && return
+  # JSON modunda terminal çıktısı bastırılır
+  [[ "$JSON_MODE" != "none" ]] && return
 
-    local reboot_status
-    reboot_status=$(check_reboot_required)
+  local reboot_status
+  reboot_status=$(check_reboot_required)
 
-    # FIX: Ensure all counters are numeric - strip any non-numeric chars
-    # v5.1: BigFive - apt, dnf, pacman, zypper, apk
-    local apt_c dnf_c pacman_c zypper_c apk_c flatpak_c snap_c fwupd_c
-    apt_c=$(echo "${APT_COUNT:-0}" | tr -cd '0-9')
-    dnf_c=$(echo "${DNF_COUNT:-0}" | tr -cd '0-9')
-    pacman_c=$(echo "${PACMAN_COUNT:-0}" | tr -cd '0-9')
-    zypper_c=$(echo "${ZYPPER_COUNT:-0}" | tr -cd '0-9')
-    apk_c=$(echo "${APK_COUNT:-0}" | tr -cd '0-9')
-    flatpak_c=$(echo "${FLATPAK_COUNT:-0}" | tr -cd '0-9')
-    snap_c=$(echo "${SNAP_COUNT:-0}" | tr -cd '0-9')
-    fwupd_c=$(echo "${FWUPD_COUNT:-0}" | tr -cd '0-9')
+  # FIX: Ensure all counters are numeric - strip any non-numeric chars
+  # v5.1: BigFive - apt, dnf, pacman, zypper, apk
+  local apt_c dnf_c pacman_c zypper_c apk_c flatpak_c snap_c fwupd_c
+  apt_c=$(echo "${APT_COUNT:-0}" | tr -cd '0-9')
+  dnf_c=$(echo "${DNF_COUNT:-0}" | tr -cd '0-9')
+  pacman_c=$(echo "${PACMAN_COUNT:-0}" | tr -cd '0-9')
+  zypper_c=$(echo "${ZYPPER_COUNT:-0}" | tr -cd '0-9')
+  apk_c=$(echo "${APK_COUNT:-0}" | tr -cd '0-9')
+  flatpak_c=$(echo "${FLATPAK_COUNT:-0}" | tr -cd '0-9')
+  snap_c=$(echo "${SNAP_COUNT:-0}" | tr -cd '0-9')
+  fwupd_c=$(echo "${FWUPD_COUNT:-0}" | tr -cd '0-9')
 
-    # Default to 0 if empty after stripping
-    apt_c=${apt_c:-0}
-    dnf_c=${dnf_c:-0}
-    pacman_c=${pacman_c:-0}
-    zypper_c=${zypper_c:-0}
-    apk_c=${apk_c:-0}
-    flatpak_c=${flatpak_c:-0}
-    snap_c=${snap_c:-0}
-    fwupd_c=${fwupd_c:-0}
+  # Default to 0 if empty after stripping
+  apt_c=${apt_c:-0}
+  dnf_c=${dnf_c:-0}
+  pacman_c=${pacman_c:-0}
+  zypper_c=${zypper_c:-0}
+  apk_c=${apk_c:-0}
+  flatpak_c=${flatpak_c:-0}
+  snap_c=${snap_c:-0}
+  fwupd_c=${fwupd_c:-0}
 
-    local total_updates=$((apt_c + dnf_c + pacman_c + zypper_c + apk_c + flatpak_c + snap_c + fwupd_c))
+  local total_updates=$((apt_c + dnf_c + pacman_c + zypper_c + apk_c + flatpak_c + snap_c + fwupd_c))
 
-    echo ""
-    printf '%s========================================%s\n' "${GREEN}" "${NC}"
-    if [[ "$DRY_RUN" == "true" ]]; then
-        printf '%s  [DRY-RUN] GÜNCELLEME ÖNİZLEMESİ%s\n' "${YELLOW}" "${NC}"
+  echo ""
+  printf '%s========================================%s\n' "${GREEN}" "${NC}"
+  if [[ "$DRY_RUN" == "true" ]]; then
+    printf '%s  [DRY-RUN] GÜNCELLEME ÖNİZLEMESİ%s\n' "${YELLOW}" "${NC}"
+  else
+    printf '%s  %s%s\n' "${GREEN}" "${MSG_SUCCESS_UPDATE_DONE:-[+] GÜNCELLEME TAMAMLANDI}" "${NC}"
+  fi
+  printf '%s----------------------------------------%s\n' "${GREEN}" "${NC}"
+
+  # APT veya DNF
+  if command -v apt-get &> /dev/null; then
+    if [[ $apt_c -gt 0 ]]; then
+      printf '%s  APT: %s paket %s%s\n' "${GREEN}" "${apt_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
     else
-        printf '%s  %s%s\n' "${GREEN}" "${MSG_SUCCESS_UPDATE_DONE:-[+] GÜNCELLEME TAMAMLANDI}" "${NC}"
+      printf '%s  APT: Güncel%s\n' "${GREEN}" "${NC}"
     fi
-    printf '%s----------------------------------------%s\n' "${GREEN}" "${NC}"
-    
-    # APT veya DNF
-    if command -v apt-get &> /dev/null; then
-        if [[ $apt_c -gt 0 ]]; then
-            printf '%s  APT: %s paket %s%s\n' "${GREEN}" "${apt_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
-        else
-            printf '%s  APT: Güncel%s\n' "${GREEN}" "${NC}"
-        fi
-    fi
-    
-    if command -v dnf &> /dev/null; then
-        if [[ $dnf_c -gt 0 ]]; then
-            printf '%s  DNF: %s paket %s%s\n' "${GREEN}" "${dnf_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
-        else
-            printf '%s  DNF: Güncel%s\n' "${GREEN}" "${NC}"
-        fi
-    fi
+  fi
 
-    # v5.0 BigFour: Pacman
-    if command -v pacman &> /dev/null; then
-        if [[ $pacman_c -gt 0 ]]; then
-            printf '%s  Pacman: %s paket %s%s\n' "${GREEN}" "${pacman_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
-        else
-            printf '%s  Pacman: Güncel%s\n' "${GREEN}" "${NC}"
-        fi
-    fi
-
-    # v5.0 BigFour: Zypper
-    if command -v zypper &> /dev/null; then
-        if [[ $zypper_c -gt 0 ]]; then
-            printf '%s  Zypper: %s paket %s%s\n' "${GREEN}" "${zypper_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
-        else
-            printf '%s  Zypper: Güncel%s\n' "${GREEN}" "${NC}"
-        fi
-    fi
-
-    # v5.1 BigFive: APK (Alpine)
-    if command -v apk &> /dev/null; then
-        if [[ $apk_c -gt 0 ]]; then
-            printf '%s  APK: %s paket %s%s\n' "${GREEN}" "${apk_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
-        else
-            printf '%s  APK: Güncel%s\n' "${GREEN}" "${NC}"
-        fi
-    fi
-
-    # Flatpak
-    if command -v flatpak &> /dev/null; then
-        if [[ $flatpak_c -gt 0 ]]; then
-            printf '%s  Flatpak: %s uygulama %s%s\n' "${GREEN}" "${flatpak_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
-        else
-            printf '%s  Flatpak: Güncel%s\n' "${GREEN}" "${NC}"
-        fi
-    fi
-    
-    # Snap
-    if command -v snap &> /dev/null; then
-        if [[ $snap_c -gt 0 ]]; then
-            printf '%s  Snap: %s paket %s%s\n' "${GREEN}" "${snap_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
-        else
-            printf '%s  Snap: Güncel%s\n' "${GREEN}" "${NC}"
-        fi
-    fi
-    
-    # Firmware
-    if command -v fwupdmgr &> /dev/null; then
-        if [[ $fwupd_c -gt 0 ]]; then
-            printf '%s  Firmware: %s %s%s\n' "${GREEN}" "${fwupd_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncelleme mevcut" || echo "güncelleme")" "${NC}"
-        else
-            printf '%s  Firmware: Güncel%s\n' "${GREEN}" "${NC}"
-        fi
-    fi
-    
-    printf '%s----------------------------------------%s\n' "${GREEN}" "${NC}"
-    
-    # Snapshot bilgisi
-    if [[ -n "$SNAPSHOT_NAME" ]]; then
-        printf '%s  Snapshot: %s%s\n' "${GREEN}" "${SNAPSHOT_NAME}" "${NC}"
-    elif [[ "$DRY_RUN" == "true" ]]; then
-        printf '%s  Snapshot: [DRY-RUN] Oluşturulmayacak%s\n' "${YELLOW}" "${NC}"
+  if command -v dnf &> /dev/null; then
+    if [[ $dnf_c -gt 0 ]]; then
+      printf '%s  DNF: %s paket %s%s\n' "${GREEN}" "${dnf_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
     else
-        printf '%s  Snapshot: Oluşturulmadı%s\n' "${GREEN}" "${NC}"
+      printf '%s  DNF: Güncel%s\n' "${GREEN}" "${NC}"
     fi
-    
-    # Reboot durumu
-    if [[ "$reboot_status" == "yes" ]]; then
-        printf '%s  %s%s\n' "${YELLOW}" "${MSG_SUMMARY_REBOOT_YES:-Reboot: [!] Gerekli}" "${NC}"
+  fi
+
+  # v5.0 BigFour: Pacman
+  if command -v pacman &> /dev/null; then
+    if [[ $pacman_c -gt 0 ]]; then
+      printf '%s  Pacman: %s paket %s%s\n' "${GREEN}" "${pacman_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
     else
-        printf '%s  %s%s\n' "${GREEN}" "${MSG_SUMMARY_REBOOT_NO:-Reboot: Gerekli değil}" "${NC}"
+      printf '%s  Pacman: Güncel%s\n' "${GREEN}" "${NC}"
     fi
-    
-    # Log yolu
-    printf '%s  Log: %s%s\n' "${BLUE}" "${LOG_FILE}" "${NC}"
-    
-    printf '%s========================================%s\n' "${GREEN}" "${NC}"
-    
-    # Log'a da yaz
-    {
-        echo "=================================================="
-        echo "POST-UPDATE SUMMARY"
-        echo "Dry-Run: $DRY_RUN"
-        echo "Total Updates: $total_updates"
-        [[ $apt_c -gt 0 ]] && echo "APT: $apt_c packages"
-        [[ $dnf_c -gt 0 ]] && echo "DNF: $dnf_c packages"
-        [[ $pacman_c -gt 0 ]] && echo "Pacman: $pacman_c packages"
-        [[ $zypper_c -gt 0 ]] && echo "Zypper: $zypper_c packages"
-        [[ $apk_c -gt 0 ]] && echo "APK: $apk_c packages"
-        [[ $flatpak_c -gt 0 ]] && echo "Flatpak: $flatpak_c apps"
-        [[ $snap_c -gt 0 ]] && echo "Snap: $snap_c packages"
-        [[ $fwupd_c -gt 0 ]] && echo "Firmware: $fwupd_c updates"
-        echo "Snapshot: ${SNAPSHOT_NAME:-None}"
-        echo "Reboot Required: $reboot_status"
-        echo "=================================================="
-    } >> "$LOG_FILE"
+  fi
+
+  # v5.0 BigFour: Zypper
+  if command -v zypper &> /dev/null; then
+    if [[ $zypper_c -gt 0 ]]; then
+      printf '%s  Zypper: %s paket %s%s\n' "${GREEN}" "${zypper_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
+    else
+      printf '%s  Zypper: Güncel%s\n' "${GREEN}" "${NC}"
+    fi
+  fi
+
+  # v5.1 BigFive: APK (Alpine)
+  if command -v apk &> /dev/null; then
+    if [[ $apk_c -gt 0 ]]; then
+      printf '%s  APK: %s paket %s%s\n' "${GREEN}" "${apk_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
+    else
+      printf '%s  APK: Güncel%s\n' "${GREEN}" "${NC}"
+    fi
+  fi
+
+  # Flatpak
+  if command -v flatpak &> /dev/null; then
+    if [[ $flatpak_c -gt 0 ]]; then
+      printf '%s  Flatpak: %s uygulama %s%s\n' "${GREEN}" "${flatpak_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
+    else
+      printf '%s  Flatpak: Güncel%s\n' "${GREEN}" "${NC}"
+    fi
+  fi
+
+  # Snap
+  if command -v snap &> /dev/null; then
+    if [[ $snap_c -gt 0 ]]; then
+      printf '%s  Snap: %s paket %s%s\n' "${GREEN}" "${snap_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncellenebilir" || echo "güncellendi")" "${NC}"
+    else
+      printf '%s  Snap: Güncel%s\n' "${GREEN}" "${NC}"
+    fi
+  fi
+
+  # Firmware
+  if command -v fwupdmgr &> /dev/null; then
+    if [[ $fwupd_c -gt 0 ]]; then
+      printf '%s  Firmware: %s %s%s\n' "${GREEN}" "${fwupd_c}" "$([[ "$DRY_RUN" == "true" ]] && echo "güncelleme mevcut" || echo "güncelleme")" "${NC}"
+    else
+      printf '%s  Firmware: Güncel%s\n' "${GREEN}" "${NC}"
+    fi
+  fi
+
+  printf '%s----------------------------------------%s\n' "${GREEN}" "${NC}"
+
+  # Snapshot bilgisi
+  if [[ -n "$SNAPSHOT_NAME" ]]; then
+    printf '%s  Snapshot: %s%s\n' "${GREEN}" "${SNAPSHOT_NAME}" "${NC}"
+  elif [[ "$DRY_RUN" == "true" ]]; then
+    printf '%s  Snapshot: [DRY-RUN] Oluşturulmayacak%s\n' "${YELLOW}" "${NC}"
+  else
+    printf '%s  Snapshot: Oluşturulmadı%s\n' "${GREEN}" "${NC}"
+  fi
+
+  # Reboot durumu
+  if [[ "$reboot_status" == "yes" ]]; then
+    printf '%s  %s%s\n' "${YELLOW}" "${MSG_SUMMARY_REBOOT_YES:-Reboot: [!] Gerekli}" "${NC}"
+  else
+    printf '%s  %s%s\n' "${GREEN}" "${MSG_SUMMARY_REBOOT_NO:-Reboot: Gerekli değil}" "${NC}"
+  fi
+
+  # Log yolu
+  printf '%s  Log: %s%s\n' "${BLUE}" "${LOG_FILE}" "${NC}"
+
+  printf '%s========================================%s\n' "${GREEN}" "${NC}"
+
+  # Log'a da yaz
+  {
+    echo "=================================================="
+    echo "POST-UPDATE SUMMARY"
+    echo "Dry-Run: $DRY_RUN"
+    echo "Total Updates: $total_updates"
+    [[ $apt_c -gt 0 ]] && echo "APT: $apt_c packages"
+    [[ $dnf_c -gt 0 ]] && echo "DNF: $dnf_c packages"
+    [[ $pacman_c -gt 0 ]] && echo "Pacman: $pacman_c packages"
+    [[ $zypper_c -gt 0 ]] && echo "Zypper: $zypper_c packages"
+    [[ $apk_c -gt 0 ]] && echo "APK: $apk_c packages"
+    [[ $flatpak_c -gt 0 ]] && echo "Flatpak: $flatpak_c apps"
+    [[ $snap_c -gt 0 ]] && echo "Snap: $snap_c packages"
+    [[ $fwupd_c -gt 0 ]] && echo "Firmware: $fwupd_c updates"
+    echo "Snapshot: ${SNAPSHOT_NAME:-None}"
+    echo "Reboot Required: $reboot_status"
+    echo "=================================================="
+  } >> "$LOG_FILE"
 }
 
 # --- v5.3.0: JSON OUTPUT FUNCTION ---
 output_json() {
-    local exit_code="${1:-0}"
-    local end_time duration_seconds
-    end_time=$(date +%s)
-    duration_seconds=$((end_time - START_TIME))
+  local exit_code="${1:-0}"
+  local end_time duration_seconds
+  end_time=$(date +%s)
+  duration_seconds=$((end_time - START_TIME))
 
-    local status="success"
-    [[ $exit_code -ne 0 ]] && status="failure"
+  local status="success"
+  [[ $exit_code -ne 0 ]] && status="failure"
 
-    local reboot_req="false"
-    [[ "$(check_reboot_required)" == "yes" ]] && reboot_req="true"
+  local reboot_req="false"
+  [[ "$(check_reboot_required)" == "yes" ]] && reboot_req="true"
 
-    # FIX: Ensure all counters are numeric
-    local apt_c dnf_c pacman_c zypper_c apk_c flatpak_c snap_c fwupd_c
-    apt_c=$(echo "${APT_COUNT:-0}" | tr -cd '0-9')
-    dnf_c=$(echo "${DNF_COUNT:-0}" | tr -cd '0-9')
-    pacman_c=$(echo "${PACMAN_COUNT:-0}" | tr -cd '0-9')
-    zypper_c=$(echo "${ZYPPER_COUNT:-0}" | tr -cd '0-9')
-    apk_c=$(echo "${APK_COUNT:-0}" | tr -cd '0-9')
-    flatpak_c=$(echo "${FLATPAK_COUNT:-0}" | tr -cd '0-9')
-    snap_c=$(echo "${SNAP_COUNT:-0}" | tr -cd '0-9')
-    fwupd_c=$(echo "${FWUPD_COUNT:-0}" | tr -cd '0-9')
+  # FIX: Ensure all counters are numeric
+  local apt_c dnf_c pacman_c zypper_c apk_c flatpak_c snap_c fwupd_c
+  apt_c=$(echo "${APT_COUNT:-0}" | tr -cd '0-9')
+  dnf_c=$(echo "${DNF_COUNT:-0}" | tr -cd '0-9')
+  pacman_c=$(echo "${PACMAN_COUNT:-0}" | tr -cd '0-9')
+  zypper_c=$(echo "${ZYPPER_COUNT:-0}" | tr -cd '0-9')
+  apk_c=$(echo "${APK_COUNT:-0}" | tr -cd '0-9')
+  flatpak_c=$(echo "${FLATPAK_COUNT:-0}" | tr -cd '0-9')
+  snap_c=$(echo "${SNAP_COUNT:-0}" | tr -cd '0-9')
+  fwupd_c=$(echo "${FWUPD_COUNT:-0}" | tr -cd '0-9')
 
-    apt_c=${apt_c:-0}
-    dnf_c=${dnf_c:-0}
-    pacman_c=${pacman_c:-0}
-    zypper_c=${zypper_c:-0}
-    apk_c=${apk_c:-0}
-    flatpak_c=${flatpak_c:-0}
-    snap_c=${snap_c:-0}
-    fwupd_c=${fwupd_c:-0}
+  apt_c=${apt_c:-0}
+  dnf_c=${dnf_c:-0}
+  pacman_c=${pacman_c:-0}
+  zypper_c=${zypper_c:-0}
+  apk_c=${apk_c:-0}
+  flatpak_c=${flatpak_c:-0}
+  snap_c=${snap_c:-0}
+  fwupd_c=${fwupd_c:-0}
 
-    local total_count=$((apt_c + dnf_c + pacman_c + zypper_c + apk_c + flatpak_c + snap_c + fwupd_c))
+  local total_count=$((apt_c + dnf_c + pacman_c + zypper_c + apk_c + flatpak_c + snap_c + fwupd_c))
 
-    local timestamp
-    timestamp=$(date -Iseconds)
+  local timestamp
+  timestamp=$(date -Iseconds)
 
-    local hostname_str
-    hostname_str=$(hostname 2>/dev/null || echo "unknown")
+  local hostname_str
+  hostname_str=$(hostname 2> /dev/null || echo "unknown")
 
-    local dry_run_val="false"
-    [[ "$DRY_RUN" == "true" ]] && dry_run_val="true"
+  local dry_run_val="false"
+  [[ "$DRY_RUN" == "true" ]] && dry_run_val="true"
 
-    if [[ "$JSON_MODE" == "json" ]]; then
-        # Lightweight JSON for monitoring
-        cat <<EOF
+  if [[ "$JSON_MODE" == "json" ]]; then
+    # Lightweight JSON for monitoring
+    cat << EOF
 {
   "version": "$VERSION",
   "status": "$status",
@@ -645,43 +648,55 @@ output_json() {
   "reboot_required": $reboot_req
 }
 EOF
-    elif [[ "$JSON_MODE" == "json-full" ]]; then
-        # Full JSON for SIEM/Audit
-        local distro distro_ver kernel_str
-        IFS='|' read -r distro distro_ver <<< "$(get_distro_info)"
-        kernel_str=$(uname -r 2>/dev/null || echo "unknown")
+  elif [[ "$JSON_MODE" == "json-full" ]]; then
+    # Full JSON for SIEM/Audit
+    local distro distro_ver kernel_str
+    IFS='|' read -r distro distro_ver <<< "$(get_distro_info)"
+    kernel_str=$(uname -r 2> /dev/null || echo "unknown")
 
-        # Build arrays - join with comma
-        local pkg_managers_json="" packages_json="" warnings_json="" errors_json=""
+    # Build arrays - join with comma
+    local pkg_managers_json="" packages_json="" warnings_json="" errors_json=""
 
-        if [[ ${#JSON_PKG_MANAGERS[@]} -gt 0 ]]; then
-            pkg_managers_json=$(IFS=,; echo "${JSON_PKG_MANAGERS[*]}")
-        fi
-        if [[ ${#JSON_PACKAGES[@]} -gt 0 ]]; then
-            packages_json=$(IFS=,; echo "${JSON_PACKAGES[*]}")
-        fi
-        if [[ ${#JSON_WARNINGS[@]} -gt 0 ]]; then
-            warnings_json=$(IFS=,; echo "${JSON_WARNINGS[*]}")
-        fi
-        if [[ ${#JSON_ERRORS[@]} -gt 0 ]]; then
-            errors_json=$(IFS=,; echo "${JSON_ERRORS[*]}")
-        fi
+    if [[ ${#JSON_PKG_MANAGERS[@]} -gt 0 ]]; then
+      pkg_managers_json=$(
+        IFS=,
+        echo "${JSON_PKG_MANAGERS[*]}"
+      )
+    fi
+    if [[ ${#JSON_PACKAGES[@]} -gt 0 ]]; then
+      packages_json=$(
+        IFS=,
+        echo "${JSON_PACKAGES[*]}"
+      )
+    fi
+    if [[ ${#JSON_WARNINGS[@]} -gt 0 ]]; then
+      warnings_json=$(
+        IFS=,
+        echo "${JSON_WARNINGS[*]}"
+      )
+    fi
+    if [[ ${#JSON_ERRORS[@]} -gt 0 ]]; then
+      errors_json=$(
+        IFS=,
+        echo "${JSON_ERRORS[*]}"
+      )
+    fi
 
-        # Snapshot info
-        local snapshot_created="false"
-        local snapshot_name_val="null"
-        local snapshot_tool_val="null"
-        if [[ -n "$SNAPSHOT_NAME" ]]; then
-            snapshot_created="true"
-            snapshot_name_val="\"$SNAPSHOT_NAME\""
-            if command -v timeshift &>/dev/null; then
-                snapshot_tool_val="\"timeshift\""
-            elif command -v snapper &>/dev/null; then
-                snapshot_tool_val="\"snapper\""
-            fi
-        fi
+    # Snapshot info
+    local snapshot_created="false"
+    local snapshot_name_val="null"
+    local snapshot_tool_val="null"
+    if [[ -n "$SNAPSHOT_NAME" ]]; then
+      snapshot_created="true"
+      snapshot_name_val="\"$SNAPSHOT_NAME\""
+      if command -v timeshift &> /dev/null; then
+        snapshot_tool_val="\"timeshift\""
+      elif command -v snapper &> /dev/null; then
+        snapshot_tool_val="\"snapper\""
+      fi
+    fi
 
-        cat <<EOF
+    cat << EOF
 {
   "version": "$VERSION",
   "status": "$status",
@@ -707,1774 +722,1816 @@ EOF
   "errors": [${errors_json:-}]
 }
 EOF
-    fi
+  fi
 }
 
 setup_logging() {
-    # v6.1.0: Create with secure permissions from start (TOCTOU fix)
-    if [ ! -d "$LOG_DIR" ]; then
-        mkdir -p "$LOG_DIR" 2>/dev/null || true
-        chmod 700 "$LOG_DIR" 2>/dev/null || true
-    fi
+  # v6.1.0: Create with secure permissions from start (TOCTOU fix)
+  if [ ! -d "$LOG_DIR" ]; then
+    mkdir -p "$LOG_DIR" 2> /dev/null || true
+    chmod 700 "$LOG_DIR" 2> /dev/null || true
+  fi
 
-    # v6.1.1: deleted_count kaldırıldı - logrotate log temizliğini yönetiyor
+  # v6.1.1: deleted_count kaldırıldı - logrotate log temizliğini yönetiyor
 
-    touch "$LOG_FILE"
-    chmod 600 "$LOG_FILE"
+  touch "$LOG_FILE"
+  chmod 600 "$LOG_FILE"
 
-    {
-        echo "=================================================="
-        echo "BigFive Updater v$VERSION ($EDITION Edition - $CODENAME)"
-        echo "Start Time : $(date '+%F %T')"
-        echo "User       : $(whoami)"
-        echo "Hostname   : $(hostname 2>/dev/null || echo "unknown")"
-        echo "Mode       : $([[ "${AUTO_MODE:-false}" == "true" ]] && echo "AUTO" || echo "INTERACTIVE")"
-        echo "Dry-Run    : $DRY_RUN"
-        echo "Verbose    : $VERBOSE_MODE"
-        echo "Quiet      : $QUIET_MODE"
-        echo "Skip       : snapshot=$SKIP_SNAPSHOT flatpak=$SKIP_FLATPAK snap=$SKIP_SNAP fwupd=$SKIP_FWUPD pkg_manager=$SKIP_PKG_MANAGER"
-        echo "Only Mode  : ${ONLY_MODE:-none}"
-        echo "=================================================="
-    } >> "$LOG_FILE"
+  {
+    echo "=================================================="
+    echo "BigFive Updater v$VERSION ($EDITION Edition - $CODENAME)"
+    echo "Start Time : $(date '+%F %T')"
+    echo "User       : $(whoami)"
+    echo "Hostname   : $(hostname 2> /dev/null || echo "unknown")"
+    echo "Mode       : $([[ "${AUTO_MODE:-false}" == "true" ]] && echo "AUTO" || echo "INTERACTIVE")"
+    echo "Dry-Run    : $DRY_RUN"
+    echo "Verbose    : $VERBOSE_MODE"
+    echo "Quiet      : $QUIET_MODE"
+    echo "Skip       : snapshot=$SKIP_SNAPSHOT flatpak=$SKIP_FLATPAK snap=$SKIP_SNAP fwupd=$SKIP_FWUPD pkg_manager=$SKIP_PKG_MANAGER"
+    echo "Only Mode  : ${ONLY_MODE:-none}"
+    echo "=================================================="
+  } >> "$LOG_FILE"
 }
 
 download_file() {
-    local url="$1"
-    local output="$2"
+  local url="$1"
+  local output="$2"
 
-    # TLS 1.2+ zorunlu (güvenlik için)
-    # v6.1.1: Timeout parametreleri eklendi (asılı kalma önleme)
-    # v6.2.2: wget için dns/connect/read timeout ayrıştırıldı
-    if command -v curl &> /dev/null; then
-        curl --proto '=https' --tlsv1.2 -fsSL --connect-timeout 10 --max-time 300 "$url" -o "$output"
-    elif command -v wget &> /dev/null; then
-        # --dns-timeout: DNS çözümleme için 10s
-        # --connect-timeout: Bağlantı kurma için 10s
-        # --read-timeout: Her okuma işlemi için 30s
-        # --tries=2: Hata durumunda 1 kez daha dene
-        wget --secure-protocol=TLSv1_2 --dns-timeout=10 --connect-timeout=10 --read-timeout=30 --tries=2 -qO "$output" "$url"
-    else
-        print_error_with_hint "${MSG_ERR_NO_CURL:-Sistemde 'curl' veya 'wget' bulunamadı!}" \
-            "${MSG_HINT_INSTALL_CURL:-apt install curl veya dnf install curl ile kurabilirsiniz.}" "E001"
-        exit 1
-    fi
+  # TLS 1.2+ zorunlu (güvenlik için)
+  # v6.1.1: Timeout parametreleri eklendi (asılı kalma önleme)
+  # v6.2.2: wget için dns/connect/read timeout ayrıştırıldı
+  if command -v curl &> /dev/null; then
+    curl --proto '=https' --tlsv1.2 -fsSL --connect-timeout 10 --max-time 300 "$url" -o "$output"
+  elif command -v wget &> /dev/null; then
+    # --dns-timeout: DNS çözümleme için 10s
+    # --connect-timeout: Bağlantı kurma için 10s
+    # --read-timeout: Her okuma işlemi için 30s
+    # --tries=2: Hata durumunda 1 kez daha dene
+    wget --secure-protocol=TLSv1_2 --dns-timeout=10 --connect-timeout=10 --read-timeout=30 --tries=2 -qO "$output" "$url"
+  else
+    print_error_with_hint "${MSG_ERR_NO_CURL:-Sistemde 'curl' veya 'wget' bulunamadı!}" \
+      "${MSG_HINT_INSTALL_CURL:-apt install curl veya dnf install curl ile kurabilirsiniz.}" "E001"
+    exit 1
+  fi
 }
 
 # v6.2.0: GPG imza doğrulaması (self-update güvenliği için)
 # v6.2.1: GNUPGHOME izolasyonu eklendi (keyring kirliliği önlenir)
 # Returns: 0=verified, 1=failed, 2=skipped (gpg not available)
 verify_gpg_signature() {
-    local sha256_file="$1"
-    local sha256_sig_file="$2"
+  local sha256_file="$1"
+  local sha256_sig_file="$2"
 
-    # GPG kurulu mu?
-    if ! command -v gpg &>/dev/null; then
-        print_warning "${MSG_WARN_GPG_MISSING:-GPG bulunamadı, imza doğrulama atlanıyor.}"
-        return 2
-    fi
+  # GPG kurulu mu?
+  if ! command -v gpg &> /dev/null; then
+    print_warning "${MSG_WARN_GPG_MISSING:-GPG bulunamadı, imza doğrulama atlanıyor.}"
+    return 2
+  fi
 
-    local temp_pubkey temp_gpghome old_gnupghome
-    temp_pubkey="$(safe_mktemp gpg_pubkey)" || return 2
-    temp_gpghome="$(mktemp -d "${TMPDIR:-/tmp}/bigfive_gpg_XXXXXX")" || {
-        rm -f "$temp_pubkey"
-        return 2
-    }
-    chmod 700 "$temp_gpghome"
+  local temp_pubkey temp_gpghome old_gnupghome
+  temp_pubkey="$(safe_mktemp gpg_pubkey)" || return 2
+  temp_gpghome="$(mktemp -d "${TMPDIR:-/tmp}/bigfive_gpg_XXXXXX")" || {
+    rm -f "$temp_pubkey"
+    return 2
+  }
+  chmod 700 "$temp_gpghome"
 
-    # Cleanup trap: hem dosya hem dizin temizle (boş string koruması ile)
-    trap '[[ -n "$temp_pubkey" ]] && rm -f "$temp_pubkey"; [[ -n "$temp_gpghome" && -d "$temp_gpghome" ]] && rm -rf "$temp_gpghome"' RETURN
+  # Cleanup trap: hem dosya hem dizin temizle (boş string koruması ile)
+  trap '[[ -n "$temp_pubkey" ]] && rm -f "$temp_pubkey"; [[ -n "$temp_gpghome" && -d "$temp_gpghome" ]] && rm -rf "$temp_gpghome"' RETURN
 
-    # İzole GPG keyring kullan (sistem keyring'i kirletmez)
-    old_gnupghome="${GNUPGHOME:-}"
-    export GNUPGHOME="$temp_gpghome"
+  # İzole GPG keyring kullan (sistem keyring'i kirletmez)
+  old_gnupghome="${GNUPGHOME:-}"
+  export GNUPGHOME="$temp_gpghome"
 
-    # Helper: GNUPGHOME restore
-    _restore_gnupghome() {
-        if [[ -n "$old_gnupghome" ]]; then
-            export GNUPGHOME="$old_gnupghome"
-        else
-            unset GNUPGHOME
-        fi
-    }
-
-    # Public key indir
-    if ! download_file "$GITHUB_PUBKEY_URL" "$temp_pubkey" 2>/dev/null; then
-        _restore_gnupghome
-        print_warning "${MSG_WARN_GPG_KEY_FAIL:-Public key indirilemedi, GPG doğrulama atlanıyor.}"
-        return 2
-    fi
-
-    # Public key import (izole keyring'e)
-    if ! gpg --batch --yes --import "$temp_pubkey" 2>/dev/null; then
-        _restore_gnupghome
-        print_warning "${MSG_WARN_GPG_IMPORT_FAIL:-Public key import edilemedi, GPG doğrulama atlanıyor.}"
-        return 2
-    fi
-
-    # İmza doğrula (30 saniye timeout)
-    if timeout 30 gpg --batch --verify "$sha256_sig_file" "$sha256_file" 2>/dev/null; then
-        _restore_gnupghome
-        print_info "${MSG_INFO_GPG_OK:-GPG imza doğrulaması başarılı.}"
-        return 0
+  # Helper: GNUPGHOME restore
+  _restore_gnupghome() {
+    if [[ -n "$old_gnupghome" ]]; then
+      export GNUPGHOME="$old_gnupghome"
     else
-        _restore_gnupghome
-        print_error_with_hint "${MSG_ERR_GPG_FAIL:-GPG imza doğrulaması başarısız! Güncelleme iptal edildi.}" \
-            "${MSG_HINT_GPG_FAIL:-Dosya değiştirilmiş olabilir. Manuel kurulum: curl -fsSL .../install.sh | sudo bash}" "E032"
-        return 1
+      unset GNUPGHOME
     fi
+  }
+
+  # Public key indir
+  if ! download_file "$GITHUB_PUBKEY_URL" "$temp_pubkey" 2> /dev/null; then
+    _restore_gnupghome
+    print_warning "${MSG_WARN_GPG_KEY_FAIL:-Public key indirilemedi, GPG doğrulama atlanıyor.}"
+    return 2
+  fi
+
+  # Public key import (izole keyring'e)
+  if ! gpg --batch --yes --import "$temp_pubkey" 2> /dev/null; then
+    _restore_gnupghome
+    print_warning "${MSG_WARN_GPG_IMPORT_FAIL:-Public key import edilemedi, GPG doğrulama atlanıyor.}"
+    return 2
+  fi
+
+  # İmza doğrula (30 saniye timeout)
+  if timeout 30 gpg --batch --verify "$sha256_sig_file" "$sha256_file" 2> /dev/null; then
+    _restore_gnupghome
+    print_info "${MSG_INFO_GPG_OK:-GPG imza doğrulaması başarılı.}"
+    return 0
+  else
+    _restore_gnupghome
+    print_error_with_hint "${MSG_ERR_GPG_FAIL:-GPG imza doğrulaması başarısız! Güncelleme iptal edildi.}" \
+      "${MSG_HINT_GPG_FAIL:-Dosya değiştirilmiş olabilir. Manuel kurulum: curl -fsSL .../install.sh | sudo bash}" "E032"
+    return 1
+  fi
 }
 
 # v6.0.2: Disk alanı kontrolü
 check_disk_space() {
-    local min_mb="${1:-500}"  # Varsayılan: 500MB
-    local available_mb
-    local mount_point="/"
+  local min_mb="${1:-500}" # Varsayılan: 500MB
+  local available_mb
+  local mount_point="/"
 
-    # df ile boş alanı MB cinsinden al
-    available_mb=$(df -m "$mount_point" 2>/dev/null | awk 'NR==2 {print $4}')
+  # df ile boş alanı MB cinsinden al
+  available_mb=$(df -m "$mount_point" 2> /dev/null | awk 'NR==2 {print $4}')
 
-    if [[ -z "$available_mb" ]]; then
-        print_warning "${MSG_WARN_DISK_CHECK_FAIL:-Disk alanı kontrol edilemedi.}"
-        return 0  # Kontrol başarısız olsa bile devam et
-    fi
+  if [[ -z "$available_mb" ]]; then
+    print_warning "${MSG_WARN_DISK_CHECK_FAIL:-Disk alanı kontrol edilemedi.}"
+    return 0 # Kontrol başarısız olsa bile devam et
+  fi
 
-    if [[ "$available_mb" -lt "$min_mb" ]]; then
-        print_error_with_hint \
-            "$(printf "${MSG_ERR_LOW_DISK:-Yetersiz disk alanı: %sMB mevcut, %sMB gerekli.}" "$available_mb" "$min_mb")" \
-            "${MSG_HINT_LOW_DISK:-Disk alanı açın: sudo apt clean / sudo dnf clean all / sudo pacman -Sc}" "E040"
-        return 1
-    fi
+  if [[ "$available_mb" -lt "$min_mb" ]]; then
+    print_error_with_hint \
+      "$(printf "${MSG_ERR_LOW_DISK:-Yetersiz disk alanı: %sMB mevcut, %sMB gerekli.}" "$available_mb" "$min_mb")" \
+      "${MSG_HINT_LOW_DISK:-Disk alanı açın: sudo apt clean / sudo dnf clean all / sudo pacman -Sc}" "E040"
+    return 1
+  fi
 
-    if [[ "$QUIET_MODE" != "true" ]]; then
-        print_info "$(printf "${MSG_INFO_DISK_OK:-Disk alanı yeterli: %sMB mevcut.}" "$available_mb")"
-    fi
-    return 0
+  if [[ "$QUIET_MODE" != "true" ]]; then
+    print_info "$(printf "${MSG_INFO_DISK_OK:-Disk alanı yeterli: %sMB mevcut.}" "$available_mb")"
+  fi
+  return 0
 }
 
 # v6.3.0: Cron jitter - random delay for load distribution
 # Server farms'ta tüm makinelerin aynı anda güncelleme yapmasını önler
 apply_jitter() {
-    local max_delay="${1:-0}"
+  local max_delay="${1:-0}"
 
-    if [[ "$max_delay" -gt 0 ]]; then
-        local delay=$((RANDOM % max_delay))
-        if [[ "$QUIET_MODE" != "true" ]]; then
-            print_info "$(printf "${MSG_INFO_JITTER:-Cron jitter: %d saniye bekleniyor (max: %d)...}" "$delay" "$max_delay")"
-        fi
-        sleep "$delay"
+  if [[ "$max_delay" -gt 0 ]]; then
+    local delay=$((RANDOM % max_delay))
+    if [[ "$QUIET_MODE" != "true" ]]; then
+      print_info "$(printf "${MSG_INFO_JITTER:-Cron jitter: %d saniye bekleniyor (max: %d)...}" "$delay" "$max_delay")"
     fi
+    sleep "$delay"
+  fi
 }
 
 # v6.3.0: Container ortamı tespiti
 # Docker/Podman/LXC içinde çalışırken uyarı verir
 check_container_environment() {
-    local in_container=false
-    local container_type=""
+  local in_container=false
+  local container_type=""
 
-    # Docker detection
-    if [[ -f /.dockerenv ]]; then
-        in_container=true
-        container_type="Docker"
-    # Podman detection (containerenv file)
-    elif [[ -f /run/.containerenv ]]; then
-        in_container=true
-        container_type="Podman"
-    # cgroup-based detection (Docker/Podman/LXC)
-    elif grep -qE '(docker|kubepods|containerd|lxc)' /proc/1/cgroup 2>/dev/null; then
-        in_container=true
-        container_type="Container"
-    # systemd-detect-virt (if available)
-    elif command -v systemd-detect-virt &>/dev/null; then
-        local virt_type
-        # v6.3.1: || true - container dışında exit 1 döner, set -e ile çakışır
-        virt_type=$(systemd-detect-virt --container 2>/dev/null || true)
-        if [[ "$virt_type" != "none" && -n "$virt_type" ]]; then
-            in_container=true
-            container_type="$virt_type"
-        fi
+  # Docker detection
+  if [[ -f /.dockerenv ]]; then
+    in_container=true
+    container_type="Docker"
+  # Podman detection (containerenv file)
+  elif [[ -f /run/.containerenv ]]; then
+    in_container=true
+    container_type="Podman"
+  # cgroup-based detection (Docker/Podman/LXC)
+  elif grep -qE '(docker|kubepods|containerd|lxc)' /proc/1/cgroup 2> /dev/null; then
+    in_container=true
+    container_type="Container"
+  # systemd-detect-virt (if available)
+  elif command -v systemd-detect-virt &> /dev/null; then
+    local virt_type
+    # v6.3.1: || true - container dışında exit 1 döner, set -e ile çakışır
+    virt_type=$(systemd-detect-virt --container 2> /dev/null || true)
+    if [[ "$virt_type" != "none" && -n "$virt_type" ]]; then
+      in_container=true
+      container_type="$virt_type"
     fi
+  fi
 
-    if [[ "$in_container" == "true" ]]; then
-        print_warning_with_hint \
-            "$(printf "${MSG_WARN_CONTAINER:-Container ortamı tespit edildi: %s}" "$container_type")" \
-            "${MSG_HINT_CONTAINER:-Container güncellemeleri kalıcı değildir. Host sistemini güncellemek için container dışında çalıştırın.}"
-        # Return 0 - sadece uyarı, engelleme yok
-    fi
-    return 0
+  if [[ "$in_container" == "true" ]]; then
+    print_warning_with_hint \
+      "$(printf "${MSG_WARN_CONTAINER:-Container ortamı tespit edildi: %s}" "$container_type")" \
+      "${MSG_HINT_CONTAINER:-Container güncellemeleri kalıcı değildir. Host sistemini güncellemek için container dışında çalıştırın.}"
+    # Return 0 - sadece uyarı, engelleme yok
+  fi
+  return 0
 }
 
 # v6.4.0: Pre/post hook runner
 run_hooks() {
-    local hook_type="$1"  # pre veya post
-    local hook_dir="${HOOKS_DIR}/${hook_type}.d"
+  local hook_type="$1" # pre veya post
+  local hook_dir="${HOOKS_DIR}/${hook_type}.d"
 
-    [[ ! -d "$hook_dir" ]] && return 0
+  [[ ! -d "$hook_dir" ]] && return 0
 
-    local hook_count=0
-    local hook_failed=0
+  local hook_count=0
+  local hook_failed=0
 
-    for hook in "$hook_dir"/*; do
-        [[ ! -f "$hook" ]] && continue
-        [[ ! -x "$hook" ]] && continue
+  for hook in "$hook_dir"/*; do
+    [[ ! -f "$hook" ]] && continue
+    [[ ! -x "$hook" ]] && continue
 
-        hook_count=$((hook_count + 1))
-        local hook_name
-        hook_name=$(basename "$hook")
+    hook_count=$((hook_count + 1))
+    local hook_name
+    hook_name=$(basename "$hook")
 
-        if [[ "$QUIET_MODE" != "true" ]]; then
-            print_info "$(printf "${MSG_HOOK_RUNNING:-Hook çalıştırılıyor: %s}" "$hook_name")"
-        fi
-
-        echo "[$(date '+%F %T')] HOOK ($hook_type): $hook_name" >> "$LOG_FILE"
-
-        if ! "$hook" >> "$LOG_FILE" 2>&1; then
-            hook_failed=$((hook_failed + 1))
-            print_warning "$(printf "${MSG_HOOK_FAILED:-Hook başarısız: %s}" "$hook_name")"
-            echo "[$(date '+%F %T')] HOOK FAILED: $hook_name" >> "$LOG_FILE"
-        fi
-    done
-
-    if [[ "$hook_count" -gt 0 && "$QUIET_MODE" != "true" ]]; then
-        print_info "$(printf "${MSG_HOOK_COMPLETE:-%d hook çalıştırıldı (%d başarısız)}" "$hook_count" "$hook_failed")"
+    if [[ "$QUIET_MODE" != "true" ]]; then
+      print_info "$(printf "${MSG_HOOK_RUNNING:-Hook çalıştırılıyor: %s}" "$hook_name")"
     fi
 
-    return 0
+    echo "[$(date '+%F %T')] HOOK ($hook_type): $hook_name" >> "$LOG_FILE"
+
+    if ! "$hook" >> "$LOG_FILE" 2>&1; then
+      hook_failed=$((hook_failed + 1))
+      print_warning "$(printf "${MSG_HOOK_FAILED:-Hook başarısız: %s}" "$hook_name")"
+      echo "[$(date '+%F %T')] HOOK FAILED: $hook_name" >> "$LOG_FILE"
+    fi
+  done
+
+  if [[ "$hook_count" -gt 0 && "$QUIET_MODE" != "true" ]]; then
+    print_info "$(printf "${MSG_HOOK_COMPLETE:-%d hook çalıştırıldı (%d başarısız)}" "$hook_count" "$hook_failed")"
+  fi
+
+  return 0
 }
 
 # v6.4.0: Notification sender (ntfy/gotify/webhook)
 send_notification() {
-    local status="$1"  # success veya error
-    local message="$2"
+  local status="$1" # success veya error
+  local message="$2"
 
-    [[ -z "$NOTIFY_URL" ]] && return 0
+  [[ -z "$NOTIFY_URL" ]] && return 0
 
-    # Config kontrolü
-    if [[ "$status" == "success" && "$NOTIFY_ON_SUCCESS" != "true" ]]; then
-        return 0
-    fi
-    if [[ "$status" == "error" && "$NOTIFY_ON_ERROR" != "true" ]]; then
-        return 0
-    fi
-
-    local title="BigFive Updater"
-    local priority="default"
-    local hostname
-    hostname=$(hostname 2>/dev/null || echo "unknown")
-
-    if [[ "$status" == "error" ]]; then
-        title="⚠️ BigFive Updater - Hata"
-        priority="high"
-    else
-        title="✅ BigFive Updater - Başarılı"
-    fi
-
-    # URL tipini tespit et ve uygun format kullan
-    local notify_result=false
-
-    # ntfy.sh format
-    if [[ "$NOTIFY_URL" =~ ntfy\.(sh|example\.com) ]] || [[ "$NOTIFY_URL" =~ /ntfy/ ]]; then
-        if curl -s -o /dev/null -w "%{http_code}" \
-            -H "Title: $title" \
-            -H "Priority: $priority" \
-            -H "Tags: $([ "$status" == "success" ] && echo "white_check_mark" || echo "warning")" \
-            -d "$hostname: $message" \
-            "$NOTIFY_URL" 2>/dev/null | grep -q "^2"; then
-            notify_result=true
-        fi
-    # gotify format
-    elif [[ "$NOTIFY_URL" =~ /message ]] || [[ "$NOTIFY_URL" =~ gotify ]]; then
-        if curl -s -o /dev/null -w "%{http_code}" \
-            -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"title\":\"$title\",\"message\":\"$hostname: $message\",\"priority\":$([ "$status" == "success" ] && echo "5" || echo "8")}" \
-            "$NOTIFY_URL" 2>/dev/null | grep -q "^2"; then
-            notify_result=true
-        fi
-    # Generic webhook (JSON POST)
-    else
-        if curl -s -o /dev/null -w "%{http_code}" \
-            -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"status\":\"$status\",\"title\":\"$title\",\"message\":\"$message\",\"hostname\":\"$hostname\",\"version\":\"$VERSION\"}" \
-            "$NOTIFY_URL" 2>/dev/null | grep -q "^2"; then
-            notify_result=true
-        fi
-    fi
-
-    if [[ "$notify_result" == "true" ]]; then
-        echo "[$(date '+%F %T')] NOTIFY: Sent to $NOTIFY_URL" >> "$LOG_FILE"
-    else
-        echo "[$(date '+%F %T')] NOTIFY: Failed to send to $NOTIFY_URL" >> "$LOG_FILE"
-    fi
-
+  # Config kontrolü
+  if [[ "$status" == "success" && "$NOTIFY_ON_SUCCESS" != "true" ]]; then
     return 0
+  fi
+  if [[ "$status" == "error" && "$NOTIFY_ON_ERROR" != "true" ]]; then
+    return 0
+  fi
+
+  local title="BigFive Updater"
+  local priority="default"
+  local hostname
+  hostname=$(hostname 2> /dev/null || echo "unknown")
+
+  if [[ "$status" == "error" ]]; then
+    title="⚠️ BigFive Updater - Hata"
+    priority="high"
+  else
+    title="✅ BigFive Updater - Başarılı"
+  fi
+
+  # URL tipini tespit et ve uygun format kullan
+  local notify_result=false
+
+  # ntfy.sh format
+  if [[ "$NOTIFY_URL" =~ ntfy\.(sh|example\.com) ]] || [[ "$NOTIFY_URL" =~ /ntfy/ ]]; then
+    if curl -s -o /dev/null -w "%{http_code}" \
+      -H "Title: $title" \
+      -H "Priority: $priority" \
+      -H "Tags: $([ "$status" == "success" ] && echo "white_check_mark" || echo "warning")" \
+      -d "$hostname: $message" \
+      "$NOTIFY_URL" 2> /dev/null | grep -q "^2"; then
+      notify_result=true
+    fi
+  # gotify format
+  elif [[ "$NOTIFY_URL" =~ /message ]] || [[ "$NOTIFY_URL" =~ gotify ]]; then
+    if curl -s -o /dev/null -w "%{http_code}" \
+      -X POST \
+      -H "Content-Type: application/json" \
+      -d "{\"title\":\"$title\",\"message\":\"$hostname: $message\",\"priority\":$([ "$status" == "success" ] && echo "5" || echo "8")}" \
+      "$NOTIFY_URL" 2> /dev/null | grep -q "^2"; then
+      notify_result=true
+    fi
+  # Generic webhook (JSON POST)
+  else
+    if curl -s -o /dev/null -w "%{http_code}" \
+      -X POST \
+      -H "Content-Type: application/json" \
+      -d "{\"status\":\"$status\",\"title\":\"$title\",\"message\":\"$message\",\"hostname\":\"$hostname\",\"version\":\"$VERSION\"}" \
+      "$NOTIFY_URL" 2> /dev/null | grep -q "^2"; then
+      notify_result=true
+    fi
+  fi
+
+  if [[ "$notify_result" == "true" ]]; then
+    echo "[$(date '+%F %T')] NOTIFY: Sent to $NOTIFY_URL" >> "$LOG_FILE"
+  else
+    echo "[$(date '+%F %T')] NOTIFY: Failed to send to $NOTIFY_URL" >> "$LOG_FILE"
+  fi
+
+  return 0
 }
 
 check_connectivity() {
+  if [[ "$QUIET_MODE" != "true" ]]; then
+    printf '%s[~] Bağlantı kontrol ediliyor... %s' "${YELLOW}" "${NC}"
+  fi
+  local UA="Mozilla/5.0 (compat; BigFiveUpdater/$VERSION)"
+
+  local raw_ok=false
+  # TLS 1.2+ zorunlu (güvenlik için)
+  # v6.1.1: Timeout parametreleri eklendi
+  if command -v curl &> /dev/null; then
+    if curl --proto '=https' --tlsv1.2 -s -I -f -L --connect-timeout 10 --max-time 30 -A "$UA" "$GITHUB_RAW_URL" > /dev/null; then raw_ok=true; fi
+  elif command -v wget &> /dev/null; then
+    if wget --secure-protocol=TLSv1_2 --timeout=10 -q --spider --user-agent="$UA" "$GITHUB_RAW_URL"; then raw_ok=true; fi
+  fi
+
+  if [[ "$raw_ok" == "true" ]]; then
     if [[ "$QUIET_MODE" != "true" ]]; then
-        printf '%s[~] Bağlantı kontrol ediliyor... %s' "${YELLOW}" "${NC}"
+      printf '%sBağlı.%s\n' "${GREEN}" "${NC}"
     fi
-    local UA="Mozilla/5.0 (compat; BigFiveUpdater/$VERSION)"
-    
-    local raw_ok=false
-    # TLS 1.2+ zorunlu (güvenlik için)
-    # v6.1.1: Timeout parametreleri eklendi
-    if command -v curl &> /dev/null; then
-        if curl --proto '=https' --tlsv1.2 -s -I -f -L --connect-timeout 10 --max-time 30 -A "$UA" "$GITHUB_RAW_URL" > /dev/null; then raw_ok=true; fi
-    elif command -v wget &> /dev/null; then
-        if wget --secure-protocol=TLSv1_2 --timeout=10 -q --spider --user-agent="$UA" "$GITHUB_RAW_URL"; then raw_ok=true; fi
+    return 0
+  else
+    if [[ "$QUIET_MODE" != "true" ]]; then
+      printf '%sKısmi (Repo erişimi yok).%s\n' "${YELLOW}" "${NC}"
     fi
-    
-    if [[ "$raw_ok" == "true" ]]; then
-        if [[ "$QUIET_MODE" != "true" ]]; then
-            printf '%sBağlı.%s\n' "${GREEN}" "${NC}"
-        fi
-        return 0
-    else
-        if [[ "$QUIET_MODE" != "true" ]]; then
-            printf '%sKısmi (Repo erişimi yok).%s\n' "${YELLOW}" "${NC}"
-        fi
-        print_warning "${MSG_WARN_REPO_ACCESS:-Repo dosyalarına erişilemiyor. Self-update devre dışı.}"
-        export SELF_UPDATE_DISABLED="true"
-        return 0
-    fi
+    print_warning "${MSG_WARN_REPO_ACCESS:-Repo dosyalarına erişilemiyor. Self-update devre dışı.}"
+    export SELF_UPDATE_DISABLED="true"
+    return 0
+  fi
 }
 
 # v6.1.0: History - güncelleme geçmişi
 do_history() {
-    local days="${1:-7}"
-    local log_dir="/var/log/bigfive-updater"
-    local found=0
-    local today_epoch
-    today_epoch=$(date +%s)
+  local days="${1:-7}"
+  local log_dir="/var/log/bigfive-updater"
+  local found=0
+  local today_epoch
+  today_epoch=$(date +%s)
 
-    printf '%b%s%b\n' "${BLUE}${BOLD}" "$(printf "${MSG_HISTORY_TITLE:-BigFive Update History - Last %d Days}" "$days")" "${NC}"
-    printf '%s\n' "══════════════════════════════════════════════════════"
-    printf '\n'
-    printf '%-12s %-8s %-10s %s\n' "${MSG_HISTORY_COL_DATE:-Date}" "${MSG_HISTORY_COL_TIME:-Time}" "${MSG_HISTORY_COL_STATUS:-Status}" "${MSG_HISTORY_COL_DETAIL:-Detail}"
-    printf '%s\n' "────────────────────────────────────────────────────────"
+  printf '%b%s%b\n' "${BLUE}${BOLD}" "$(printf "${MSG_HISTORY_TITLE:-BigFive Update History - Last %d Days}" "$days")" "${NC}"
+  printf '%s\n' "══════════════════════════════════════════════════════"
+  printf '\n'
+  printf '%-12s %-8s %-10s %s\n' "${MSG_HISTORY_COL_DATE:-Date}" "${MSG_HISTORY_COL_TIME:-Time}" "${MSG_HISTORY_COL_STATUS:-Status}" "${MSG_HISTORY_COL_DETAIL:-Detail}"
+  printf '%s\n' "────────────────────────────────────────────────────────"
 
-    # Log dizini kontrolü
-    if [[ ! -d "$log_dir" ]]; then
-        printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_HISTORY_NO_DIR:-Log directory not found: %s}" "$log_dir")"
-        printf '%s\n' "  ${MSG_HISTORY_NO_DIR_HINT:-No updates may have been performed yet.}"
-        return 0
-    fi
+  # Log dizini kontrolü
+  if [[ ! -d "$log_dir" ]]; then
+    printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_HISTORY_NO_DIR:-Log directory not found: %s}" "$log_dir")"
+    printf '%s\n' "  ${MSG_HISTORY_NO_DIR_HINT:-No updates may have been performed yet.}"
+    return 0
+  fi
 
-    # Log dosyalarını tara (en yeniden eskiye)
-    while IFS= read -r log_file; do
-        [[ -z "$log_file" ]] && continue
+  # Log dosyalarını tara (en yeniden eskiye)
+  while IFS= read -r log_file; do
+    [[ -z "$log_file" ]] && continue
 
-        # Dosya adından tarih çıkar: update_YYYYMMDD_HHMMSS.log
-        local basename
-        basename=$(basename "$log_file")
-        if [[ "$basename" =~ update_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2}) ]]; then
-            local year="${BASH_REMATCH[1]}"
-            local month="${BASH_REMATCH[2]}"
-            local day="${BASH_REMATCH[3]}"
-            local hour="${BASH_REMATCH[4]}"
-            local minute="${BASH_REMATCH[5]}"
+    # Dosya adından tarih çıkar: update_YYYYMMDD_HHMMSS.log
+    local basename
+    basename=$(basename "$log_file")
+    if [[ "$basename" =~ update_([0-9]{4})([0-9]{2})([0-9]{2})_([0-9]{2})([0-9]{2}) ]]; then
+      local year="${BASH_REMATCH[1]}"
+      local month="${BASH_REMATCH[2]}"
+      local day="${BASH_REMATCH[3]}"
+      local hour="${BASH_REMATCH[4]}"
+      local minute="${BASH_REMATCH[5]}"
 
-            # Tarih farkını kontrol et
-            local log_date="${year}-${month}-${day}"
-            local log_epoch
-            log_epoch=$(date -d "$log_date" +%s 2>/dev/null) || continue
-            local diff_days=$(( (today_epoch - log_epoch) / 86400 ))
+      # Tarih farkını kontrol et
+      local log_date="${year}-${month}-${day}"
+      local log_epoch
+      log_epoch=$(date -d "$log_date" +%s 2> /dev/null) || continue
+      local diff_days=$(((today_epoch - log_epoch) / 86400))
 
-            # N gün içinde mi?
-            if [[ $diff_days -le $days ]]; then
-                ((found++)) || true
+      # N gün içinde mi?
+      if [[ $diff_days -le $days ]]; then
+        ((found++)) || true
 
-                # Log içeriğini analiz et
-                local status="${MSG_HISTORY_STATUS_UNKNOWN:-?}"
-                local detail=""
+        # Log içeriğini analiz et
+        local status="${MSG_HISTORY_STATUS_UNKNOWN:-?}"
+        local detail=""
 
-                # Başarı/hata durumu
-                if grep -q "ERROR:" "$log_file" 2>/dev/null; then
-                    status="${RED}${MSG_HISTORY_STATUS_ERROR:-ERROR}${NC}"
-                    local err_count
-                    err_count=$(grep -c "ERROR:" "$log_file" 2>/dev/null) || err_count=0
-                    detail="$(printf "${MSG_HISTORY_DETAIL_ERRORS:-%d error(s)}" "$err_count")"
-                elif grep -q "SUCCESS:" "$log_file" 2>/dev/null; then
-                    status="${GREEN}${MSG_HISTORY_STATUS_OK:-OK}${NC}"
-                    local pkg_line
-                    pkg_line=$(grep -E "(packages upgraded|paket güncellendi|upgraded\.|güncelleme)" "$log_file" 2>/dev/null | head -1) || true
-                    if [[ -n "$pkg_line" ]]; then
-                        detail="$pkg_line"
-                    else
-                        detail="${MSG_HISTORY_DETAIL_SUCCESS:-Successful}"
-                    fi
-                elif grep -q "DRY-RUN:" "$log_file" 2>/dev/null; then
-                    status="${YELLOW}${MSG_HISTORY_STATUS_DRY:-DRY}${NC}"
-                    detail="${MSG_HISTORY_DETAIL_SIMULATION:-Simulation}"
-                else
-                    status="${YELLOW}${MSG_HISTORY_STATUS_UNKNOWN:-?}${NC}"
-                    detail="${MSG_HISTORY_DETAIL_UNKNOWN:-Unknown}"
-                fi
-
-                printf '%-12s %-8s %b%-10s%b %s\n' "$log_date" "${hour}:${minute}" "" "$status" "" "$detail"
-            fi
+        # Başarı/hata durumu
+        if grep -q "ERROR:" "$log_file" 2> /dev/null; then
+          status="${RED}${MSG_HISTORY_STATUS_ERROR:-ERROR}${NC}"
+          local err_count
+          err_count=$(grep -c "ERROR:" "$log_file" 2> /dev/null) || err_count=0
+          detail="$(printf "${MSG_HISTORY_DETAIL_ERRORS:-%d error(s)}" "$err_count")"
+        elif grep -q "SUCCESS:" "$log_file" 2> /dev/null; then
+          status="${GREEN}${MSG_HISTORY_STATUS_OK:-OK}${NC}"
+          local pkg_line
+          pkg_line=$(grep -E "(packages upgraded|paket güncellendi|upgraded\.|güncelleme)" "$log_file" 2> /dev/null | head -1) || true
+          if [[ -n "$pkg_line" ]]; then
+            detail="$pkg_line"
+          else
+            detail="${MSG_HISTORY_DETAIL_SUCCESS:-Successful}"
+          fi
+        elif grep -q "DRY-RUN:" "$log_file" 2> /dev/null; then
+          status="${YELLOW}${MSG_HISTORY_STATUS_DRY:-DRY}${NC}"
+          detail="${MSG_HISTORY_DETAIL_SIMULATION:-Simulation}"
+        else
+          status="${YELLOW}${MSG_HISTORY_STATUS_UNKNOWN:-?}${NC}"
+          detail="${MSG_HISTORY_DETAIL_UNKNOWN:-Unknown}"
         fi
-    done < <(find "$log_dir" -name "update_*.log" -type f 2>/dev/null | sort -r)
 
-    printf '\n'
-    if [[ $found -eq 0 ]]; then
-        printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_HISTORY_NO_LOGS:-No update records found in the last %d days.}" "$days")"
-    else
-        printf '%s\n' "────────────────────────────────────────────────────────"
-        printf '%s\n' "$(printf "${MSG_HISTORY_TOTAL:-Total: %d records}" "$found")"
+        printf '%-12s %-8s %b%-10s%b %s\n' "$log_date" "${hour}:${minute}" "" "$status" "" "$detail"
+      fi
     fi
+  done < <(find "$log_dir" -name "update_*.log" -type f 2> /dev/null | sort -r)
+
+  printf '\n'
+  if [[ $found -eq 0 ]]; then
+    printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_HISTORY_NO_LOGS:-No update records found in the last %d days.}" "$days")"
+  else
+    printf '%s\n' "────────────────────────────────────────────────────────"
+    printf '%s\n' "$(printf "${MSG_HISTORY_TOTAL:-Total: %d records}" "$found")"
+  fi
 }
 
 # v6.1.0: Doctor - sistem sağlık kontrolü
 do_doctor() {
-    local errors=0
-    local warnings=0
+  local errors=0
+  local warnings=0
 
-    printf '%b%s%b\n' "${BLUE}${BOLD}" "${MSG_DOCTOR_TITLE:-BigFive Doctor - System Health Check}" "${NC}"
-    printf '%s\n' "══════════════════════════════════════════════════════"
-    printf '\n'
+  printf '%b%s%b\n' "${BLUE}${BOLD}" "${MSG_DOCTOR_TITLE:-BigFive Doctor - System Health Check}" "${NC}"
+  printf '%s\n' "══════════════════════════════════════════════════════"
+  printf '\n'
 
-    # 1. Config dosyası kontrolü
-    printf '%b[1/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_CONFIG:-Config file...}"
-    if [[ -f "$CONFIG_FILE" ]]; then
-        if bash -n "$CONFIG_FILE" 2>/dev/null; then
-            printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_CONFIG_OK:-%s}" "$CONFIG_FILE")"
-        else
-            printf '%b✗%b %s\n' "${RED}" "${NC}" "$(printf "${MSG_DOCTOR_CONFIG_SYNTAX_ERR:-Syntax error: %s}" "$CONFIG_FILE")"
-            ((errors++)) || true
-        fi
+  # 1. Config dosyası kontrolü
+  printf '%b[1/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_CONFIG:-Config file...}"
+  if [[ -f "$CONFIG_FILE" ]]; then
+    if bash -n "$CONFIG_FILE" 2> /dev/null; then
+      printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_CONFIG_OK:-%s}" "$CONFIG_FILE")"
     else
-        printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_CONFIG_NONE:-Not found (default settings will be used)}"
+      printf '%b✗%b %s\n' "${RED}" "${NC}" "$(printf "${MSG_DOCTOR_CONFIG_SYNTAX_ERR:-Syntax error: %s}" "$CONFIG_FILE")"
+      ((errors++)) || true
     fi
+  else
+    printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_CONFIG_NONE:-Not found (default settings will be used)}"
+  fi
 
-    # 2. Gerekli komutlar
-    printf '%b[2/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_REQUIRED:-Required commands...}"
-    local missing_cmds=()
+  # 2. Gerekli komutlar
+  printf '%b[2/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_REQUIRED:-Required commands...}"
+  local missing_cmds=()
 
-    if ! command -v curl &>/dev/null && ! command -v wget &>/dev/null; then
-        missing_cmds+=("curl/wget")
+  if ! command -v curl &> /dev/null && ! command -v wget &> /dev/null; then
+    missing_cmds+=("curl/wget")
+  fi
+
+  local pm_found=false
+  for pm in apt-get dnf pacman zypper apk; do
+    if command -v "$pm" &> /dev/null; then
+      pm_found=true
+      break
     fi
+  done
+  if [[ "$pm_found" == "false" ]]; then
+    missing_cmds+=("package-manager")
+  fi
 
-    local pm_found=false
-    for pm in apt-get dnf pacman zypper apk; do
-        if command -v "$pm" &>/dev/null; then
-            pm_found=true
-            break
-        fi
-    done
-    if [[ "$pm_found" == "false" ]]; then
-        missing_cmds+=("package-manager")
-    fi
+  if [[ ${#missing_cmds[@]} -eq 0 ]]; then
+    printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_CMDS_OK:-All present}"
+  else
+    printf '%b✗%b %s\n' "${RED}" "${NC}" "$(printf "${MSG_DOCTOR_CMDS_MISSING:-Missing: %s}" "${missing_cmds[*]}")"
+    ((errors++)) || true
+  fi
 
-    if [[ ${#missing_cmds[@]} -eq 0 ]]; then
-        printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_CMDS_OK:-All present}"
+  # 3. Opsiyonel komutlar
+  printf '%b[3/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_OPTIONAL:-Optional commands...}"
+  local optional_status=()
+  command -v jq &> /dev/null && optional_status+=("jq:✓") || optional_status+=("jq:✗")
+  command -v fwupdmgr &> /dev/null && optional_status+=("fwupd:✓") || optional_status+=("fwupd:✗")
+  command -v flatpak &> /dev/null && optional_status+=("flatpak:✓") || optional_status+=("flatpak:✗")
+  command -v snap &> /dev/null && optional_status+=("snap:✓") || optional_status+=("snap:✗")
+  printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${optional_status[*]}"
+
+  # 4. Disk alanı
+  printf '%b[4/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_DISK:-Disk space...}"
+  local available_mb
+  available_mb=$(df -m / 2> /dev/null | awk 'NR==2 {print $4}')
+  if [[ -n "$available_mb" ]]; then
+    if [[ "$available_mb" -ge 500 ]]; then
+      printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_DISK_OK:-%sMB available (min: 500MB)}" "$available_mb")"
     else
-        printf '%b✗%b %s\n' "${RED}" "${NC}" "$(printf "${MSG_DOCTOR_CMDS_MISSING:-Missing: %s}" "${missing_cmds[*]}")"
-        ((errors++)) || true
+      printf '%b✗%b %s\n' "${RED}" "${NC}" "$(printf "${MSG_DOCTOR_DISK_LOW:-%sMB available (min: 500MB required)}" "$available_mb")"
+      ((errors++)) || true
     fi
+  else
+    printf '%b?%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_DISK_UNKNOWN:-Could not check}"
+    ((warnings++)) || true
+  fi
 
-    # 3. Opsiyonel komutlar
-    printf '%b[3/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_OPTIONAL:-Optional commands...}"
-    local optional_status=()
-    command -v jq &>/dev/null && optional_status+=("jq:✓") || optional_status+=("jq:✗")
-    command -v fwupdmgr &>/dev/null && optional_status+=("fwupd:✓") || optional_status+=("fwupd:✗")
-    command -v flatpak &>/dev/null && optional_status+=("flatpak:✓") || optional_status+=("flatpak:✗")
-    command -v snap &>/dev/null && optional_status+=("snap:✓") || optional_status+=("snap:✗")
-    printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${optional_status[*]}"
+  # 5. İnternet bağlantısı
+  printf '%b[5/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_INTERNET:-Internet connectivity...}"
+  local net_ok=false
+  if command -v curl &> /dev/null; then
+    curl --proto '=https' --tlsv1.2 -s -f -m 5 "https://raw.githubusercontent.com" > /dev/null 2>&1 && net_ok=true
+  elif command -v wget &> /dev/null; then
+    wget --secure-protocol=TLSv1_2 -q --spider --timeout=5 "https://raw.githubusercontent.com" 2> /dev/null && net_ok=true
+  fi
+  if [[ "$net_ok" == "true" ]]; then
+    printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_NET_OK:-GitHub reachable}"
+  else
+    printf '%b✗%b %s\n' "${RED}" "${NC}" "${MSG_DOCTOR_NET_FAIL:-GitHub unreachable}"
+    ((errors++)) || true
+  fi
 
-    # 4. Disk alanı
-    printf '%b[4/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_DISK:-Disk space...}"
-    local available_mb
-    available_mb=$(df -m / 2>/dev/null | awk 'NR==2 {print $4}')
-    if [[ -n "$available_mb" ]]; then
-        if [[ "$available_mb" -ge 500 ]]; then
-            printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_DISK_OK:-%sMB available (min: 500MB)}" "$available_mb")"
-        else
-            printf '%b✗%b %s\n' "${RED}" "${NC}" "$(printf "${MSG_DOCTOR_DISK_LOW:-%sMB available (min: 500MB required)}" "$available_mb")"
-            ((errors++)) || true
-        fi
+  # 6. Dil dosyaları
+  printf '%b[6/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_LANG:-Language files...}"
+  local lang_ok=0 lang_missing=0
+  for lang in tr en; do
+    if [[ -f "/usr/share/bigfive-updater/lang/${lang}.sh" ]] || [[ -f "$(dirname "$0")/lang/${lang}.sh" ]]; then
+      ((lang_ok++)) || true
     else
-        printf '%b?%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_DISK_UNKNOWN:-Could not check}"
-        ((warnings++)) || true
+      ((lang_missing++)) || true
     fi
+  done
+  if [[ $lang_missing -eq 0 ]]; then
+    printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_LANG_OK:-%d language files present}" "$lang_ok")"
+  else
+    printf '%b-%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_DOCTOR_LANG_PARTIAL:-%d present, %d missing}" "$lang_ok" "$lang_missing")"
+    ((warnings++)) || true
+  fi
 
-    # 5. İnternet bağlantısı
-    printf '%b[5/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_INTERNET:-Internet connectivity...}"
-    local net_ok=false
-    if command -v curl &>/dev/null; then
-        curl --proto '=https' --tlsv1.2 -s -f -m 5 "https://raw.githubusercontent.com" >/dev/null 2>&1 && net_ok=true
-    elif command -v wget &>/dev/null; then
-        wget --secure-protocol=TLSv1_2 -q --spider --timeout=5 "https://raw.githubusercontent.com" 2>/dev/null && net_ok=true
+  # 7. Dosya izinleri kontrolü (v6.5.0)
+  printf '%b[7/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_PERMS:-File permissions...}"
+  local perm_issues=()
+  # guncel script: should be 755 or 700
+  if [[ -f "/usr/local/bin/guncel" ]]; then
+    local guncel_perms
+    guncel_perms=$(stat -c '%a' /usr/local/bin/guncel 2> /dev/null)
+    if [[ "$guncel_perms" != "755" && "$guncel_perms" != "700" ]]; then
+      perm_issues+=("guncel:$guncel_perms")
     fi
-    if [[ "$net_ok" == "true" ]]; then
-        printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_NET_OK:-GitHub reachable}"
-    else
-        printf '%b✗%b %s\n' "${RED}" "${NC}" "${MSG_DOCTOR_NET_FAIL:-GitHub unreachable}"
-        ((errors++)) || true
+  fi
+  # config file: should be 644 or 600
+  if [[ -f "$CONFIG_FILE" ]]; then
+    local config_perms
+    config_perms=$(stat -c '%a' "$CONFIG_FILE" 2> /dev/null)
+    if [[ "$config_perms" != "644" && "$config_perms" != "600" ]]; then
+      perm_issues+=("config:$config_perms")
     fi
+  fi
+  # log dir: should be 750 or 700
+  if [[ -d "$LOG_DIR" ]]; then
+    local logdir_perms
+    logdir_perms=$(stat -c '%a' "$LOG_DIR" 2> /dev/null)
+    if [[ "$logdir_perms" != "750" && "$logdir_perms" != "700" ]]; then
+      perm_issues+=("logdir:$logdir_perms")
+    fi
+  fi
+  if [[ ${#perm_issues[@]} -eq 0 ]]; then
+    printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_PERMS_OK:-All permissions correct}"
+  else
+    printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_DOCTOR_PERMS_WARN:-Check: %s}" "${perm_issues[*]}")"
+    ((warnings++)) || true
+  fi
 
-    # 6. Dil dosyaları
-    printf '%b[6/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_LANG:-Language files...}"
-    local lang_ok=0 lang_missing=0
-    for lang in tr en; do
-        if [[ -f "/usr/share/bigfive-updater/lang/${lang}.sh" ]] || [[ -f "$(dirname "$0")/lang/${lang}.sh" ]]; then
-            ((lang_ok++)) || true
-        else
-            ((lang_missing++)) || true
-        fi
-    done
-    if [[ $lang_missing -eq 0 ]]; then
-        printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_LANG_OK:-%d language files present}" "$lang_ok")"
+  # 8. GPG keyring durumu (v6.5.0)
+  printf '%b[8/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_GPG:-GPG keyring...}"
+  if command -v gpg &> /dev/null; then
+    local gpg_key_count
+    gpg_key_count=$(gpg --list-keys 2> /dev/null | grep -c '^pub' || echo "0")
+    if [[ "$gpg_key_count" -gt 0 ]]; then
+      printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_GPG_OK:-GPG available, %d keys}" "$gpg_key_count")"
     else
-        printf '%b-%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_DOCTOR_LANG_PARTIAL:-%d present, %d missing}" "$lang_ok" "$lang_missing")"
-        ((warnings++)) || true
+      printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_GPG_NOKEYS:-GPG available, no keys imported}"
+      ((warnings++)) || true
     fi
+  else
+    printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_GPG_NOTFOUND:-GPG not installed (optional)}"
+  fi
 
-    # 7. Dosya izinleri kontrolü (v6.5.0)
-    printf '%b[7/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_PERMS:-File permissions...}"
-    local perm_issues=()
-    # guncel script: should be 755 or 700
-    if [[ -f "/usr/local/bin/guncel" ]]; then
-        local guncel_perms
-        guncel_perms=$(stat -c '%a' /usr/local/bin/guncel 2>/dev/null)
-        if [[ "$guncel_perms" != "755" && "$guncel_perms" != "700" ]]; then
-            perm_issues+=("guncel:$guncel_perms")
-        fi
-    fi
-    # config file: should be 644 or 600
-    if [[ -f "$CONFIG_FILE" ]]; then
-        local config_perms
-        config_perms=$(stat -c '%a' "$CONFIG_FILE" 2>/dev/null)
-        if [[ "$config_perms" != "644" && "$config_perms" != "600" ]]; then
-            perm_issues+=("config:$config_perms")
-        fi
-    fi
-    # log dir: should be 750 or 700
-    if [[ -d "$LOG_DIR" ]]; then
-        local logdir_perms
-        logdir_perms=$(stat -c '%a' "$LOG_DIR" 2>/dev/null)
-        if [[ "$logdir_perms" != "750" && "$logdir_perms" != "700" ]]; then
-            perm_issues+=("logdir:$logdir_perms")
-        fi
-    fi
-    if [[ ${#perm_issues[@]} -eq 0 ]]; then
-        printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_PERMS_OK:-All permissions correct}"
+  # 9. Lock file kontrolü (v6.5.0)
+  printf '%b[9/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_LOCK:-Lock file...}"
+  local lock_file="/var/lock/bigfive-updater.lock"
+  if [[ -f "$lock_file" ]]; then
+    local lock_pid
+    lock_pid=$(cat "$lock_file" 2> /dev/null)
+    if [[ -n "$lock_pid" ]] && kill -0 "$lock_pid" 2> /dev/null; then
+      printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_DOCTOR_LOCK_ACTIVE:-Another instance running (PID: %s)}" "$lock_pid")"
+      ((warnings++)) || true
     else
-        printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_DOCTOR_PERMS_WARN:-Check: %s}" "${perm_issues[*]}")"
-        ((warnings++)) || true
+      printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_LOCK_STALE:-Stale lock file (can be removed)}"
+      ((warnings++)) || true
     fi
+  else
+    printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_LOCK_OK:-No lock file (ready to run)}"
+  fi
 
-    # 8. GPG keyring durumu (v6.5.0)
-    printf '%b[8/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_GPG:-GPG keyring...}"
-    if command -v gpg &>/dev/null; then
-        local gpg_key_count
-        gpg_key_count=$(gpg --list-keys 2>/dev/null | grep -c '^pub' || echo "0")
-        if [[ "$gpg_key_count" -gt 0 ]]; then
-            printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_GPG_OK:-GPG available, %d keys}" "$gpg_key_count")"
-        else
-            printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_GPG_NOKEYS:-GPG available, no keys imported}"
-            ((warnings++)) || true
-        fi
-    else
-        printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_GPG_NOTFOUND:-GPG not installed (optional)}"
-    fi
-
-    # 9. Lock file kontrolü (v6.5.0)
-    printf '%b[9/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_LOCK:-Lock file...}"
-    local lock_file="/var/lock/bigfive-updater.lock"
-    if [[ -f "$lock_file" ]]; then
-        local lock_pid
-        lock_pid=$(cat "$lock_file" 2>/dev/null)
-        if [[ -n "$lock_pid" ]] && kill -0 "$lock_pid" 2>/dev/null; then
-            printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_DOCTOR_LOCK_ACTIVE:-Another instance running (PID: %s)}" "$lock_pid")"
-            ((warnings++)) || true
-        else
-            printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_LOCK_STALE:-Stale lock file (can be removed)}"
-            ((warnings++)) || true
-        fi
-    else
-        printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_LOCK_OK:-No lock file (ready to run)}"
-    fi
-
-    # Özet
-    printf '\n'
-    printf '%s\n' "══════════════════════════════════════════════════════"
-    if [[ $errors -eq 0 && $warnings -eq 0 ]]; then
-        printf '%b✓ %s%b\n' "${GREEN}" "${MSG_DOCTOR_SUMMARY_OK:-System healthy - BigFive ready to use}" "${NC}"
-        return 0
-    elif [[ $errors -eq 0 ]]; then
-        printf '%b! %s%b\n' "${YELLOW}" "$(printf "${MSG_DOCTOR_SUMMARY_WARN:-%d warning(s) - BigFive can run}" "$warnings")" "${NC}"
-        return 0
-    else
-        printf '%b✗ %s%b\n' "${RED}" "$(printf "${MSG_DOCTOR_SUMMARY_ERR:-%d error(s), %d warning(s) - Please fix issues}" "$errors" "$warnings")" "${NC}"
-        return 1
-    fi
+  # Özet
+  printf '\n'
+  printf '%s\n' "══════════════════════════════════════════════════════"
+  if [[ $errors -eq 0 && $warnings -eq 0 ]]; then
+    printf '%b✓ %s%b\n' "${GREEN}" "${MSG_DOCTOR_SUMMARY_OK:-System healthy - BigFive ready to use}" "${NC}"
+    return 0
+  elif [[ $errors -eq 0 ]]; then
+    printf '%b! %s%b\n' "${YELLOW}" "$(printf "${MSG_DOCTOR_SUMMARY_WARN:-%d warning(s) - BigFive can run}" "$warnings")" "${NC}"
+    return 0
+  else
+    printf '%b✗ %s%b\n' "${RED}" "$(printf "${MSG_DOCTOR_SUMMARY_ERR:-%d error(s), %d warning(s) - Please fix issues}" "$errors" "$warnings")" "${NC}"
+    return 1
+  fi
 }
 
 check_root() {
-    if [[ $EUID -ne 0 ]]; then
-        printf '%s[*] Root yetkisi gerekiyor...%s\n' "${YELLOW}" "${NC}"
-        if command -v sudo &> /dev/null; then
-            # v6.1.0: NOPASSWD check for non-interactive environments (cron, CI)
-            if [[ "${AUTO_MODE:-false}" == "true" ]] && ! sudo -n true 2>/dev/null; then
-                print_error_with_hint "${MSG_ERR_SUDO_NOPASSWD:-Auto mode için sudo NOPASSWD gerekli.}" \
-                    "${MSG_HINT_SUDO_NOPASSWD:-/etc/sudoers dosyasına NOPASSWD ekleyin veya root olarak çalıştırın.}" "E041"
-                exit 1
-            fi
-            # v3.6.1 FIX: Orijinal argümanları kullan
-            exec sudo -E "$0" "${ORIGINAL_ARGS[@]}"
-        else
-            print_error_with_hint "${MSG_ERR_NO_SUDO:-Sudo yok ve root değilsin.}" \
-                "${MSG_HINT_NO_SUDO:-sudo kurulu değilse: su -c 'dnf install sudo' veya root olarak çalıştırın.}" "E002"
-            exit 1
-        fi
+  if [[ $EUID -ne 0 ]]; then
+    printf '%s[*] Root yetkisi gerekiyor...%s\n' "${YELLOW}" "${NC}"
+    if command -v sudo &> /dev/null; then
+      # v6.1.0: NOPASSWD check for non-interactive environments (cron, CI)
+      if [[ "${AUTO_MODE:-false}" == "true" ]] && ! sudo -n true 2> /dev/null; then
+        print_error_with_hint "${MSG_ERR_SUDO_NOPASSWD:-Auto mode için sudo NOPASSWD gerekli.}" \
+          "${MSG_HINT_SUDO_NOPASSWD:-/etc/sudoers dosyasına NOPASSWD ekleyin veya root olarak çalıştırın.}" "E041"
+        exit 1
+      fi
+      # v3.6.1 FIX: Orijinal argümanları kullan
+      exec sudo -E "$0" "${ORIGINAL_ARGS[@]}"
+    else
+      print_error_with_hint "${MSG_ERR_NO_SUDO:-Sudo yok ve root değilsin.}" \
+        "${MSG_HINT_NO_SUDO:-sudo kurulu değilse: su -c 'dnf install sudo' veya root olarak çalıştırın.}" "E002"
+      exit 1
     fi
+  fi
 }
 
 # --- YENİ v3.6.0: SHA256 DOĞRULAMA İLE SELF-UPDATE ---
 check_self_update() {
-    if [[ "${SELF_UPDATE_DISABLED:-false}" == "true" ]]; then return; fi
-    if [[ "$DRY_RUN" == "true" ]]; then return; fi
+  if [[ "${SELF_UPDATE_DISABLED:-false}" == "true" ]]; then return; fi
+  if [[ "$DRY_RUN" == "true" ]]; then return; fi
 
-    local REMOTE_FILE; REMOTE_FILE="$(safe_mktemp guncel_remote)" || return
-    local TEMP_SHA256; TEMP_SHA256="$(safe_mktemp guncel_sha256)" || return
-    local TEMP_SHA256_SIG; TEMP_SHA256_SIG="$(safe_mktemp guncel_sha256_sig)" || return
-    local REMOTE_HASH
-    local LOCAL_HASH
+  local REMOTE_FILE
+  REMOTE_FILE="$(safe_mktemp guncel_remote)" || return
+  local TEMP_SHA256
+  TEMP_SHA256="$(safe_mktemp guncel_sha256)" || return
+  local TEMP_SHA256_SIG
+  TEMP_SHA256_SIG="$(safe_mktemp guncel_sha256_sig)" || return
+  local REMOTE_HASH
+  local LOCAL_HASH
 
-    # Cleanup on exit
-    trap 'rm -f "$REMOTE_FILE" "$TEMP_SHA256" "$TEMP_SHA256_SIG"' RETURN
-    
-    if ! download_file "$GITHUB_RAW_URL" "$REMOTE_FILE"; then return; fi
+  # Cleanup on exit
+  trap 'rm -f "$REMOTE_FILE" "$TEMP_SHA256" "$TEMP_SHA256_SIG"' RETURN
 
-    if ! grep -q "BigFive Updater" "$REMOTE_FILE"; then
-        rm -f "$REMOTE_FILE" "$TEMP_SHA256"
-        return
-    fi
+  if ! download_file "$GITHUB_RAW_URL" "$REMOTE_FILE"; then return; fi
 
-    REMOTE_HASH=$(sha256sum "$REMOTE_FILE" | awk '{print $1}')
-    LOCAL_HASH=$(sha256sum "$0" | awk '{print $1}')
-
-    if [[ "$REMOTE_HASH" != "$LOCAL_HASH" && -n "$REMOTE_HASH" ]]; then
-        printf '\n%s[!] Yeni sürüm mevcut!%s\n' "${YELLOW}" "${NC}"
-        
-        # v6.2.0: GPG + SHA256 doğrulama (güvenlik iyileştirmesi)
-        if download_file "$GITHUB_SHA256_URL" "$TEMP_SHA256" 2>/dev/null; then
-            # GPG imza doğrulaması (v6.2.0)
-            if download_file "$GITHUB_SHA256_SIG_URL" "$TEMP_SHA256_SIG" 2>/dev/null; then
-                local gpg_result
-                verify_gpg_signature "$TEMP_SHA256" "$TEMP_SHA256_SIG"
-                gpg_result=$?
-                if [[ $gpg_result -eq 1 ]]; then
-                    # GPG doğrulama başarısız - güncelleme iptal
-                    echo "[$(date '+%F %T')] ERROR: GPG signature verification failed" >> "$LOG_FILE"
-                    return 1
-                fi
-                # gpg_result=0 (verified) veya 2 (skipped) - devam et
-            else
-                print_warning "${MSG_WARN_GPG_SIG_MISSING:-SHA256SUMS.asc bulunamadı, GPG doğrulama atlanıyor.}"
-            fi
-
-            # SHA256 doğrulama (v3.6.0)
-            local EXPECTED
-            # v5.4.4 FIX: Sadece "guncel" dosyasını yakala (guncel.bash, guncel.8 değil)
-            EXPECTED=$(grep -E "  guncel$" "$TEMP_SHA256" 2>/dev/null | awk '{print $1}')
-            if [[ -n "$EXPECTED" && "$EXPECTED" != "$REMOTE_HASH" ]]; then
-                print_error_with_hint "${MSG_ERR_SHA256_FAIL:-SHA256 doğrulama başarısız! Güncelleme iptal edildi.}" \
-                    "${MSG_HINT_SHA256_FAIL:-Dosya bozulmuş olabilir. Daha sonra tekrar deneyin veya manuel kurulum yapın.}" "E030"
-                echo "[$(date '+%F %T')] ERROR: SHA256 mismatch - Expected: $EXPECTED, Got: $REMOTE_HASH" >> "$LOG_FILE"
-                return 1
-            fi
-            if [[ -n "$EXPECTED" ]]; then
-                print_info "${MSG_INFO_SHA256_OK:-SHA256 doğrulama başarılı.}"
-            fi
-        else
-            print_warning "${MSG_WARN_SHA256_MISSING:-SHA256SUMS dosyası bulunamadı, doğrulama atlanıyor.}"
-        fi
-        
-        if [[ "${AUTO_MODE:-false}" == "true" ]]; then
-             REPLY="e"
-        else
-             read -p "   Güncellemek ister misin? (e/H): " -n 1 -r
-             echo
-        fi
-
-        if [[ ${REPLY:-H} =~ ^[Ee]$ ]]; then
-            print_header "${MSG_HEADER_SELF_UPDATE:-Self-Update Başlatılıyor...}"
-            
-            # v3.6.0: .bak yedek mekanizması
-            if [ -f "$0" ]; then
-                if cp "$0" "${0}.bak"; then
-                    print_info "$(printf "${MSG_INFO_BACKUP_CREATED:-Eski sürüm yedeklendi: %s}" "${0}.bak")"
-                else
-                    print_warning "${MSG_WARN_BACKUP_FAILED:-Yedek oluşturulamadı, devam ediliyor.}"
-                fi
-            fi
-            
-            # v6.0.2: Atomic replace pattern - mv aynı filesystem'de atomic işlem
-            # Kesinti olursa .tmp kalır, orijinal bozulmaz
-            if install -m 0755 "$REMOTE_FILE" "${0}.tmp" && mv "${0}.tmp" "$0"; then
-                print_success "${MSG_SUCCESS_SCRIPT_UPDATED:-Script güncellendi. Yeniden başlatılıyor...}"
-                exec "$0" "${ORIGINAL_ARGS[@]}"
-            else
-                # Başarısız olursa .tmp dosyasını temizle
-                rm -f "${0}.tmp" 2>/dev/null
-                print_error_with_hint "${MSG_ERR_COPY_FAIL:-Güncelleme kopyalanamadı!}" \
-                    "${MSG_HINT_COPY_FAIL:-Disk dolu olabilir veya yazma izni yok. 'df -h' ve 'ls -la /usr/local/bin/' ile kontrol edin.}" "E031"
-                # Rollback attempt
-                if [ -f "${0}.bak" ]; then
-                    print_warning_with_hint "${MSG_RESTORE_ATTEMPT:-Yedekten geri yükleme deneniyor...}" \
-                        "Otomatik geri yükleme başarısız olursa: sudo cp ${0}.bak $0"
-                    cp "${0}.bak" "$0" && print_success "${MSG_SUCCESS_RESTORE:-Geri yükleme başarılı.}"
-                fi
-                exit 1
-            fi
-        fi
-    fi
+  if ! grep -q "BigFive Updater" "$REMOTE_FILE"; then
     rm -f "$REMOTE_FILE" "$TEMP_SHA256"
+    return
+  fi
+
+  REMOTE_HASH=$(sha256sum "$REMOTE_FILE" | awk '{print $1}')
+  LOCAL_HASH=$(sha256sum "$0" | awk '{print $1}')
+
+  if [[ "$REMOTE_HASH" != "$LOCAL_HASH" && -n "$REMOTE_HASH" ]]; then
+    printf '\n%s[!] Yeni sürüm mevcut!%s\n' "${YELLOW}" "${NC}"
+
+    # v6.2.0: GPG + SHA256 doğrulama (güvenlik iyileştirmesi)
+    if download_file "$GITHUB_SHA256_URL" "$TEMP_SHA256" 2> /dev/null; then
+      # GPG imza doğrulaması (v6.2.0)
+      if download_file "$GITHUB_SHA256_SIG_URL" "$TEMP_SHA256_SIG" 2> /dev/null; then
+        local gpg_result
+        verify_gpg_signature "$TEMP_SHA256" "$TEMP_SHA256_SIG"
+        gpg_result=$?
+        if [[ $gpg_result -eq 1 ]]; then
+          # GPG doğrulama başarısız - güncelleme iptal
+          echo "[$(date '+%F %T')] ERROR: GPG signature verification failed" >> "$LOG_FILE"
+          return 1
+        fi
+        # gpg_result=0 (verified) veya 2 (skipped) - devam et
+      else
+        print_warning "${MSG_WARN_GPG_SIG_MISSING:-SHA256SUMS.asc bulunamadı, GPG doğrulama atlanıyor.}"
+      fi
+
+      # SHA256 doğrulama (v3.6.0)
+      local EXPECTED
+      # v5.4.4 FIX: Sadece "guncel" dosyasını yakala (guncel.bash, guncel.8 değil)
+      EXPECTED=$(grep -E "  guncel$" "$TEMP_SHA256" 2> /dev/null | awk '{print $1}')
+      if [[ -n "$EXPECTED" && "$EXPECTED" != "$REMOTE_HASH" ]]; then
+        print_error_with_hint "${MSG_ERR_SHA256_FAIL:-SHA256 doğrulama başarısız! Güncelleme iptal edildi.}" \
+          "${MSG_HINT_SHA256_FAIL:-Dosya bozulmuş olabilir. Daha sonra tekrar deneyin veya manuel kurulum yapın.}" "E030"
+        echo "[$(date '+%F %T')] ERROR: SHA256 mismatch - Expected: $EXPECTED, Got: $REMOTE_HASH" >> "$LOG_FILE"
+        return 1
+      fi
+      if [[ -n "$EXPECTED" ]]; then
+        print_info "${MSG_INFO_SHA256_OK:-SHA256 doğrulama başarılı.}"
+      fi
+    else
+      print_warning "${MSG_WARN_SHA256_MISSING:-SHA256SUMS dosyası bulunamadı, doğrulama atlanıyor.}"
+    fi
+
+    if [[ "${AUTO_MODE:-false}" == "true" ]]; then
+      REPLY="e"
+    else
+      read -p "   Güncellemek ister misin? (e/H): " -n 1 -r
+      echo
+    fi
+
+    if [[ ${REPLY:-H} =~ ^[Ee]$ ]]; then
+      print_header "${MSG_HEADER_SELF_UPDATE:-Self-Update Başlatılıyor...}"
+
+      # v3.6.0: .bak yedek mekanizması
+      if [ -f "$0" ]; then
+        if cp "$0" "${0}.bak"; then
+          print_info "$(printf "${MSG_INFO_BACKUP_CREATED:-Eski sürüm yedeklendi: %s}" "${0}.bak")"
+        else
+          print_warning "${MSG_WARN_BACKUP_FAILED:-Yedek oluşturulamadı, devam ediliyor.}"
+        fi
+      fi
+
+      # v6.0.2: Atomic replace pattern - mv aynı filesystem'de atomic işlem
+      # Kesinti olursa .tmp kalır, orijinal bozulmaz
+      if install -m 0755 "$REMOTE_FILE" "${0}.tmp" && mv "${0}.tmp" "$0"; then
+        print_success "${MSG_SUCCESS_SCRIPT_UPDATED:-Script güncellendi. Yeniden başlatılıyor...}"
+        exec "$0" "${ORIGINAL_ARGS[@]}"
+      else
+        # Başarısız olursa .tmp dosyasını temizle
+        rm -f "${0}.tmp" 2> /dev/null
+        print_error_with_hint "${MSG_ERR_COPY_FAIL:-Güncelleme kopyalanamadı!}" \
+          "${MSG_HINT_COPY_FAIL:-Disk dolu olabilir veya yazma izni yok. 'df -h' ve 'ls -la /usr/local/bin/' ile kontrol edin.}" "E031"
+        # Rollback attempt
+        if [ -f "${0}.bak" ]; then
+          print_warning_with_hint "${MSG_RESTORE_ATTEMPT:-Yedekten geri yükleme deneniyor...}" \
+            "Otomatik geri yükleme başarısız olursa: sudo cp ${0}.bak $0"
+          cp "${0}.bak" "$0" && print_success "${MSG_SUCCESS_RESTORE:-Geri yükleme başarılı.}"
+        fi
+        exit 1
+      fi
+    fi
+  fi
+  rm -f "$REMOTE_FILE" "$TEMP_SHA256"
 }
 
 wait_for_lock() {
-    local has_checker="false"
-    if command -v fuser &> /dev/null; then has_checker="fuser";
-    elif command -v lsof &> /dev/null; then has_checker="lsof"; fi
+  local has_checker="false"
+  if command -v fuser &> /dev/null; then
+    has_checker="fuser"
+  elif command -v lsof &> /dev/null; then has_checker="lsof"; fi
 
-    if [[ "$has_checker" == "false" ]]; then return; fi
+  if [[ "$has_checker" == "false" ]]; then return; fi
 
-    local max_retries=15
-    local count=0
-    local lock_files=("/var/lib/dpkg/lock" "/var/lib/dpkg/lock-frontend" "/var/lib/apt/lists/lock" "/var/cache/apt/archives/lock")
-    
-    while true; do
-        local locked=false
-        for lock in "${lock_files[@]}"; do
-            if [[ "$has_checker" == "fuser" ]]; then
-                if fuser "$lock" >/dev/null 2>&1; then locked=true; break; fi
-            elif [[ "$has_checker" == "lsof" ]]; then
-                if lsof "$lock" >/dev/null 2>&1; then locked=true; break; fi
-            fi
-        done
+  local max_retries=15
+  local count=0
+  local lock_files=("/var/lib/dpkg/lock" "/var/lib/dpkg/lock-frontend" "/var/lib/apt/lists/lock" "/var/cache/apt/archives/lock")
 
-        if [[ "$locked" == "false" ]]; then break; fi
-
-        if [ $count -ge $max_retries ]; then
-            print_error_with_hint "${MSG_ERR_APT_LOCK:-APT kilitleri kaldırılamadı.}" \
-                "${MSG_HINT_APT_LOCK:-Başka bir güncelleme çalışıyor olabilir. 'sudo lsof /var/lib/dpkg/lock-frontend' ile kontrol edin.}" "E010"
-            exit 1
+  while true; do
+    local locked=false
+    for lock in "${lock_files[@]}"; do
+      if [[ "$has_checker" == "fuser" ]]; then
+        if fuser "$lock" > /dev/null 2>&1; then
+          locked=true
+          break
         fi
-        
-        printf '%s[~] APT kilitli (%s), bekleniyor... (%s/%s)%s\n' "${YELLOW}" "$has_checker" "$count" "$max_retries" "${NC}"
-        sleep 5
-        ((count++))
+      elif [[ "$has_checker" == "lsof" ]]; then
+        if lsof "$lock" > /dev/null 2>&1; then
+          locked=true
+          break
+        fi
+      fi
     done
+
+    if [[ "$locked" == "false" ]]; then break; fi
+
+    if [ $count -ge $max_retries ]; then
+      print_error_with_hint "${MSG_ERR_APT_LOCK:-APT kilitleri kaldırılamadı.}" \
+        "${MSG_HINT_APT_LOCK:-Başka bir güncelleme çalışıyor olabilir. 'sudo lsof /var/lib/dpkg/lock-frontend' ile kontrol edin.}" "E010"
+      exit 1
+    fi
+
+    printf '%s[~] APT kilitli (%s), bekleniyor... (%s/%s)%s\n' "${YELLOW}" "$has_checker" "$count" "$max_retries" "${NC}"
+    sleep 5
+    ((count++))
+  done
 }
 
 wait_for_dnf_lock() {
-    # v5.5.2 FIX: pgrep yoksa bu kontrolü atla
-    if ! command -v pgrep &>/dev/null; then
-        print_info "${MSG_INFO_PGREP_MISSING:-pgrep bulunamadı, DNF kilit kontrolü atlanıyor.}"
-        return 0
-    fi
+  # v5.5.2 FIX: pgrep yoksa bu kontrolü atla
+  if ! command -v pgrep &> /dev/null; then
+    print_info "${MSG_INFO_PGREP_MISSING:-pgrep bulunamadı, DNF kilit kontrolü atlanıyor.}"
+    return 0
+  fi
 
-    local max_attempts=30
-    local attempt=0
-    while [ $attempt -lt $max_attempts ]; do
-        # v6.1.1: dnf5 eklendi (Fedora 41+)
-        if ! pgrep -x dnf >/dev/null && ! pgrep -x dnf5 >/dev/null && ! pgrep -x yum >/dev/null && ! pgrep -x rpm >/dev/null; then
-            return 0
-        fi
-        print_warning "$(printf "${MSG_WARN_DNF_LOCK_WAIT:-DNF kilidi bekleniyor... (%d/%d)}" "$((attempt+1))" "$max_attempts")"
-        sleep 10
-        ((attempt++))
-    done
-    print_error_with_hint "${MSG_ERR_DNF_LOCK:-DNF kilidi zaman aşımı!}" \
-        "${MSG_HINT_DNF_LOCK:-'pgrep -a dnf' ile çalışan işlemi bulun veya bekleyin. GNOME Software açıksa kapatın.}" "E011"
-    return 1
+  local max_attempts=30
+  local attempt=0
+  while [ $attempt -lt $max_attempts ]; do
+    # v6.1.1: dnf5 eklendi (Fedora 41+)
+    if ! pgrep -x dnf > /dev/null && ! pgrep -x dnf5 > /dev/null && ! pgrep -x yum > /dev/null && ! pgrep -x rpm > /dev/null; then
+      return 0
+    fi
+    print_warning "$(printf "${MSG_WARN_DNF_LOCK_WAIT:-DNF kilidi bekleniyor... (%d/%d)}" "$((attempt + 1))" "$max_attempts")"
+    sleep 10
+    ((attempt++))
+  done
+  print_error_with_hint "${MSG_ERR_DNF_LOCK:-DNF kilidi zaman aşımı!}" \
+    "${MSG_HINT_DNF_LOCK:-'pgrep -a dnf' ile çalışan işlemi bulun veya bekleyin. GNOME Software açıksa kapatın.}" "E011"
+  return 1
 }
 
 create_snapshot() {
-    # v5.4.8: Snapshot timeout (5 dakika varsayılan)
-    local SNAPSHOT_TIMEOUT=${CONFIG_SNAPSHOT_TIMEOUT:-300}
+  # v5.4.8: Snapshot timeout (5 dakika varsayılan)
+  local SNAPSHOT_TIMEOUT=${CONFIG_SNAPSHOT_TIMEOUT:-300}
 
-    # v3.6.0: --skip snapshot kontrolü
-    if [[ "$SKIP_SNAPSHOT" == "true" ]]; then
-        print_info "${MSG_INFO_SNAPSHOT_SKIPPED:-Snapshot atlandı (--skip snapshot)}"
-        return
-    fi
+  # v3.6.0: --skip snapshot kontrolü
+  if [[ "$SKIP_SNAPSHOT" == "true" ]]; then
+    print_info "${MSG_INFO_SNAPSHOT_SKIPPED:-Snapshot atlandı (--skip snapshot)}"
+    return
+  fi
 
-    # v3.6.0: --only kontrolü (system veya fwupd ise snapshot atla)
-    if [[ -n "$ONLY_MODE" && "$ONLY_MODE" != "snapshot" ]]; then
-        return
-    fi
+  # v3.6.0: --only kontrolü (system veya fwupd ise snapshot atla)
+  if [[ -n "$ONLY_MODE" && "$ONLY_MODE" != "snapshot" ]]; then
+    return
+  fi
 
-    # v3.8.0: Dry-run modunda snapshot oluşturma
-    if [[ "$DRY_RUN" == "true" ]]; then
-        if command -v timeshift &> /dev/null; then
-            print_dry_run "Timeshift snapshot oluşturulacak: BigFive-Update-$(date +%F)"
-        elif command -v snapper &> /dev/null; then
-            print_dry_run "Snapper snapshot oluşturulacak: BigFive-Update-$(date +%F)"
-        else
-            print_dry_run "Yedekleme aracı (Timeshift/Snapper) bulunamadı"
-        fi
-        return
-    fi
-
+  # v3.8.0: Dry-run modunda snapshot oluşturma
+  if [[ "$DRY_RUN" == "true" ]]; then
     if command -v timeshift &> /dev/null; then
-        print_header "${MSG_HEADER_SNAPSHOT_TIMESHIFT:-Sistem Yedekleniyor (Timeshift)}"
-        SNAPSHOT_NAME="BigFive-Update-$(date +%F)"
-        local ts_exit_code=0
-        if [[ "$VERBOSE_MODE" == "true" ]]; then
-            timeout "$SNAPSHOT_TIMEOUT" timeshift --create --comments "$SNAPSHOT_NAME" --tags D 2>&1 | tee -a "$LOG_FILE" || ts_exit_code=$?
-        else
-            timeout "$SNAPSHOT_TIMEOUT" timeshift --create --comments "$SNAPSHOT_NAME" --tags D >> "$LOG_FILE" 2>&1 || ts_exit_code=$?
-        fi
-        if [[ $ts_exit_code -eq 124 ]]; then
-            print_warning "$(printf "${MSG_WARN_TIMESHIFT_TIMEOUT:-Timeshift snapshot zaman aşımına uğradı (%ds)}" "$SNAPSHOT_TIMEOUT")"
-            add_json_warning "Timeshift snapshot timed out after ${SNAPSHOT_TIMEOUT}s"
-            SNAPSHOT_NAME=""
-        elif [[ $ts_exit_code -eq 0 ]]; then
-            print_success "${MSG_SUCCESS_TIMESHIFT:-Timeshift snapshot oluşturuldu.}"
-        else
-            print_warning "$(printf "${MSG_WARN_TIMESHIFT_FAILED:-Timeshift snapshot başarısız oldu (exit: %d)}" "$ts_exit_code")"
-            add_json_warning "Timeshift snapshot failed with exit code $ts_exit_code"
-            SNAPSHOT_NAME=""
-        fi
-        return
+      print_dry_run "Timeshift snapshot oluşturulacak: BigFive-Update-$(date +%F)"
+    elif command -v snapper &> /dev/null; then
+      print_dry_run "Snapper snapshot oluşturulacak: BigFive-Update-$(date +%F)"
+    else
+      print_dry_run "Yedekleme aracı (Timeshift/Snapper) bulunamadı"
     fi
+    return
+  fi
 
-    if command -v snapper &> /dev/null; then
-        print_header "${MSG_HEADER_SNAPSHOT_SNAPPER:-Sistem Yedekleniyor (Snapper)}"
-        SNAPSHOT_NAME="BigFive-Update-$(date +%F)"
-        local sn_exit_code=0
-        timeout "$SNAPSHOT_TIMEOUT" snapper create --description "$SNAPSHOT_NAME" --cleanup-algorithm number >> "$LOG_FILE" 2>&1 || sn_exit_code=$?
-        if [[ $sn_exit_code -eq 124 ]]; then
-            print_warning "$(printf "${MSG_WARN_SNAPPER_TIMEOUT:-Snapper snapshot zaman aşımına uğradı (%ds)}" "$SNAPSHOT_TIMEOUT")"
-            add_json_warning "Snapper snapshot timed out after ${SNAPSHOT_TIMEOUT}s"
-            SNAPSHOT_NAME=""
-        elif [[ $sn_exit_code -eq 0 ]]; then
-            print_success "${MSG_SUCCESS_SNAPPER:-Snapper snapshot oluşturuldu.}"
-        else
-            print_warning "${MSG_WARN_SNAPPER_FAILED:-Snapper snapshot oluşturulamadı.}"
-            SNAPSHOT_NAME=""
-        fi
-        return
+  if command -v timeshift &> /dev/null; then
+    print_header "${MSG_HEADER_SNAPSHOT_TIMESHIFT:-Sistem Yedekleniyor (Timeshift)}"
+    SNAPSHOT_NAME="BigFive-Update-$(date +%F)"
+    local ts_exit_code=0
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+      timeout "$SNAPSHOT_TIMEOUT" timeshift --create --comments "$SNAPSHOT_NAME" --tags D 2>&1 | tee -a "$LOG_FILE" || ts_exit_code=$?
+    else
+      timeout "$SNAPSHOT_TIMEOUT" timeshift --create --comments "$SNAPSHOT_NAME" --tags D >> "$LOG_FILE" 2>&1 || ts_exit_code=$?
     fi
-    
-    if [[ "${AUTO_MODE:-false}" != "true" ]]; then
-         echo "[$(date '+%F %T')] INFO: Yedekleme aracı (Timeshift/Snapper) yok." >> "$LOG_FILE"
+    if [[ $ts_exit_code -eq 124 ]]; then
+      print_warning "$(printf "${MSG_WARN_TIMESHIFT_TIMEOUT:-Timeshift snapshot zaman aşımına uğradı (%ds)}" "$SNAPSHOT_TIMEOUT")"
+      add_json_warning "Timeshift snapshot timed out after ${SNAPSHOT_TIMEOUT}s"
+      SNAPSHOT_NAME=""
+    elif [[ $ts_exit_code -eq 0 ]]; then
+      print_success "${MSG_SUCCESS_TIMESHIFT:-Timeshift snapshot oluşturuldu.}"
+    else
+      print_warning "$(printf "${MSG_WARN_TIMESHIFT_FAILED:-Timeshift snapshot başarısız oldu (exit: %d)}" "$ts_exit_code")"
+      add_json_warning "Timeshift snapshot failed with exit code $ts_exit_code"
+      SNAPSHOT_NAME=""
     fi
+    return
+  fi
+
+  if command -v snapper &> /dev/null; then
+    print_header "${MSG_HEADER_SNAPSHOT_SNAPPER:-Sistem Yedekleniyor (Snapper)}"
+    SNAPSHOT_NAME="BigFive-Update-$(date +%F)"
+    local sn_exit_code=0
+    timeout "$SNAPSHOT_TIMEOUT" snapper create --description "$SNAPSHOT_NAME" --cleanup-algorithm number >> "$LOG_FILE" 2>&1 || sn_exit_code=$?
+    if [[ $sn_exit_code -eq 124 ]]; then
+      print_warning "$(printf "${MSG_WARN_SNAPPER_TIMEOUT:-Snapper snapshot zaman aşımına uğradı (%ds)}" "$SNAPSHOT_TIMEOUT")"
+      add_json_warning "Snapper snapshot timed out after ${SNAPSHOT_TIMEOUT}s"
+      SNAPSHOT_NAME=""
+    elif [[ $sn_exit_code -eq 0 ]]; then
+      print_success "${MSG_SUCCESS_SNAPPER:-Snapper snapshot oluşturuldu.}"
+    else
+      print_warning "${MSG_WARN_SNAPPER_FAILED:-Snapper snapshot oluşturulamadı.}"
+      SNAPSHOT_NAME=""
+    fi
+    return
+  fi
+
+  if [[ "${AUTO_MODE:-false}" != "true" ]]; then
+    echo "[$(date '+%F %T')] INFO: Yedekleme aracı (Timeshift/Snapper) yok." >> "$LOG_FILE"
+  fi
 }
 
 # --- YENİ v3.6.0: ONLY MODE KONTROLÜ ---
 should_run_backend() {
-    local backend="$1"
+  local backend="$1"
 
-    # Eğer --only belirtilmişse, sadece o backend çalışsın
-    if [[ -n "$ONLY_MODE" ]]; then
-        IFS=',' read -ra ONLY_ITEMS <<< "$ONLY_MODE"
-        for item in "${ONLY_ITEMS[@]}"; do
-            # v5.1: system = apt, dnf, pacman, zypper, apk (BigFive)
-            # v6.1.0: Explicit grouping for clarity (|| has lower precedence than &&)
-            if [[ "$item" == "$backend" ]] || { [[ "$item" == "system" ]] && [[ "$backend" =~ ^(apt|dnf|pacman|zypper|apk)$ ]]; }; then
-                return 0
-            fi
-        done
-        return 1
-    fi
+  # Eğer --only belirtilmişse, sadece o backend çalışsın
+  if [[ -n "$ONLY_MODE" ]]; then
+    IFS=',' read -ra ONLY_ITEMS <<< "$ONLY_MODE"
+    for item in "${ONLY_ITEMS[@]}"; do
+      # v5.1: system = apt, dnf, pacman, zypper, apk (BigFive)
+      # v6.1.0: Explicit grouping for clarity (|| has lower precedence than &&)
+      if [[ "$item" == "$backend" ]] || { [[ "$item" == "system" ]] && [[ "$backend" =~ ^(apt|dnf|pacman|zypper|apk)$ ]]; }; then
+        return 0
+      fi
+    done
+    return 1
+  fi
 
-    return 0
+  return 0
 }
 
 # --- v4.1.0: MODÜLER GÜNCELLEME FONKSİYONLARI ---
 
 # APT Güncellemesi
 update_apt() {
-    if ! command -v apt-get &> /dev/null; then return 1; fi
-    if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
-    if ! should_run_backend "apt"; then return 1; fi
+  if ! command -v apt-get &> /dev/null; then return 1; fi
+  if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
+  if ! should_run_backend "apt"; then return 1; fi
 
-    local apt_opts=()
-    if [[ "${AUTO_MODE:-false}" == "true" ]]; then
-        export DEBIAN_FRONTEND=noninteractive
-        apt_opts=(-o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold")
-    fi
+  local apt_opts=()
+  if [[ "${AUTO_MODE:-false}" == "true" ]]; then
+    export DEBIAN_FRONTEND=noninteractive
+    apt_opts=(-o "Dpkg::Options::=--force-confdef" -o "Dpkg::Options::=--force-confold")
+  fi
 
-    wait_for_lock
+  wait_for_lock
 
-    # v6.4.0: Security-only uyarısı (APT native destek yok)
-    if [[ "$SECURITY_ONLY" == "true" ]]; then
-        print_warning "${MSG_WARN_SECURITY_APT:-APT için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak.}"
-        print_info "${MSG_HINT_SECURITY_APT:-Öneri: unattended-upgrades paketi ile otomatik güvenlik güncellemeleri yapılandırın.}"
-    fi
+  # v6.4.0: Security-only uyarısı (APT native destek yok)
+  if [[ "$SECURITY_ONLY" == "true" ]]; then
+    print_warning "${MSG_WARN_SECURITY_APT:-APT için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak.}"
+    print_info "${MSG_HINT_SECURITY_APT:-Öneri: unattended-upgrades paketi ile otomatik güvenlik güncellemeleri yapılandırın.}"
+  fi
 
-    print_header "${MSG_HEADER_APT_UPDATE:-APT: Güncelleme Başlıyor}"
+  print_header "${MSG_HEADER_APT_UPDATE:-APT: Güncelleme Başlıyor}"
 
-    # APT update (10 dakika timeout)
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        timeout 600 apt-get update 2>&1 | tee -a "$LOG_FILE"
-    else
-        timeout 600 apt-get update >> "$LOG_FILE" 2>&1
-    fi
+  # APT update (10 dakika timeout)
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    timeout 600 apt-get update 2>&1 | tee -a "$LOG_FILE"
+  else
+    timeout 600 apt-get update >> "$LOG_FILE" 2>&1
+  fi
 
-    print_header "${MSG_HEADER_APT_UPGRADE:-APT: Dist-Upgrade}"
-    local apt_upgradable apt_simulate
-    apt_simulate=$(apt-get -s dist-upgrade 2>/dev/null | grep "^Inst " || true)
-    apt_upgradable=$(echo "$apt_simulate" | grep -c "^Inst " 2>/dev/null) || apt_upgradable=0
-    APT_COUNT=${apt_upgradable:-0}
+  print_header "${MSG_HEADER_APT_UPGRADE:-APT: Dist-Upgrade}"
+  local apt_upgradable apt_simulate
+  apt_simulate=$(apt-get -s dist-upgrade 2> /dev/null | grep "^Inst " || true)
+  apt_upgradable=$(echo "$apt_simulate" | grep -c "^Inst " 2> /dev/null) || apt_upgradable=0
+  APT_COUNT=${apt_upgradable:-0}
 
-    # --json-full için paket detaylarını topla
-    if [[ "$JSON_MODE" == "json-full" && -n "$apt_simulate" ]]; then
-        while IFS= read -r line; do
-            local pkg_name old_ver new_ver
-            pkg_name=$(echo "$line" | awk '{print $2}')
-            old_ver=$(echo "$line" | grep -oP '\[\K[^\]]+' || echo "new")
-            new_ver=$(echo "$line" | grep -oP '\(\K[^\s]+' || echo "unknown")
-            add_package_info "$pkg_name" "$old_ver" "$new_ver" "apt"
-        done <<< "$apt_simulate"
-    fi
+  # --json-full için paket detaylarını topla
+  if [[ "$JSON_MODE" == "json-full" && -n "$apt_simulate" ]]; then
+    while IFS= read -r line; do
+      local pkg_name old_ver new_ver
+      pkg_name=$(echo "$line" | awk '{print $2}')
+      old_ver=$(echo "$line" | grep -oP '\[\K[^\]]+' || echo "new")
+      new_ver=$(echo "$line" | grep -oP '\(\K[^\s]+' || echo "unknown")
+      add_package_info "$pkg_name" "$old_ver" "$new_ver" "apt"
+    done <<< "$apt_simulate"
+  fi
 
-    # APT dist-upgrade (30 dakika timeout)
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        timeout 1800 apt-get dist-upgrade -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
-    else
-        timeout 1800 apt-get dist-upgrade -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
-    fi
+  # APT dist-upgrade (30 dakika timeout)
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    timeout 1800 apt-get dist-upgrade -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+  else
+    timeout 1800 apt-get dist-upgrade -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
+  fi
 
-    print_header "${MSG_HEADER_APT_CLEANUP:-APT: Temizlik}"
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        apt-get autoremove -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
-        apt-get autoclean -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
-    else
-        apt-get autoremove -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
-        apt-get autoclean -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
-    fi
+  print_header "${MSG_HEADER_APT_CLEANUP:-APT: Temizlik}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    apt-get autoremove -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+    apt-get autoclean -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
+  else
+    apt-get autoremove -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
+    apt-get autoclean -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
+  fi
 
-    print_info "$(printf "${MSG_INFO_APT_COUNT:-APT: %d paket güncellendi.}" "$APT_COUNT")"
-    add_pkg_manager_status "apt" "ran" "$APT_COUNT"
-    return 0
+  print_info "$(printf "${MSG_INFO_APT_COUNT:-APT: %d paket güncellendi.}" "$APT_COUNT")"
+  add_pkg_manager_status "apt" "ran" "$APT_COUNT"
+  return 0
 }
 
 # DNF Güncellemesi
 update_dnf() {
-    if ! command -v dnf &> /dev/null; then return 1; fi
-    if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
-    if ! should_run_backend "dnf"; then return 1; fi
+  if ! command -v dnf &> /dev/null; then return 1; fi
+  if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
+  if ! should_run_backend "dnf"; then return 1; fi
 
-    if ! wait_for_dnf_lock; then
-        print_error "${MSG_DNF_LOCK_FAILED:-DNF kilidi alınamadı, DNF güncellemesi atlanıyor.}"
-        return 1
+  if ! wait_for_dnf_lock; then
+    print_error "${MSG_DNF_LOCK_FAILED:-DNF kilidi alınamadı, DNF güncellemesi atlanıyor.}"
+    return 1
+  fi
+
+  print_header "${MSG_HEADER_DNF_UPDATE:-DNF: Güncelleme}"
+
+  # --json-full için paket detaylarını ÖNCE topla
+  if [[ "$JSON_MODE" == "json-full" ]]; then
+    local dnf_updates
+    dnf_updates=$(dnf check-update 2> /dev/null | awk 'NF>=2 && /^[a-zA-Z0-9]/ {print $1, $2}' || true)
+    if [[ -n "$dnf_updates" ]]; then
+      while IFS= read -r line; do
+        local pkg_full pkg_name new_ver old_ver
+        pkg_full=$(echo "$line" | awk '{print $1}')
+        new_ver=$(echo "$line" | awk '{print $2}')
+        # Paket adından .arch kısmını çıkar
+        pkg_name=${pkg_full%.*}
+        # Mevcut versiyonu al
+        old_ver=$(rpm -q --qf '%{VERSION}-%{RELEASE}' "$pkg_name" 2> /dev/null || echo "unknown")
+        add_package_info "$pkg_name" "$old_ver" "$new_ver" "dnf"
+      done <<< "$dnf_updates"
     fi
+  fi
 
-    print_header "${MSG_HEADER_DNF_UPDATE:-DNF: Güncelleme}"
+  local dnf_temp
+  dnf_temp=$(safe_mktemp dnf_update) || return 1
 
-    # --json-full için paket detaylarını ÖNCE topla
-    if [[ "$JSON_MODE" == "json-full" ]]; then
-        local dnf_updates
-        dnf_updates=$(dnf check-update 2>/dev/null | awk 'NF>=2 && /^[a-zA-Z0-9]/ {print $1, $2}' || true)
-        if [[ -n "$dnf_updates" ]]; then
-            while IFS= read -r line; do
-                local pkg_full pkg_name new_ver old_ver
-                pkg_full=$(echo "$line" | awk '{print $1}')
-                new_ver=$(echo "$line" | awk '{print $2}')
-                # Paket adından .arch kısmını çıkar
-                pkg_name=${pkg_full%.*}
-                # Mevcut versiyonu al
-                old_ver=$(rpm -q --qf '%{VERSION}-%{RELEASE}' "$pkg_name" 2>/dev/null || echo "unknown")
-                add_package_info "$pkg_name" "$old_ver" "$new_ver" "dnf"
-            done <<< "$dnf_updates"
-        fi
-    fi
+  # v6.4.0: Security-only mode
+  local dnf_cmd="dnf upgrade --refresh -y"
+  if [[ "$SECURITY_ONLY" == "true" ]]; then
+    dnf_cmd="dnf upgrade --security --refresh -y"
+    print_info "${MSG_INFO_SECURITY_ONLY:-Sadece güvenlik güncellemeleri uygulanıyor...}"
+  fi
 
-    local dnf_temp
-    dnf_temp=$(safe_mktemp dnf_update) || return 1
+  # DNF upgrade (30 dakika timeout)
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    timeout 1800 $dnf_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$dnf_temp"
+  else
+    timeout 1800 $dnf_cmd 2>&1 | tee "$dnf_temp" >> "$LOG_FILE"
+  fi
 
-    # v6.4.0: Security-only mode
-    local dnf_cmd="dnf upgrade --refresh -y"
-    if [[ "$SECURITY_ONLY" == "true" ]]; then
-        dnf_cmd="dnf upgrade --security --refresh -y"
-        print_info "${MSG_INFO_SECURITY_ONLY:-Sadece güvenlik güncellemeleri uygulanıyor...}"
-    fi
+  # DNF sayacını parse et - v5.4.7 FIX: DNF5 formatı desteği
+  # Önce Transaction Summary'den "Upgrading: X packages" satırını dene
+  DNF_COUNT=$(grep -oP "Upgrading:\s+\K\d+" "$dnf_temp" 2> /dev/null | head -1 || echo "0")
+  # DNF4 fallback: "Upgraded: X" satırı
+  if [[ -z "$DNF_COUNT" || "$DNF_COUNT" == "0" ]]; then
+    DNF_COUNT=$(grep -oP "Upgraded\s+\K\d+" "$dnf_temp" 2> /dev/null | head -1 || echo "0")
+  fi
+  # Son fallback: Upgrading satırlarını say (her paket için bir satır)
+  if [[ -z "$DNF_COUNT" || "$DNF_COUNT" == "0" ]]; then
+    DNF_COUNT=$(grep -cE "^\[.*/.*\] Upgrading " "$dnf_temp" 2> /dev/null) || DNF_COUNT=0
+  fi
 
-    # DNF upgrade (30 dakika timeout)
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        timeout 1800 $dnf_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$dnf_temp"
-    else
-        timeout 1800 $dnf_cmd 2>&1 | tee "$dnf_temp" >> "$LOG_FILE"
-    fi
+  rm -f "$dnf_temp"
+  DNF_COUNT=${DNF_COUNT:-0}
 
-    # DNF sayacını parse et - v5.4.7 FIX: DNF5 formatı desteği
-    # Önce Transaction Summary'den "Upgrading: X packages" satırını dene
-    DNF_COUNT=$(grep -oP "Upgrading:\s+\K\d+" "$dnf_temp" 2>/dev/null | head -1 || echo "0")
-    # DNF4 fallback: "Upgraded: X" satırı
-    if [[ -z "$DNF_COUNT" || "$DNF_COUNT" == "0" ]]; then
-        DNF_COUNT=$(grep -oP "Upgraded\s+\K\d+" "$dnf_temp" 2>/dev/null | head -1 || echo "0")
-    fi
-    # Son fallback: Upgrading satırlarını say (her paket için bir satır)
-    if [[ -z "$DNF_COUNT" || "$DNF_COUNT" == "0" ]]; then
-        DNF_COUNT=$(grep -cE "^\[.*/.*\] Upgrading " "$dnf_temp" 2>/dev/null) || DNF_COUNT=0
-    fi
-
-    rm -f "$dnf_temp"
-    DNF_COUNT=${DNF_COUNT:-0}
-
-    print_info "$(printf "${MSG_INFO_DNF_COUNT:-DNF: %d paket güncellendi.}" "$DNF_COUNT")"
-    add_pkg_manager_status "dnf" "ran" "$DNF_COUNT"
-    return 0
+  print_info "$(printf "${MSG_INFO_DNF_COUNT:-DNF: %d paket güncellendi.}" "$DNF_COUNT")"
+  add_pkg_manager_status "dnf" "ran" "$DNF_COUNT"
+  return 0
 }
 
 # Pacman Güncellemesi (v5.0 BigFour - Arch Linux, Manjaro, EndeavourOS)
 update_pacman() {
-    if ! command -v pacman &> /dev/null; then return 1; fi
-    if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
-    if ! should_run_backend "pacman"; then return 1; fi
+  if ! command -v pacman &> /dev/null; then return 1; fi
+  if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
+  if ! should_run_backend "pacman"; then return 1; fi
 
-    # v6.4.0: Security-only uyarısı (Pacman native destek yok)
-    if [[ "$SECURITY_ONLY" == "true" ]]; then
-        print_warning "${MSG_WARN_SECURITY_PACMAN:-Pacman için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak.}"
-        print_info "${MSG_HINT_SECURITY_PACMAN:-Öneri: arch-audit paketi ile güvenlik açıklarını kontrol edebilirsiniz.}"
-    fi
+  # v6.4.0: Security-only uyarısı (Pacman native destek yok)
+  if [[ "$SECURITY_ONLY" == "true" ]]; then
+    print_warning "${MSG_WARN_SECURITY_PACMAN:-Pacman için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak.}"
+    print_info "${MSG_HINT_SECURITY_PACMAN:-Öneri: arch-audit paketi ile güvenlik açıklarını kontrol edebilirsiniz.}"
+  fi
 
-    print_header "${MSG_HEADER_PACMAN_UPDATE:-Pacman: Güncelleme}"
+  print_header "${MSG_HEADER_PACMAN_UPDATE:-Pacman: Güncelleme}"
 
-    local pacman_temp
-    pacman_temp=$(safe_mktemp pacman_update) || return 1
+  local pacman_temp
+  pacman_temp=$(safe_mktemp pacman_update) || return 1
 
-    # Önce veritabanını güncelle (10 dakika timeout)
+  # Önce veritabanını güncelle (10 dakika timeout)
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    timeout 600 pacman -Sy 2>&1 | tee -a "$LOG_FILE"
+  else
+    timeout 600 pacman -Sy >> "$LOG_FILE" 2>&1
+  fi
+
+  # Güncellenecek paket sayısını al
+  local pacman_updates
+  pacman_updates=$(pacman -Qu 2> /dev/null || true)
+  PACMAN_COUNT=$(echo "$pacman_updates" | grep -c . 2> /dev/null) || PACMAN_COUNT=0
+  PACMAN_COUNT=${PACMAN_COUNT:-0}
+
+  # --json-full için paket detaylarını topla
+  if [[ "$JSON_MODE" == "json-full" && -n "$pacman_updates" ]]; then
+    while IFS= read -r line; do
+      local pkg_name old_ver new_ver
+      # Format: paket_adı eski_versiyon -> yeni_versiyon
+      pkg_name=$(echo "$line" | awk '{print $1}')
+      old_ver=$(echo "$line" | awk '{print $2}')
+      new_ver=$(echo "$line" | awk '{print $4}')
+      add_package_info "$pkg_name" "$old_ver" "$new_ver" "pacman"
+    done <<< "$pacman_updates"
+  fi
+
+  # Pacman upgrade (30 dakika timeout)
+  if [[ "$PACMAN_COUNT" -gt 0 ]]; then
     if [[ "$VERBOSE_MODE" == "true" ]]; then
-        timeout 600 pacman -Sy 2>&1 | tee -a "$LOG_FILE"
+      timeout 1800 pacman -Su --noconfirm 2>&1 | tee -a "$LOG_FILE" | tee "$pacman_temp"
     else
-        timeout 600 pacman -Sy >> "$LOG_FILE" 2>&1
+      timeout 1800 pacman -Su --noconfirm 2>&1 | tee "$pacman_temp" >> "$LOG_FILE"
     fi
+  fi
 
-    # Güncellenecek paket sayısını al
-    local pacman_updates
-    pacman_updates=$(pacman -Qu 2>/dev/null || true)
-    PACMAN_COUNT=$(echo "$pacman_updates" | grep -c . 2>/dev/null) || PACMAN_COUNT=0
-    PACMAN_COUNT=${PACMAN_COUNT:-0}
+  rm -f "$pacman_temp"
 
-    # --json-full için paket detaylarını topla
-    if [[ "$JSON_MODE" == "json-full" && -n "$pacman_updates" ]]; then
-        while IFS= read -r line; do
-            local pkg_name old_ver new_ver
-            # Format: paket_adı eski_versiyon -> yeni_versiyon
-            pkg_name=$(echo "$line" | awk '{print $1}')
-            old_ver=$(echo "$line" | awk '{print $2}')
-            new_ver=$(echo "$line" | awk '{print $4}')
-            add_package_info "$pkg_name" "$old_ver" "$new_ver" "pacman"
-        done <<< "$pacman_updates"
+  # Orphan paketleri temizle (opsiyonel)
+  local orphans
+  orphans=$(pacman -Qtdq 2> /dev/null || true)
+  if [[ -n "$orphans" ]]; then
+    print_header "${MSG_HEADER_PACMAN_ORPHAN:-Pacman: Orphan Temizliği}"
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+      echo "$orphans" | xargs pacman -Rns --noconfirm 2>&1 | tee -a "$LOG_FILE" || true
+    else
+      echo "$orphans" | xargs pacman -Rns --noconfirm >> "$LOG_FILE" 2>&1 || true
     fi
+  fi
 
-    # Pacman upgrade (30 dakika timeout)
-    if [[ "$PACMAN_COUNT" -gt 0 ]]; then
-        if [[ "$VERBOSE_MODE" == "true" ]]; then
-            timeout 1800 pacman -Su --noconfirm 2>&1 | tee -a "$LOG_FILE" | tee "$pacman_temp"
-        else
-            timeout 1800 pacman -Su --noconfirm 2>&1 | tee "$pacman_temp" >> "$LOG_FILE"
-        fi
-    fi
+  # Cache temizliği
+  if command -v paccache &> /dev/null; then
+    paccache -r >> "$LOG_FILE" 2>&1 || true
+  fi
 
-    rm -f "$pacman_temp"
-
-    # Orphan paketleri temizle (opsiyonel)
-    local orphans
-    orphans=$(pacman -Qtdq 2>/dev/null || true)
-    if [[ -n "$orphans" ]]; then
-        print_header "${MSG_HEADER_PACMAN_ORPHAN:-Pacman: Orphan Temizliği}"
-        if [[ "$VERBOSE_MODE" == "true" ]]; then
-            echo "$orphans" | xargs pacman -Rns --noconfirm 2>&1 | tee -a "$LOG_FILE" || true
-        else
-            echo "$orphans" | xargs pacman -Rns --noconfirm >> "$LOG_FILE" 2>&1 || true
-        fi
-    fi
-
-    # Cache temizliği
-    if command -v paccache &> /dev/null; then
-        paccache -r >> "$LOG_FILE" 2>&1 || true
-    fi
-
-    print_info "$(printf "${MSG_INFO_PACMAN_COUNT:-Pacman: %d paket güncellendi.}" "$PACMAN_COUNT")"
-    add_pkg_manager_status "pacman" "ran" "$PACMAN_COUNT"
-    return 0
+  print_info "$(printf "${MSG_INFO_PACMAN_COUNT:-Pacman: %d paket güncellendi.}" "$PACMAN_COUNT")"
+  add_pkg_manager_status "pacman" "ran" "$PACMAN_COUNT"
+  return 0
 }
 
 # Zypper Güncellemesi (v5.0 BigFour - openSUSE Leap/Tumbleweed)
 update_zypper() {
-    if ! command -v zypper &> /dev/null; then return 1; fi
-    if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
-    if ! should_run_backend "zypper"; then return 1; fi
+  if ! command -v zypper &> /dev/null; then return 1; fi
+  if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
+  if ! should_run_backend "zypper"; then return 1; fi
 
-    print_header "${MSG_HEADER_ZYPPER_UPDATE:-Zypper: Güncelleme}"
+  print_header "${MSG_HEADER_ZYPPER_UPDATE:-Zypper: Güncelleme}"
 
-    local zypper_temp
-    zypper_temp=$(safe_mktemp zypper_update) || return 1
+  local zypper_temp
+  zypper_temp=$(safe_mktemp zypper_update) || return 1
 
-    # Repo'ları yenile (10 dakika timeout)
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        timeout 600 zypper refresh 2>&1 | tee -a "$LOG_FILE"
-    else
-        timeout 600 zypper refresh >> "$LOG_FILE" 2>&1
-    fi
+  # Repo'ları yenile (10 dakika timeout)
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    timeout 600 zypper refresh 2>&1 | tee -a "$LOG_FILE"
+  else
+    timeout 600 zypper refresh >> "$LOG_FILE" 2>&1
+  fi
 
-    # Güncellenecek paket sayısını al - v5.4.7 FIX: Doğru parsing
-    # zypper lu çıktısı: "S | Repository | Name | Current | Available | Arch"
-    # Header ve separator satırlarını atla, sadece paket satırlarını say
-    local zypper_updates
-    zypper_updates=$(zypper -q lu 2>/dev/null | grep -v "^-" | grep -v "^S " | grep "|" || true)
-    ZYPPER_COUNT=$(echo "$zypper_updates" | grep -c "|" 2>/dev/null) || ZYPPER_COUNT=0
-    ZYPPER_COUNT=${ZYPPER_COUNT:-0}
+  # Güncellenecek paket sayısını al - v5.4.7 FIX: Doğru parsing
+  # zypper lu çıktısı: "S | Repository | Name | Current | Available | Arch"
+  # Header ve separator satırlarını atla, sadece paket satırlarını say
+  local zypper_updates
+  zypper_updates=$(zypper -q lu 2> /dev/null | grep -v "^-" | grep -v "^S " | grep "|" || true)
+  ZYPPER_COUNT=$(echo "$zypper_updates" | grep -c "|" 2> /dev/null) || ZYPPER_COUNT=0
+  ZYPPER_COUNT=${ZYPPER_COUNT:-0}
 
-    # --json-full için paket detaylarını topla
-    if [[ "$JSON_MODE" == "json-full" && -n "$zypper_updates" ]]; then
-        while IFS= read -r line; do
-            local pkg_name old_ver new_ver
-            # Format: S | Repository | Name | Current | Available | Arch
-            pkg_name=$(echo "$line" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}')
-            old_ver=$(echo "$line" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $4); print $4}')
-            new_ver=$(echo "$line" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $5); print $5}')
-            [[ -n "$pkg_name" ]] && add_package_info "$pkg_name" "$old_ver" "$new_ver" "zypper"
-        done <<< "$zypper_updates"
-    fi
+  # --json-full için paket detaylarını topla
+  if [[ "$JSON_MODE" == "json-full" && -n "$zypper_updates" ]]; then
+    while IFS= read -r line; do
+      local pkg_name old_ver new_ver
+      # Format: S | Repository | Name | Current | Available | Arch
+      pkg_name=$(echo "$line" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $3); print $3}')
+      old_ver=$(echo "$line" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $4); print $4}')
+      new_ver=$(echo "$line" | awk -F'|' '{gsub(/^[ \t]+|[ \t]+$/, "", $5); print $5}')
+      [[ -n "$pkg_name" ]] && add_package_info "$pkg_name" "$old_ver" "$new_ver" "zypper"
+    done <<< "$zypper_updates"
+  fi
 
-    # Güncelleme yap
-    # v6.4.0: Security-only mode
-    local zypper_cmd="zypper --non-interactive update"
-    if [[ "$SECURITY_ONLY" == "true" ]]; then
-        zypper_cmd="zypper --non-interactive patch --category security"
-        print_info "${MSG_INFO_SECURITY_ONLY:-Sadece güvenlik güncellemeleri uygulanıyor...}"
-    fi
+  # Güncelleme yap
+  # v6.4.0: Security-only mode
+  local zypper_cmd="zypper --non-interactive update"
+  if [[ "$SECURITY_ONLY" == "true" ]]; then
+    zypper_cmd="zypper --non-interactive patch --category security"
+    print_info "${MSG_INFO_SECURITY_ONLY:-Sadece güvenlik güncellemeleri uygulanıyor...}"
+  fi
 
-    # Zypper update (30 dakika timeout)
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        timeout 1800 $zypper_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$zypper_temp"
-    else
-        timeout 1800 $zypper_cmd 2>&1 | tee "$zypper_temp" >> "$LOG_FILE"
-    fi
+  # Zypper update (30 dakika timeout)
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    timeout 1800 $zypper_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$zypper_temp"
+  else
+    timeout 1800 $zypper_cmd 2>&1 | tee "$zypper_temp" >> "$LOG_FILE"
+  fi
 
-    # v5.5.2 FIX: Zypper çıktısından gerçek güncelleme sayısını parse et
-    # Format: "( 1/11) Installing: paket-adı" veya "( 1/5) Upgrading: paket-adı"
-    # zypper lu bazen yeni bağımlılıkları göstermiyor, bu yüzden her zaman temp dosyasını kontrol et
-    local zypper_actual_count
-    zypper_actual_count=$(grep -c ') Installing:\|) Upgrading:' "$zypper_temp" 2>/dev/null)
-    # grep -c eşleşme bulamazsa exit 1 döner, bu durumda 0 ata
-    [[ -z "$zypper_actual_count" ]] && zypper_actual_count=0
-    zypper_actual_count=$(echo "$zypper_actual_count" | tr -cd '0-9')
-    zypper_actual_count=${zypper_actual_count:-0}
+  # v5.5.2 FIX: Zypper çıktısından gerçek güncelleme sayısını parse et
+  # Format: "( 1/11) Installing: paket-adı" veya "( 1/5) Upgrading: paket-adı"
+  # zypper lu bazen yeni bağımlılıkları göstermiyor, bu yüzden her zaman temp dosyasını kontrol et
+  local zypper_actual_count
+  zypper_actual_count=$(grep -c ') Installing:\|) Upgrading:' "$zypper_temp" 2> /dev/null)
+  # grep -c eşleşme bulamazsa exit 1 döner, bu durumda 0 ata
+  [[ -z "$zypper_actual_count" ]] && zypper_actual_count=0
+  zypper_actual_count=$(echo "$zypper_actual_count" | tr -cd '0-9')
+  zypper_actual_count=${zypper_actual_count:-0}
 
-    # Eğer gerçek sayı daha büyükse (veya lu 0 döndüyse), gerçek sayıyı kullan
-    if [[ "$zypper_actual_count" -gt "${ZYPPER_COUNT:-0}" ]] 2>/dev/null || [[ "${ZYPPER_COUNT:-0}" -eq 0 ]] 2>/dev/null; then
-        ZYPPER_COUNT="$zypper_actual_count"
-    fi
+  # Eğer gerçek sayı daha büyükse (veya lu 0 döndüyse), gerçek sayıyı kullan
+  if [[ "$zypper_actual_count" -gt "${ZYPPER_COUNT:-0}" ]] 2> /dev/null || [[ "${ZYPPER_COUNT:-0}" -eq 0 ]] 2> /dev/null; then
+    ZYPPER_COUNT="$zypper_actual_count"
+  fi
 
-    rm -f "$zypper_temp"
-    ZYPPER_COUNT=${ZYPPER_COUNT:-0}
+  rm -f "$zypper_temp"
+  ZYPPER_COUNT=${ZYPPER_COUNT:-0}
 
-    # Kullanılmayan bağımlılıkları temizle
-    print_header "${MSG_HEADER_ZYPPER_CLEANUP:-Zypper: Temizlik}"
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        zypper --non-interactive packages --orphaned 2>&1 | tee -a "$LOG_FILE" || true
-    else
-        zypper --non-interactive packages --orphaned >> "$LOG_FILE" 2>&1 || true
-    fi
+  # Kullanılmayan bağımlılıkları temizle
+  print_header "${MSG_HEADER_ZYPPER_CLEANUP:-Zypper: Temizlik}"
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    zypper --non-interactive packages --orphaned 2>&1 | tee -a "$LOG_FILE" || true
+  else
+    zypper --non-interactive packages --orphaned >> "$LOG_FILE" 2>&1 || true
+  fi
 
-    print_info "$(printf "${MSG_INFO_ZYPPER_COUNT:-Zypper: %d paket güncellendi.}" "$ZYPPER_COUNT")"
-    add_pkg_manager_status "zypper" "ran" "$ZYPPER_COUNT"
-    return 0
+  print_info "$(printf "${MSG_INFO_ZYPPER_COUNT:-Zypper: %d paket güncellendi.}" "$ZYPPER_COUNT")"
+  add_pkg_manager_status "zypper" "ran" "$ZYPPER_COUNT"
+  return 0
 }
 
 # APK Güncellemesi (v5.1 BigFive - Alpine Linux)
 update_apk() {
-    if ! command -v apk &> /dev/null; then return 1; fi
-    if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
-    if ! should_run_backend "apk"; then return 1; fi
+  if ! command -v apk &> /dev/null; then return 1; fi
+  if [[ "$SKIP_PKG_MANAGER" == "true" ]]; then return 1; fi
+  if ! should_run_backend "apk"; then return 1; fi
 
-    # v6.4.0: Security-only uyarısı (APK native destek yok)
-    if [[ "$SECURITY_ONLY" == "true" ]]; then
-        print_warning "${MSG_WARN_SECURITY_APK:-APK için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak.}"
-    fi
+  # v6.4.0: Security-only uyarısı (APK native destek yok)
+  if [[ "$SECURITY_ONLY" == "true" ]]; then
+    print_warning "${MSG_WARN_SECURITY_APK:-APK için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak.}"
+  fi
 
-    print_header "${MSG_HEADER_APK_UPDATE:-APK: Güncelleme}"
+  print_header "${MSG_HEADER_APK_UPDATE:-APK: Güncelleme}"
 
-    # Repo'ları güncelle (10 dakika timeout)
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        timeout 600 apk update 2>&1 | tee -a "$LOG_FILE"
-    else
-        timeout 600 apk update >> "$LOG_FILE" 2>&1
-    fi
+  # Repo'ları güncelle (10 dakika timeout)
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    timeout 600 apk update 2>&1 | tee -a "$LOG_FILE"
+  else
+    timeout 600 apk update >> "$LOG_FILE" 2>&1
+  fi
 
-    # Güncellenecek paket sayısını al
-    local apk_updates
-    apk_updates=$(apk version -l '<' 2>/dev/null || true)
-    APK_COUNT=$(echo "$apk_updates" | grep -c . 2>/dev/null) || APK_COUNT=0
-    APK_COUNT=${APK_COUNT:-0}
+  # Güncellenecek paket sayısını al
+  local apk_updates
+  apk_updates=$(apk version -l '<' 2> /dev/null || true)
+  APK_COUNT=$(echo "$apk_updates" | grep -c . 2> /dev/null) || APK_COUNT=0
+  APK_COUNT=${APK_COUNT:-0}
 
-    # --json-full için paket detaylarını topla
-    if [[ "$JSON_MODE" == "json-full" && -n "$apk_updates" ]]; then
-        while IFS= read -r line; do
-            local pkg_with_ver old_ver new_ver pkg_name
-            # Format: paket_adı-eski_versiyon < yeni_versiyon
-            pkg_with_ver=$(echo "$line" | awk '{print $1}')
-            new_ver=$(echo "$line" | awk '{print $3}')
-            # Paket adını ve versiyonu ayır (son - karakterinden böl)
-            pkg_name=${pkg_with_ver%-*}
-            old_ver=${pkg_with_ver##*-}
-            [[ -n "$pkg_name" ]] && add_package_info "$pkg_name" "$old_ver" "$new_ver" "apk"
-        done <<< "$apk_updates"
-    fi
+  # --json-full için paket detaylarını topla
+  if [[ "$JSON_MODE" == "json-full" && -n "$apk_updates" ]]; then
+    while IFS= read -r line; do
+      local pkg_with_ver old_ver new_ver pkg_name
+      # Format: paket_adı-eski_versiyon < yeni_versiyon
+      pkg_with_ver=$(echo "$line" | awk '{print $1}')
+      new_ver=$(echo "$line" | awk '{print $3}')
+      # Paket adını ve versiyonu ayır (son - karakterinden böl)
+      pkg_name=${pkg_with_ver%-*}
+      old_ver=${pkg_with_ver##*-}
+      [[ -n "$pkg_name" ]] && add_package_info "$pkg_name" "$old_ver" "$new_ver" "apk"
+    done <<< "$apk_updates"
+  fi
 
-    # Güncelleme yap (30 dakika timeout)
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        timeout 1800 apk upgrade 2>&1 | tee -a "$LOG_FILE"
-    else
-        timeout 1800 apk upgrade >> "$LOG_FILE" 2>&1
-    fi
+  # Güncelleme yap (30 dakika timeout)
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    timeout 1800 apk upgrade 2>&1 | tee -a "$LOG_FILE"
+  else
+    timeout 1800 apk upgrade >> "$LOG_FILE" 2>&1
+  fi
 
-    # Cache temizliği
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        apk cache clean 2>&1 | tee -a "$LOG_FILE" || true
-    else
-        apk cache clean >> "$LOG_FILE" 2>&1 || true
-    fi
+  # Cache temizliği
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    apk cache clean 2>&1 | tee -a "$LOG_FILE" || true
+  else
+    apk cache clean >> "$LOG_FILE" 2>&1 || true
+  fi
 
-    print_info "$(printf "${MSG_INFO_APK_COUNT:-APK: %d paket güncellendi.}" "$APK_COUNT")"
-    add_pkg_manager_status "apk" "ran" "$APK_COUNT"
-    return 0
+  print_info "$(printf "${MSG_INFO_APK_COUNT:-APK: %d paket güncellendi.}" "$APK_COUNT")"
+  add_pkg_manager_status "apk" "ran" "$APK_COUNT"
+  return 0
 }
 
 # Flatpak Güncellemesi
 update_flatpak() {
-    if ! command -v flatpak &> /dev/null; then return 1; fi
-    if [[ "$SKIP_FLATPAK" == "true" ]]; then return 1; fi
-    if ! should_run_backend "flatpak"; then return 1; fi
+  if ! command -v flatpak &> /dev/null; then return 1; fi
+  if [[ "$SKIP_FLATPAK" == "true" ]]; then return 1; fi
+  if ! should_run_backend "flatpak"; then return 1; fi
 
-    print_header "${MSG_HEADER_FLATPAK:-Flatpak: Güncelleme}"
+  print_header "${MSG_HEADER_FLATPAK:-Flatpak: Güncelleme}"
 
-    local flatpak_updates flatpak_upgradable
-    flatpak_updates=$(flatpak remote-ls --updates --columns=application,version 2>/dev/null || true)
-    flatpak_upgradable=$(echo "$flatpak_updates" | grep -c . | tr -cd '0-9')
-    flatpak_upgradable=${flatpak_upgradable:-0}
+  local flatpak_updates flatpak_upgradable
+  flatpak_updates=$(flatpak remote-ls --updates --columns=application,version 2> /dev/null || true)
+  flatpak_upgradable=$(echo "$flatpak_updates" | grep -c . | tr -cd '0-9')
+  flatpak_upgradable=${flatpak_upgradable:-0}
 
-    # --json-full için paket detaylarını topla
-    if [[ "$JSON_MODE" == "json-full" && -n "$flatpak_updates" ]]; then
-        while IFS= read -r line; do
-            local app_id new_ver old_ver
-            app_id=$(echo "$line" | awk '{print $1}')
-            new_ver=$(echo "$line" | awk '{print $2}')
-            # Mevcut versiyonu al
-            old_ver=$(flatpak info "$app_id" 2>/dev/null | grep "Version:" | awk '{print $2}' || echo "unknown")
-            [[ -n "$app_id" ]] && add_package_info "$app_id" "$old_ver" "$new_ver" "flatpak"
-        done <<< "$flatpak_updates"
-    fi
+  # --json-full için paket detaylarını topla
+  if [[ "$JSON_MODE" == "json-full" && -n "$flatpak_updates" ]]; then
+    while IFS= read -r line; do
+      local app_id new_ver old_ver
+      app_id=$(echo "$line" | awk '{print $1}')
+      new_ver=$(echo "$line" | awk '{print $2}')
+      # Mevcut versiyonu al
+      old_ver=$(flatpak info "$app_id" 2> /dev/null | grep "Version:" | awk '{print $2}' || echo "unknown")
+      [[ -n "$app_id" ]] && add_package_info "$app_id" "$old_ver" "$new_ver" "flatpak"
+    done <<< "$flatpak_updates"
+  fi
 
-    local flatpak_temp
-    flatpak_temp=$(safe_mktemp flatpak_update) || return 1
+  local flatpak_temp
+  flatpak_temp=$(safe_mktemp flatpak_update) || return 1
 
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        flatpak update -y 2>&1 | tee -a "$LOG_FILE" | tee "$flatpak_temp" || print_warning "${MSG_WARN_FLATPAK_ERROR:-Flatpak hata verdi.}"
-        flatpak uninstall --unused -y 2>&1 | tee -a "$LOG_FILE" || true
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    flatpak update -y 2>&1 | tee -a "$LOG_FILE" | tee "$flatpak_temp" || print_warning "${MSG_WARN_FLATPAK_ERROR:-Flatpak hata verdi.}"
+    flatpak uninstall --unused -y 2>&1 | tee -a "$LOG_FILE" || true
+  else
+    flatpak update -y 2>&1 | tee "$flatpak_temp" >> "$LOG_FILE" || print_warning "${MSG_WARN_FLATPAK_ERROR:-Flatpak hata verdi.}"
+    flatpak uninstall --unused -y >> "$LOG_FILE" 2>&1 || true
+  fi
+
+  if grep -qi "Nothing to do" "$flatpak_temp" 2> /dev/null; then
+    FLATPAK_COUNT=0
+  else
+    local flatpak_updated
+    flatpak_updated=$(grep -cE "^[0-9]+\.\s" "$flatpak_temp" 2> /dev/null | tr -cd '0-9')
+    flatpak_updated=${flatpak_updated:-0}
+    if [[ "$flatpak_updated" -gt 0 ]]; then
+      FLATPAK_COUNT=$flatpak_updated
     else
-        flatpak update -y 2>&1 | tee "$flatpak_temp" >> "$LOG_FILE" || print_warning "${MSG_WARN_FLATPAK_ERROR:-Flatpak hata verdi.}"
-        flatpak uninstall --unused -y >> "$LOG_FILE" 2>&1 || true
+      FLATPAK_COUNT=${flatpak_upgradable:-0}
     fi
+  fi
 
-    if grep -qi "Nothing to do" "$flatpak_temp" 2>/dev/null; then
-        FLATPAK_COUNT=0
-    else
-        local flatpak_updated
-        flatpak_updated=$(grep -cE "^[0-9]+\.\s" "$flatpak_temp" 2>/dev/null | tr -cd '0-9')
-        flatpak_updated=${flatpak_updated:-0}
-        if [[ "$flatpak_updated" -gt 0 ]]; then
-            FLATPAK_COUNT=$flatpak_updated
-        else
-            FLATPAK_COUNT=${flatpak_upgradable:-0}
-        fi
-    fi
+  rm -f "$flatpak_temp"
 
-    rm -f "$flatpak_temp"
-
-    print_info "$(printf "${MSG_INFO_FLATPAK_COUNT:-Flatpak: %d uygulama güncellendi.}" "$FLATPAK_COUNT")"
-    add_pkg_manager_status "flatpak" "ran" "$FLATPAK_COUNT"
-    return 0
+  print_info "$(printf "${MSG_INFO_FLATPAK_COUNT:-Flatpak: %d uygulama güncellendi.}" "$FLATPAK_COUNT")"
+  add_pkg_manager_status "flatpak" "ran" "$FLATPAK_COUNT"
+  return 0
 }
 
 # Snap Güncellemesi
 update_snap() {
-    if ! command -v snap &> /dev/null; then return 1; fi
-    if [[ "$SKIP_SNAP" == "true" ]]; then return 1; fi
-    if ! should_run_backend "snap"; then return 1; fi
+  if ! command -v snap &> /dev/null; then return 1; fi
+  if [[ "$SKIP_SNAP" == "true" ]]; then return 1; fi
+  if ! should_run_backend "snap"; then return 1; fi
 
-    print_header "${MSG_HEADER_SNAP:-Snap: Güncelleme}"
+  print_header "${MSG_HEADER_SNAP:-Snap: Güncelleme}"
 
-    local snap_updates snap_upgradable
-    snap_updates=$(snap refresh --list 2>/dev/null | tail -n +2 || true)
-    snap_upgradable=$(echo "$snap_updates" | grep -c . | tr -cd '0-9')
-    snap_upgradable=${snap_upgradable:-0}
-    SNAP_COUNT=${snap_upgradable:-0}
+  local snap_updates snap_upgradable
+  snap_updates=$(snap refresh --list 2> /dev/null | tail -n +2 || true)
+  snap_upgradable=$(echo "$snap_updates" | grep -c . | tr -cd '0-9')
+  snap_upgradable=${snap_upgradable:-0}
+  SNAP_COUNT=${snap_upgradable:-0}
 
-    # --json-full için paket detaylarını topla
-    if [[ "$JSON_MODE" == "json-full" && -n "$snap_updates" ]]; then
-        while IFS= read -r line; do
-            local snap_name new_ver old_ver
-            # Format: Name Version Rev Publisher Notes
-            snap_name=$(echo "$line" | awk '{print $1}')
-            new_ver=$(echo "$line" | awk '{print $2}')
-            # Mevcut versiyonu al
-            old_ver=$(snap info "$snap_name" 2>/dev/null | grep "installed:" | awk '{print $2}' || echo "unknown")
-            [[ -n "$snap_name" ]] && add_package_info "$snap_name" "$old_ver" "$new_ver" "snap"
-        done <<< "$snap_updates"
-    fi
+  # --json-full için paket detaylarını topla
+  if [[ "$JSON_MODE" == "json-full" && -n "$snap_updates" ]]; then
+    while IFS= read -r line; do
+      local snap_name new_ver old_ver
+      # Format: Name Version Rev Publisher Notes
+      snap_name=$(echo "$line" | awk '{print $1}')
+      new_ver=$(echo "$line" | awk '{print $2}')
+      # Mevcut versiyonu al
+      old_ver=$(snap info "$snap_name" 2> /dev/null | grep "installed:" | awk '{print $2}' || echo "unknown")
+      [[ -n "$snap_name" ]] && add_package_info "$snap_name" "$old_ver" "$new_ver" "snap"
+    done <<< "$snap_updates"
+  fi
 
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-        snap refresh 2>&1 | tee -a "$LOG_FILE" || print_warning "${MSG_WARN_SNAP_ERROR:-Snap hata verdi.}"
-    else
-        snap refresh >> "$LOG_FILE" 2>&1 || print_warning "${MSG_WARN_SNAP_ERROR:-Snap hata verdi.}"
-    fi
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    snap refresh 2>&1 | tee -a "$LOG_FILE" || print_warning "${MSG_WARN_SNAP_ERROR:-Snap hata verdi.}"
+  else
+    snap refresh >> "$LOG_FILE" 2>&1 || print_warning "${MSG_WARN_SNAP_ERROR:-Snap hata verdi.}"
+  fi
 
-    print_info "$(printf "${MSG_INFO_SNAP_COUNT:-Snap: %d paket güncellendi.}" "$SNAP_COUNT")"
-    add_pkg_manager_status "snap" "ran" "$SNAP_COUNT"
-    return 0
+  print_info "$(printf "${MSG_INFO_SNAP_COUNT:-Snap: %d paket güncellendi.}" "$SNAP_COUNT")"
+  add_pkg_manager_status "snap" "ran" "$SNAP_COUNT"
+  return 0
 }
 
 # Firmware Güncellemesi
 update_firmware() {
-    if ! command -v fwupdmgr &> /dev/null; then return 1; fi
-    if [[ "$SKIP_FWUPD" == "true" ]]; then return 1; fi
-    if ! should_run_backend "fwupd"; then return 1; fi
+  if ! command -v fwupdmgr &> /dev/null; then return 1; fi
+  if [[ "$SKIP_FWUPD" == "true" ]]; then return 1; fi
+  if ! should_run_backend "fwupd"; then return 1; fi
 
-    print_header "${MSG_HEADER_FIRMWARE:-Firmware: Kontrol}"
+  print_header "${MSG_HEADER_FIRMWARE:-Firmware: Kontrol}"
 
-    local fwupd_output fwupd_exit_code=0
-    fwupd_output=$(fwupdmgr get-updates 2>&1) || fwupd_exit_code=$?
+  local fwupd_output fwupd_exit_code=0
+  fwupd_output=$(fwupdmgr get-updates 2>&1) || fwupd_exit_code=$?
 
-    if [[ $fwupd_exit_code -eq 2 ]] || [[ "$fwupd_output" =~ "No updatable devices" ]]; then
-        print_info "${MSG_INFO_FIRMWARE_NONE:-Firmware: Güncellenebilir cihaz bulunamadı.}"
-        FWUPD_COUNT=0
-        return 0
-    fi
-
-    if [[ $fwupd_exit_code -ne 0 ]]; then
-        print_warning "$(printf "${MSG_WARN_FIRMWARE_FAILED:-Firmware kontrolü başarısız (exit code: %d)}" "$fwupd_exit_code")"
-        FWUPD_COUNT=0
-        return 1
-    fi
-
-    local fwupd_upgradable
-    fwupd_upgradable=$(echo "$fwupd_output" | grep -c "New version" 2>/dev/null) || fwupd_upgradable=0
-    fwupd_upgradable=${fwupd_upgradable:-0}
-    FWUPD_COUNT=${fwupd_upgradable:-0}
-
-    if [[ "${AUTO_MODE:-false}" == "true" ]]; then
-        { fwupdmgr refresh --force || true; fwupdmgr update -y || true; } >> "$LOG_FILE" 2>&1
-        if [[ "$QUIET_MODE" != "true" ]]; then
-            printf '%sTamamlandı (Detaylar log dosyasında).%s\n' "${GREEN}" "${NC}"
-        fi
-    else
-        if [[ "$VERBOSE_MODE" == "true" ]]; then
-            fwupdmgr refresh --force 2>&1 | tee -a "$LOG_FILE" || true
-            fwupdmgr update -y 2>&1 | tee -a "$LOG_FILE" || true
-        else
-            fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
-            fwupdmgr update -y >> "$LOG_FILE" 2>&1 || true
-        fi
-    fi
-
-    print_info "$(printf "${MSG_INFO_FIRMWARE_COUNT:-Firmware: %d güncelleme.}" "$FWUPD_COUNT")"
-    add_pkg_manager_status "fwupd" "ran" "$FWUPD_COUNT"
+  if [[ $fwupd_exit_code -eq 2 ]] || [[ "$fwupd_output" =~ "No updatable devices" ]]; then
+    print_info "${MSG_INFO_FIRMWARE_NONE:-Firmware: Güncellenebilir cihaz bulunamadı.}"
+    FWUPD_COUNT=0
     return 0
+  fi
+
+  if [[ $fwupd_exit_code -ne 0 ]]; then
+    print_warning "$(printf "${MSG_WARN_FIRMWARE_FAILED:-Firmware kontrolü başarısız (exit code: %d)}" "$fwupd_exit_code")"
+    FWUPD_COUNT=0
+    return 1
+  fi
+
+  local fwupd_upgradable
+  fwupd_upgradable=$(echo "$fwupd_output" | grep -c "New version" 2> /dev/null) || fwupd_upgradable=0
+  fwupd_upgradable=${fwupd_upgradable:-0}
+  FWUPD_COUNT=${fwupd_upgradable:-0}
+
+  if [[ "${AUTO_MODE:-false}" == "true" ]]; then
+    {
+      fwupdmgr refresh --force || true
+      fwupdmgr update -y || true
+    } >> "$LOG_FILE" 2>&1
+    if [[ "$QUIET_MODE" != "true" ]]; then
+      printf '%sTamamlandı (Detaylar log dosyasında).%s\n' "${GREEN}" "${NC}"
+    fi
+  else
+    if [[ "$VERBOSE_MODE" == "true" ]]; then
+      fwupdmgr refresh --force 2>&1 | tee -a "$LOG_FILE" || true
+      fwupdmgr update -y 2>&1 | tee -a "$LOG_FILE" || true
+    else
+      fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
+      fwupdmgr update -y >> "$LOG_FILE" 2>&1 || true
+    fi
+  fi
+
+  print_info "$(printf "${MSG_INFO_FIRMWARE_COUNT:-Firmware: %d güncelleme.}" "$FWUPD_COUNT")"
+  add_pkg_manager_status "fwupd" "ran" "$FWUPD_COUNT"
+  return 0
 }
 
 # --- v3.8.0: DRY-RUN GÜNCELLEME LİSTELEME ---
 perform_dry_run_check() {
-    # JSON modunda sessiz çalış
-    local json_quiet="false"
-    [[ "$JSON_MODE" != "none" ]] && json_quiet="true"
+  # JSON modunda sessiz çalış
+  local json_quiet="false"
+  [[ "$JSON_MODE" != "none" ]] && json_quiet="true"
 
-    print_header "${MSG_HEADER_DRYRUN:-[DRY-RUN] Mevcut Güncellemeler Kontrol Ediliyor}"
+  print_header "${MSG_HEADER_DRYRUN:-[DRY-RUN] Mevcut Güncellemeler Kontrol Ediliyor}"
 
-    # APT
-    if command -v apt-get &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "apt"; then
-        print_dry_run "APT: Güncellenebilir paketler listeleniyor..."
-        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
-        apt-get update -qq >> "$LOG_FILE" 2>&1 || true
-        local apt_list
-        apt_list=$(apt list --upgradable 2>/dev/null | grep -v "Listing..." || true)
-        if [[ -n "$apt_list" ]]; then
-            [[ "$json_quiet" == "false" ]] && echo "$apt_list"
-            APT_COUNT=$(echo "$apt_list" | wc -l | tr -cd '0-9')
-        else
-            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
-            APT_COUNT=0
-        fi
-        [[ "$json_quiet" == "false" ]] && echo ""
-        add_pkg_manager_status "apt" "checked" "$APT_COUNT"
+  # APT
+  if command -v apt-get &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "apt"; then
+    print_dry_run "APT: Güncellenebilir paketler listeleniyor..."
+    [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+    apt-get update -qq >> "$LOG_FILE" 2>&1 || true
+    local apt_list
+    apt_list=$(apt list --upgradable 2> /dev/null | grep -v "Listing..." || true)
+    if [[ -n "$apt_list" ]]; then
+      [[ "$json_quiet" == "false" ]] && echo "$apt_list"
+      APT_COUNT=$(echo "$apt_list" | wc -l | tr -cd '0-9')
+    else
+      [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+      APT_COUNT=0
     fi
-    
-    # DNF
-    if command -v dnf &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "dnf"; then
-        print_dry_run "DNF: Güncellenebilir paketler listeleniyor..."
-        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
-        local dnf_list
-        dnf_list=$(dnf check-update 2>/dev/null | grep -v "^$" | grep -v "Last metadata" || true)
-        if [[ -n "$dnf_list" ]]; then
-            [[ "$json_quiet" == "false" ]] && echo "$dnf_list"
-            DNF_COUNT=$(echo "$dnf_list" | wc -l | tr -cd '0-9')
-        else
-            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
-            DNF_COUNT=0
-        fi
-        [[ "$json_quiet" == "false" ]] && echo ""
-        add_pkg_manager_status "dnf" "checked" "$DNF_COUNT"
-    fi
+    [[ "$json_quiet" == "false" ]] && echo ""
+    add_pkg_manager_status "apt" "checked" "$APT_COUNT"
+  fi
 
-    # Pacman (v5.0 BigFour)
-    if command -v pacman &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "pacman"; then
-        print_dry_run "Pacman: Güncellenebilir paketler listeleniyor..."
-        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
-        pacman -Sy >> "$LOG_FILE" 2>&1 || true
-        local pacman_list
-        pacman_list=$(pacman -Qu 2>/dev/null || true)
-        if [[ -n "$pacman_list" ]]; then
-            [[ "$json_quiet" == "false" ]] && echo "$pacman_list"
-            PACMAN_COUNT=$(echo "$pacman_list" | wc -l | tr -cd '0-9')
-        else
-            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
-            PACMAN_COUNT=0
-        fi
-        [[ "$json_quiet" == "false" ]] && echo ""
-        add_pkg_manager_status "pacman" "checked" "$PACMAN_COUNT"
+  # DNF
+  if command -v dnf &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "dnf"; then
+    print_dry_run "DNF: Güncellenebilir paketler listeleniyor..."
+    [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+    local dnf_list
+    dnf_list=$(dnf check-update 2> /dev/null | grep -v "^$" | grep -v "Last metadata" || true)
+    if [[ -n "$dnf_list" ]]; then
+      [[ "$json_quiet" == "false" ]] && echo "$dnf_list"
+      DNF_COUNT=$(echo "$dnf_list" | wc -l | tr -cd '0-9')
+    else
+      [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+      DNF_COUNT=0
     fi
+    [[ "$json_quiet" == "false" ]] && echo ""
+    add_pkg_manager_status "dnf" "checked" "$DNF_COUNT"
+  fi
 
-    # Zypper (v5.0 BigFour)
-    if command -v zypper &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "zypper"; then
-        print_dry_run "Zypper: Güncellenebilir paketler listeleniyor..."
-        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
-        zypper refresh >> "$LOG_FILE" 2>&1 || true
-        local zypper_list
-        zypper_list=$(zypper -q lu 2>/dev/null | grep "^v" || true)
-        if [[ -n "$zypper_list" ]]; then
-            [[ "$json_quiet" == "false" ]] && echo "$zypper_list"
-            ZYPPER_COUNT=$(echo "$zypper_list" | wc -l | tr -cd '0-9')
-        else
-            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
-            ZYPPER_COUNT=0
-        fi
-        [[ "$json_quiet" == "false" ]] && echo ""
-        add_pkg_manager_status "zypper" "checked" "$ZYPPER_COUNT"
+  # Pacman (v5.0 BigFour)
+  if command -v pacman &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "pacman"; then
+    print_dry_run "Pacman: Güncellenebilir paketler listeleniyor..."
+    [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+    pacman -Sy >> "$LOG_FILE" 2>&1 || true
+    local pacman_list
+    pacman_list=$(pacman -Qu 2> /dev/null || true)
+    if [[ -n "$pacman_list" ]]; then
+      [[ "$json_quiet" == "false" ]] && echo "$pacman_list"
+      PACMAN_COUNT=$(echo "$pacman_list" | wc -l | tr -cd '0-9')
+    else
+      [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+      PACMAN_COUNT=0
     fi
+    [[ "$json_quiet" == "false" ]] && echo ""
+    add_pkg_manager_status "pacman" "checked" "$PACMAN_COUNT"
+  fi
 
-    # APK (v5.1 BigFive - Alpine Linux)
-    if command -v apk &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "apk"; then
-        print_dry_run "APK: Güncellenebilir paketler listeleniyor..."
-        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
-        apk update >> "$LOG_FILE" 2>&1 || true
-        local apk_list
-        apk_list=$(apk version -l '<' 2>/dev/null || true)
-        if [[ -n "$apk_list" ]]; then
-            [[ "$json_quiet" == "false" ]] && echo "$apk_list"
-            APK_COUNT=$(echo "$apk_list" | wc -l | tr -cd '0-9')
-        else
-            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
-            APK_COUNT=0
-        fi
-        [[ "$json_quiet" == "false" ]] && echo ""
-        add_pkg_manager_status "apk" "checked" "$APK_COUNT"
+  # Zypper (v5.0 BigFour)
+  if command -v zypper &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "zypper"; then
+    print_dry_run "Zypper: Güncellenebilir paketler listeleniyor..."
+    [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+    zypper refresh >> "$LOG_FILE" 2>&1 || true
+    local zypper_list
+    zypper_list=$(zypper -q lu 2> /dev/null | grep "^v" || true)
+    if [[ -n "$zypper_list" ]]; then
+      [[ "$json_quiet" == "false" ]] && echo "$zypper_list"
+      ZYPPER_COUNT=$(echo "$zypper_list" | wc -l | tr -cd '0-9')
+    else
+      [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+      ZYPPER_COUNT=0
     fi
+    [[ "$json_quiet" == "false" ]] && echo ""
+    add_pkg_manager_status "zypper" "checked" "$ZYPPER_COUNT"
+  fi
 
-    # Flatpak
-    if command -v flatpak &> /dev/null && [[ "$SKIP_FLATPAK" != "true" ]] && should_run_backend "flatpak"; then
-        print_dry_run "Flatpak: Güncellenebilir uygulamalar listeleniyor..."
-        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
-        local flatpak_list
-        flatpak_list=$(flatpak remote-ls --updates 2>/dev/null || true)
-        if [[ -n "$flatpak_list" ]]; then
-            [[ "$json_quiet" == "false" ]] && echo "$flatpak_list"
-            FLATPAK_COUNT=$(echo "$flatpak_list" | wc -l | tr -cd '0-9')
-        else
-            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm uygulamalar güncel.%s\n' "${GREEN}" "${NC}"
-            FLATPAK_COUNT=0
-        fi
-        [[ "$json_quiet" == "false" ]] && echo ""
-        add_pkg_manager_status "flatpak" "checked" "$FLATPAK_COUNT"
+  # APK (v5.1 BigFive - Alpine Linux)
+  if command -v apk &> /dev/null && [[ "$SKIP_PKG_MANAGER" != "true" ]] && should_run_backend "apk"; then
+    print_dry_run "APK: Güncellenebilir paketler listeleniyor..."
+    [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+    apk update >> "$LOG_FILE" 2>&1 || true
+    local apk_list
+    apk_list=$(apk version -l '<' 2> /dev/null || true)
+    if [[ -n "$apk_list" ]]; then
+      [[ "$json_quiet" == "false" ]] && echo "$apk_list"
+      APK_COUNT=$(echo "$apk_list" | wc -l | tr -cd '0-9')
+    else
+      [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+      APK_COUNT=0
     fi
+    [[ "$json_quiet" == "false" ]] && echo ""
+    add_pkg_manager_status "apk" "checked" "$APK_COUNT"
+  fi
 
-    # Snap
-    if command -v snap &> /dev/null && [[ "$SKIP_SNAP" != "true" ]] && should_run_backend "snap"; then
-        print_dry_run "Snap: Güncellenebilir paketler listeleniyor..."
-        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
-        local snap_list
-        snap_list=$(snap refresh --list 2>/dev/null | tail -n +2 || true)
-        if [[ -n "$snap_list" ]]; then
-            [[ "$json_quiet" == "false" ]] && echo "$snap_list"
-            SNAP_COUNT=$(echo "$snap_list" | wc -l | tr -cd '0-9')
-        else
-            [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
-            SNAP_COUNT=0
-        fi
-        [[ "$json_quiet" == "false" ]] && echo ""
-        add_pkg_manager_status "snap" "checked" "$SNAP_COUNT"
+  # Flatpak
+  if command -v flatpak &> /dev/null && [[ "$SKIP_FLATPAK" != "true" ]] && should_run_backend "flatpak"; then
+    print_dry_run "Flatpak: Güncellenebilir uygulamalar listeleniyor..."
+    [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+    local flatpak_list
+    flatpak_list=$(flatpak remote-ls --updates 2> /dev/null || true)
+    if [[ -n "$flatpak_list" ]]; then
+      [[ "$json_quiet" == "false" ]] && echo "$flatpak_list"
+      FLATPAK_COUNT=$(echo "$flatpak_list" | wc -l | tr -cd '0-9')
+    else
+      [[ "$json_quiet" == "false" ]] && printf '%s  Tüm uygulamalar güncel.%s\n' "${GREEN}" "${NC}"
+      FLATPAK_COUNT=0
     fi
+    [[ "$json_quiet" == "false" ]] && echo ""
+    add_pkg_manager_status "flatpak" "checked" "$FLATPAK_COUNT"
+  fi
 
-    # Firmware - v3.8.1 FIX: "No updatable devices" durumunda exit 0
-    if command -v fwupdmgr &> /dev/null && [[ "$SKIP_FWUPD" != "true" ]] && should_run_backend "fwupd"; then
-        print_dry_run "Firmware: Mevcut güncellemeler kontrol ediliyor..."
-        [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
-        fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
-        local fwupd_list fwupd_exit_code
-        fwupd_list=$(fwupdmgr get-updates 2>&1) || fwupd_exit_code=$?
-        # fwupdmgr returns exit code 2 for "No updatable devices" - this is not an error
-        if [[ -n "$fwupd_list" && ! "$fwupd_list" =~ "No upgrades" && ! "$fwupd_list" =~ "No updatable devices" ]]; then
-            [[ "$json_quiet" == "false" ]] && echo "$fwupd_list"
-            FWUPD_COUNT=$(echo "$fwupd_list" | grep -c "New version" 2>/dev/null) || FWUPD_COUNT=0
-        else
-            [[ "$json_quiet" == "false" ]] && printf '%s  Firmware güncel.%s\n' "${GREEN}" "${NC}"
-            FWUPD_COUNT=0
-        fi
-        [[ "$json_quiet" == "false" ]] && echo ""
-        add_pkg_manager_status "fwupd" "checked" "$FWUPD_COUNT"
+  # Snap
+  if command -v snap &> /dev/null && [[ "$SKIP_SNAP" != "true" ]] && should_run_backend "snap"; then
+    print_dry_run "Snap: Güncellenebilir paketler listeleniyor..."
+    [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+    local snap_list
+    snap_list=$(snap refresh --list 2> /dev/null | tail -n +2 || true)
+    if [[ -n "$snap_list" ]]; then
+      [[ "$json_quiet" == "false" ]] && echo "$snap_list"
+      SNAP_COUNT=$(echo "$snap_list" | wc -l | tr -cd '0-9')
+    else
+      [[ "$json_quiet" == "false" ]] && printf '%s  Tüm paketler güncel.%s\n' "${GREEN}" "${NC}"
+      SNAP_COUNT=0
     fi
+    [[ "$json_quiet" == "false" ]] && echo ""
+    add_pkg_manager_status "snap" "checked" "$SNAP_COUNT"
+  fi
+
+  # Firmware - v3.8.1 FIX: "No updatable devices" durumunda exit 0
+  if command -v fwupdmgr &> /dev/null && [[ "$SKIP_FWUPD" != "true" ]] && should_run_backend "fwupd"; then
+    print_dry_run "Firmware: Mevcut güncellemeler kontrol ediliyor..."
+    [[ "$json_quiet" == "false" ]] && printf '%s--------------------------------------------------%s\n' "${BLUE}" "${NC}"
+    fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
+    local fwupd_list fwupd_exit_code
+    fwupd_list=$(fwupdmgr get-updates 2>&1) || fwupd_exit_code=$?
+    # fwupdmgr returns exit code 2 for "No updatable devices" - this is not an error
+    if [[ -n "$fwupd_list" && ! "$fwupd_list" =~ "No upgrades" && ! "$fwupd_list" =~ "No updatable devices" ]]; then
+      [[ "$json_quiet" == "false" ]] && echo "$fwupd_list"
+      FWUPD_COUNT=$(echo "$fwupd_list" | grep -c "New version" 2> /dev/null) || FWUPD_COUNT=0
+    else
+      [[ "$json_quiet" == "false" ]] && printf '%s  Firmware güncel.%s\n' "${GREEN}" "${NC}"
+      FWUPD_COUNT=0
+    fi
+    [[ "$json_quiet" == "false" ]] && echo ""
+    add_pkg_manager_status "fwupd" "checked" "$FWUPD_COUNT"
+  fi
 }
 
 perform_updates() {
-    # v3.8.0: Dry-run modunda sadece listele
-    if [[ "$DRY_RUN" == "true" ]]; then
-        perform_dry_run_check
-        return
-    fi
+  # v3.8.0: Dry-run modunda sadece listele
+  if [[ "$DRY_RUN" == "true" ]]; then
+    perform_dry_run_check
+    return
+  fi
 
-    # v5.1: Modüler güncelleme - BigFive Edition
-    # Sistem paket yöneticisi (sadece biri çalışır: APT, DNF, Pacman, Zypper veya APK)
-    update_apt || update_dnf || update_pacman || update_zypper || update_apk || true
+  # v5.1: Modüler güncelleme - BigFive Edition
+  # Sistem paket yöneticisi (sadece biri çalışır: APT, DNF, Pacman, Zypper veya APK)
+  update_apt || update_dnf || update_pacman || update_zypper || update_apk || true
 
-    # Diğer backend'ler
-    update_flatpak || true
-    update_snap || true
-    update_firmware || true
+  # Diğer backend'ler
+  update_flatpak || true
+  update_snap || true
+  update_firmware || true
 }
 
 # --- UNINSTALL FONKSİYONU ---
 do_uninstall() {
-    printf '%s>>> BigFive Updater Kaldırma%s\n' "${BLUE}${BOLD}" "${NC}"
-    echo "--------------------------------------------------"
+  printf '%s>>> BigFive Updater Kaldırma%s\n' "${BLUE}${BOLD}" "${NC}"
+  echo "--------------------------------------------------"
 
-    local removed_items=()
-    local failed_items=()
+  local removed_items=()
+  local failed_items=()
 
-    # Binary
-    if [[ -f "/usr/local/bin/guncel" ]]; then
-        if rm -f "/usr/local/bin/guncel"; then
-            removed_items+=("Binary: /usr/local/bin/guncel")
-        else
-            failed_items+=("Binary: /usr/local/bin/guncel")
-        fi
+  # Binary
+  if [[ -f "/usr/local/bin/guncel" ]]; then
+    if rm -f "/usr/local/bin/guncel"; then
+      removed_items+=("Binary: /usr/local/bin/guncel")
+    else
+      failed_items+=("Binary: /usr/local/bin/guncel")
     fi
+  fi
 
-    # Symlink: updater
-    if [[ -L "/usr/local/bin/updater" ]]; then
-        rm -f "/usr/local/bin/updater" && removed_items+=("Symlink: /usr/local/bin/updater")
+  # Symlink: updater
+  if [[ -L "/usr/local/bin/updater" ]]; then
+    rm -f "/usr/local/bin/updater" && removed_items+=("Symlink: /usr/local/bin/updater")
+  fi
+
+  # Symlink: bigfive
+  if [[ -L "/usr/local/bin/bigfive" ]]; then
+    rm -f "/usr/local/bin/bigfive" && removed_items+=("Symlink: /usr/local/bin/bigfive")
+  fi
+
+  # Backup dosyası
+  if [[ -f "/usr/local/bin/guncel.bak" ]]; then
+    rm -f "/usr/local/bin/guncel.bak" && removed_items+=("Backup: /usr/local/bin/guncel.bak")
+  fi
+
+  # Arşiv yedekleri - v6.1.0: Use find instead of glob (safer)
+  local backup_count=0
+  while IFS= read -r -d '' f; do
+    if rm -f "$f"; then
+      ((backup_count++)) || true
     fi
+  done < <(find /usr/local/bin -maxdepth 1 -name 'guncel.bak_*' -type f -print0 2> /dev/null)
+  [[ $backup_count -gt 0 ]] && removed_items+=("Arşiv yedekleri: $backup_count dosya")
 
-    # Symlink: bigfive
-    if [[ -L "/usr/local/bin/bigfive" ]]; then
-        rm -f "/usr/local/bin/bigfive" && removed_items+=("Symlink: /usr/local/bin/bigfive")
+  # Config dosyası
+  if [[ -f "$CONFIG_FILE" ]]; then
+    if [[ "${1:-}" == "--purge" ]]; then
+      rm -f "$CONFIG_FILE" && removed_items+=("Config: $CONFIG_FILE")
+    else
+      printf '%s[i] Config dosyası korundu: %s%s\n' "${BLUE}" "$CONFIG_FILE" "${NC}"
+      printf '%s    Silmek için: guncel --uninstall --purge%s\n' "${BLUE}" "${NC}"
     fi
+  fi
 
-    # Backup dosyası
-    if [[ -f "/usr/local/bin/guncel.bak" ]]; then
-        rm -f "/usr/local/bin/guncel.bak" && removed_items+=("Backup: /usr/local/bin/guncel.bak")
+  # Logrotate config
+  if [[ -f "/etc/logrotate.d/bigfive-updater" ]]; then
+    rm -f "/etc/logrotate.d/bigfive-updater" && removed_items+=("Logrotate: /etc/logrotate.d/bigfive-updater")
+  fi
+
+  # Log dizini (boş string koruması ile)
+  if [[ -n "$LOG_DIR" && -d "$LOG_DIR" ]]; then
+    if [[ "${1:-}" == "--purge" ]]; then
+      rm -rf "$LOG_DIR" && removed_items+=("Log dizini: $LOG_DIR")
+    else
+      printf '%s[i] Log dizini korundu: %s%s\n' "${BLUE}" "$LOG_DIR" "${NC}"
+      printf '%s    Silmek için: guncel --uninstall --purge%s\n' "${BLUE}" "${NC}"
     fi
+  fi
 
-    # Arşiv yedekleri - v6.1.0: Use find instead of glob (safer)
-    local backup_count=0
-    while IFS= read -r -d '' f; do
-        if rm -f "$f"; then
-            ((backup_count++)) || true
-        fi
-    done < <(find /usr/local/bin -maxdepth 1 -name 'guncel.bak_*' -type f -print0 2>/dev/null)
-    [[ $backup_count -gt 0 ]] && removed_items+=("Arşiv yedekleri: $backup_count dosya")
+  # Lock dosyası
+  rm -f "/var/lock/bigfive-updater.lock" 2> /dev/null
 
-    # Config dosyası
-    if [[ -f "$CONFIG_FILE" ]]; then
-        if [[ "${1:-}" == "--purge" ]]; then
-            rm -f "$CONFIG_FILE" && removed_items+=("Config: $CONFIG_FILE")
-        else
-            printf '%s[i] Config dosyası korundu: %s%s\n' "${BLUE}" "$CONFIG_FILE" "${NC}"
-            printf '%s    Silmek için: guncel --uninstall --purge%s\n' "${BLUE}" "${NC}"
-        fi
-    fi
+  echo ""
+  if [[ ${#removed_items[@]} -gt 0 ]]; then
+    printf '%s✅ Kaldırılan öğeler:%s\n' "${GREEN}" "${NC}"
+    for item in "${removed_items[@]}"; do
+      printf '%s   - %s%s\n' "${GREEN}" "$item" "${NC}"
+    done
+  fi
 
-    # Logrotate config
-    if [[ -f "/etc/logrotate.d/bigfive-updater" ]]; then
-        rm -f "/etc/logrotate.d/bigfive-updater" && removed_items+=("Logrotate: /etc/logrotate.d/bigfive-updater")
-    fi
+  if [[ ${#failed_items[@]} -gt 0 ]]; then
+    printf '%s❌ Kaldırılamayan öğeler:%s\n' "${RED}" "${NC}"
+    for item in "${failed_items[@]}"; do
+      printf '%s   - %s%s\n' "${RED}" "$item" "${NC}"
+    done
+    exit 1
+  fi
 
-    # Log dizini (boş string koruması ile)
-    if [[ -n "$LOG_DIR" && -d "$LOG_DIR" ]]; then
-        if [[ "${1:-}" == "--purge" ]]; then
-            rm -rf "$LOG_DIR" && removed_items+=("Log dizini: $LOG_DIR")
-        else
-            printf '%s[i] Log dizini korundu: %s%s\n' "${BLUE}" "$LOG_DIR" "${NC}"
-            printf '%s    Silmek için: guncel --uninstall --purge%s\n' "${BLUE}" "${NC}"
-        fi
-    fi
-
-    # Lock dosyası
-    rm -f "/var/lock/bigfive-updater.lock" 2>/dev/null
-
-    echo ""
-    if [[ ${#removed_items[@]} -gt 0 ]]; then
-        printf '%s✅ Kaldırılan öğeler:%s\n' "${GREEN}" "${NC}"
-        for item in "${removed_items[@]}"; do
-            printf '%s   - %s%s\n' "${GREEN}" "$item" "${NC}"
-        done
-    fi
-
-    if [[ ${#failed_items[@]} -gt 0 ]]; then
-        printf '%s❌ Kaldırılamayan öğeler:%s\n' "${RED}" "${NC}"
-        for item in "${failed_items[@]}"; do
-            printf '%s   - %s%s\n' "${RED}" "$item" "${NC}"
-        done
-        exit 1
-    fi
-
-    echo ""
-    printf '%s✅ BigFive Updater başarıyla kaldırıldı.%s\n' "${GREEN}${BOLD}" "${NC}"
-    exit 0
+  echo ""
+  printf '%s✅ BigFive Updater başarıyla kaldırıldı.%s\n' "${GREEN}${BOLD}" "${NC}"
+  exit 0
 }
 
 show_help() {
-    printf '%sBigFive Updater v%s (%s Edition - %s)%s\n' "${BOLD}" "$VERSION" "$EDITION" "$CODENAME" "${NC}"
-    echo "--------------------------------------------------"
-    echo "${MSG_HELP_USAGE:-Kullanım: guncel | updater | bigfive [SEÇENEK]}"
-    echo ""
-    echo "${MSG_HELP_OPTIONS:-Seçenekler:}"
-    echo "${MSG_HELP_OPT_AUTO:-  --auto              Otomatik mod (Onay sormadan günceller)}"
-    echo "${MSG_HELP_OPT_JITTER:-  --jitter <sn>       Cron jitter (0-N saniye arası rastgele bekleme)}"
-    echo "${MSG_HELP_OPT_VERBOSE:-  --verbose           Detaylı çıktı modu (Tüm komut çıktılarını gösterir)}"
-    echo "${MSG_HELP_OPT_QUIET:-  --quiet             Sessiz mod (Sadece hata ve özet gösterir)}"
-    echo "${MSG_HELP_OPT_DRYRUN:-  --dry-run           Kuru çalıştırma (Ne yapılacağını göster, yapma)}"
-    echo "${MSG_HELP_OPT_SECURITY:-  --security-only     Sadece güvenlik güncellemeleri (DNF/Zypper)}"
-    echo "${MSG_HELP_OPT_JSON:-  --json              JSON çıktı (monitoring sistemleri için)}"
-    echo "${MSG_HELP_OPT_JSON_FULL:-  --json-full         Detaylı JSON çıktı (SIEM/audit için)}"
-    echo "${MSG_HELP_OPT_SKIP:-  --skip <backend>    Belirtilen backendleri atla (virgul ile ayir)}"
-    echo "${MSG_HELP_OPT_SKIP_VALUES:-                      Değerler: snapshot, flatpak, snap, fwupd, system}"
-    echo "${MSG_HELP_OPT_SKIP_SYSTEM:-                      (system = apt, dnf, pacman, zypper, apk)}"
-    echo "${MSG_HELP_OPT_ONLY:-  --only <backend>    Sadece belirtilen backendleri calistir (virgul ile ayir)}"
-    echo "${MSG_HELP_OPT_ONLY_VALUES:-                      Değerler: system, flatpak, snap, fwupd, apt, dnf, pacman, zypper, apk}"
-    echo "${MSG_HELP_OPT_UNINSTALL:-  --uninstall         BigFive Updater kaldır}"
-    echo "${MSG_HELP_OPT_PURGE:-  --uninstall --purge Config ve logları da sil}"
-    echo "${MSG_HELP_OPT_LANG:-  --lang <code>       Dil seçimi (tr, en)}"
-    echo "${MSG_HELP_OPT_DOCTOR:-  --doctor            Sistem sağlık kontrolü (config, bağımlılıklar, disk, ağ)}"
-    echo "${MSG_HELP_OPT_HISTORY:-  --history [N]       Son N günün güncelleme geçmişi (varsayılan: 7)}"
-    echo "${MSG_HELP_OPT_HELP:-  --help              Bu yardım mesajını gösterir}"
-    echo ""
-    echo "${MSG_HELP_EXAMPLES:-Örnekler:}"
-    echo "${MSG_HELP_EX_INTERACTIVE:-  guncel                        -> İnteraktif (Önerilen)}"
-    echo "${MSG_HELP_EX_AUTO:-  guncel --auto                 -> Cron / Zamanlanmış görevler}"
-    echo "${MSG_HELP_EX_VERBOSE:-  guncel --verbose              -> Detaylı çıktı ile güncelleme}"
-    echo "${MSG_HELP_EX_QUIET:-  guncel --quiet                -> Sessiz güncelleme (sadece özet)}"
-    echo "${MSG_HELP_EX_DRYRUN:-  guncel --dry-run              -> Güncellemeleri listele (uygulamadan)}"
-    echo "${MSG_HELP_EX_SECURITY:-  guncel --security-only        -> Sadece güvenlik güncellemeleri (DNF/Zypper)}"
-    echo "${MSG_HELP_EX_JSON:-  guncel --json                 -> Monitoring için JSON çıktı (Zabbix/Nagios)}"
-    echo "${MSG_HELP_EX_JSON_FULL:-  guncel --json-full            -> SIEM için detaylı JSON (Wazuh/Splunk)}"
-    echo "${MSG_HELP_EX_SKIP:-  guncel --skip flatpak,snap    -> Flatpak ve Snap atla}"
-    echo "${MSG_HELP_EX_ONLY_SYSTEM:-  guncel --only system          -> Sadece sistem paketleri (APT/DNF/Pacman/Zypper/APK)}"
-    echo "${MSG_HELP_EX_ONLY_FLATPAK:-  guncel --only flatpak,fwupd   -> Sadece Flatpak ve Firmware}"
-    echo "${MSG_HELP_EX_ONLY_PACMAN:-  guncel --only pacman          -> Sadece Pacman (Arch Linux)}"
-    echo "${MSG_HELP_EX_ONLY_APK:-  guncel --only apk             -> Sadece APK (Alpine Linux)}"
-    echo "${MSG_HELP_EX_UNINSTALL:-  guncel --uninstall            -> Aracı kaldır (config/log korunur)}"
-    echo "${MSG_HELP_EX_PURGE:-  guncel --uninstall --purge    -> Aracı tamamen kaldır}"
-    echo ""
-    printf "%s\n" "$(printf "${MSG_HELP_CONFIG:-Config Dosyasi: %s}" "$CONFIG_FILE")"
-    echo "${MSG_HELP_CONFIG_DESC:-  Varsayılan ayarları config dosyasında tanımlayabilirsiniz.}"
-    echo "${MSG_HELP_CONFIG_EXAMPLE:-  Örnek: /etc/bigfive-updater.conf.example}"
-    exit 0
+  printf '%sBigFive Updater v%s (%s Edition - %s)%s\n' "${BOLD}" "$VERSION" "$EDITION" "$CODENAME" "${NC}"
+  echo "--------------------------------------------------"
+  echo "${MSG_HELP_USAGE:-Kullanım: guncel | updater | bigfive [SEÇENEK]}"
+  echo ""
+  echo "${MSG_HELP_OPTIONS:-Seçenekler:}"
+  echo "${MSG_HELP_OPT_AUTO:-  --auto              Otomatik mod (Onay sormadan günceller)}"
+  echo "${MSG_HELP_OPT_JITTER:-  --jitter <sn>       Cron jitter (0-N saniye arası rastgele bekleme)}"
+  echo "${MSG_HELP_OPT_VERBOSE:-  --verbose           Detaylı çıktı modu (Tüm komut çıktılarını gösterir)}"
+  echo "${MSG_HELP_OPT_QUIET:-  --quiet             Sessiz mod (Sadece hata ve özet gösterir)}"
+  echo "${MSG_HELP_OPT_DRYRUN:-  --dry-run           Kuru çalıştırma (Ne yapılacağını göster, yapma)}"
+  echo "${MSG_HELP_OPT_SECURITY:-  --security-only     Sadece güvenlik güncellemeleri (DNF/Zypper)}"
+  echo "${MSG_HELP_OPT_JSON:-  --json              JSON çıktı (monitoring sistemleri için)}"
+  echo "${MSG_HELP_OPT_JSON_FULL:-  --json-full         Detaylı JSON çıktı (SIEM/audit için)}"
+  echo "${MSG_HELP_OPT_SKIP:-  --skip <backend>    Belirtilen backendleri atla (virgul ile ayir)}"
+  echo "${MSG_HELP_OPT_SKIP_VALUES:-                      Değerler: snapshot, flatpak, snap, fwupd, system}"
+  echo "${MSG_HELP_OPT_SKIP_SYSTEM:-                      (system = apt, dnf, pacman, zypper, apk)}"
+  echo "${MSG_HELP_OPT_ONLY:-  --only <backend>    Sadece belirtilen backendleri calistir (virgul ile ayir)}"
+  echo "${MSG_HELP_OPT_ONLY_VALUES:-                      Değerler: system, flatpak, snap, fwupd, apt, dnf, pacman, zypper, apk}"
+  echo "${MSG_HELP_OPT_UNINSTALL:-  --uninstall         BigFive Updater kaldır}"
+  echo "${MSG_HELP_OPT_PURGE:-  --uninstall --purge Config ve logları da sil}"
+  echo "${MSG_HELP_OPT_LANG:-  --lang <code>       Dil seçimi (tr, en)}"
+  echo "${MSG_HELP_OPT_DOCTOR:-  --doctor            Sistem sağlık kontrolü (config, bağımlılıklar, disk, ağ)}"
+  echo "${MSG_HELP_OPT_HISTORY:-  --history [N]       Son N günün güncelleme geçmişi (varsayılan: 7)}"
+  echo "${MSG_HELP_OPT_HELP:-  --help              Bu yardım mesajını gösterir}"
+  echo ""
+  echo "${MSG_HELP_EXAMPLES:-Örnekler:}"
+  echo "${MSG_HELP_EX_INTERACTIVE:-  guncel                        -> İnteraktif (Önerilen)}"
+  echo "${MSG_HELP_EX_AUTO:-  guncel --auto                 -> Cron / Zamanlanmış görevler}"
+  echo "${MSG_HELP_EX_VERBOSE:-  guncel --verbose              -> Detaylı çıktı ile güncelleme}"
+  echo "${MSG_HELP_EX_QUIET:-  guncel --quiet                -> Sessiz güncelleme (sadece özet)}"
+  echo "${MSG_HELP_EX_DRYRUN:-  guncel --dry-run              -> Güncellemeleri listele (uygulamadan)}"
+  echo "${MSG_HELP_EX_SECURITY:-  guncel --security-only        -> Sadece güvenlik güncellemeleri (DNF/Zypper)}"
+  echo "${MSG_HELP_EX_JSON:-  guncel --json                 -> Monitoring için JSON çıktı (Zabbix/Nagios)}"
+  echo "${MSG_HELP_EX_JSON_FULL:-  guncel --json-full            -> SIEM için detaylı JSON (Wazuh/Splunk)}"
+  echo "${MSG_HELP_EX_SKIP:-  guncel --skip flatpak,snap    -> Flatpak ve Snap atla}"
+  echo "${MSG_HELP_EX_ONLY_SYSTEM:-  guncel --only system          -> Sadece sistem paketleri (APT/DNF/Pacman/Zypper/APK)}"
+  echo "${MSG_HELP_EX_ONLY_FLATPAK:-  guncel --only flatpak,fwupd   -> Sadece Flatpak ve Firmware}"
+  echo "${MSG_HELP_EX_ONLY_PACMAN:-  guncel --only pacman          -> Sadece Pacman (Arch Linux)}"
+  echo "${MSG_HELP_EX_ONLY_APK:-  guncel --only apk             -> Sadece APK (Alpine Linux)}"
+  echo "${MSG_HELP_EX_UNINSTALL:-  guncel --uninstall            -> Aracı kaldır (config/log korunur)}"
+  echo "${MSG_HELP_EX_PURGE:-  guncel --uninstall --purge    -> Aracı tamamen kaldır}"
+  echo ""
+  printf "%s\n" "$(printf "${MSG_HELP_CONFIG:-Config Dosyasi: %s}" "$CONFIG_FILE")"
+  echo "${MSG_HELP_CONFIG_DESC:-  Varsayılan ayarları config dosyasında tanımlayabilirsiniz.}"
+  echo "${MSG_HELP_CONFIG_EXAMPLE:-  Örnek: /etc/bigfive-updater.conf.example}"
+  exit 0
 }
 
 # --- ARGUMENT PARSING ---
 while [[ $# -gt 0 ]]; do
-    case $1 in
-        --auto) AUTO_MODE="true"; shift ;;
-        --jitter)
-            # v6.3.0: Random delay for cron job load distribution
-            if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
-                JITTER_MAX="$2"
-                shift 2
-            else
-                printf '%sHATA: --jitter için saniye cinsinden değer gerekli (örn: --jitter 3600)%s\n' "${RED}" "${NC}"
-                exit 1
-            fi
-            ;;
-        --verbose) VERBOSE_MODE="true"; shift ;;
-        --quiet) QUIET_MODE="true"; shift ;;
-        --dry-run) DRY_RUN="true"; shift ;;
-        --security-only) SECURITY_ONLY="true"; shift ;;
-        --json) JSON_MODE="json"; QUIET_MODE="true"; shift ;;
-        --json-full) JSON_MODE="json-full"; QUIET_MODE="true"; shift ;;
-        --skip)
-            if [[ -n "${2:-}" && ! "$2" =~ ^-- ]]; then
-                IFS=',' read -ra SKIP_ITEMS <<< "$2"
-                for item in "${SKIP_ITEMS[@]}"; do
-                    case "$item" in
-                        snapshot) SKIP_SNAPSHOT=true ;;
-                        flatpak) SKIP_FLATPAK=true ;;
-                        snap) SKIP_SNAP=true ;;
-                        fwupd) SKIP_FWUPD=true ;;
-                        dnf|apt|system) SKIP_PKG_MANAGER=true ;;  # Paket yöneticisini (APT/DNF) atla
-                        *) printf '%sUyarı: Bilinmeyen skip değeri: %s%s\n' "${YELLOW}" "$item" "${NC}" ;;
-                    esac
-                done
-                shift 2
-            else
-                printf '%sHATA: --skip için değer gerekli (örn: --skip flatpak,snap)%s\n' "${RED}" "${NC}"
-                exit 1
-            fi
-            ;;
-        --only)
-            if [[ -n "${2:-}" && ! "$2" =~ ^-- ]]; then
-                ONLY_MODE="$2"
-                shift 2
-            else
-                printf '%sHATA: --only için değer gerekli (örn: --only system)%s\n' "${RED}" "${NC}"
-                exit 1
-            fi
-            ;;
-        --uninstall)
-            shift
-            # --purge kontrolü
-            if [[ "${1:-}" == "--purge" ]]; then
-                do_uninstall "--purge"
-            else
-                do_uninstall
-            fi
-            ;;
-        --lang)
-            if [[ -n "${2:-}" && ! "$2" =~ ^-- ]]; then
-                load_language "$2"
-                shift 2
-            else
-                printf '%sHATA: --lang için değer gerekli (örn: --lang en)%s\n' "${RED}" "${NC}"
-                exit 1
-            fi
-            ;;
-        --help) show_help ;;
-        --doctor) do_doctor; exit $? ;;
-        --history)
-            if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
-                do_history "$2"
-                shift
-            else
-                do_history 7
-            fi
-            exit 0
-            ;;
-        *) printf '%sUyarı: Bilinmeyen argüman: %s%s\n' "${YELLOW}" "$1" "${NC}"; shift ;;
-    esac
+  case $1 in
+    --auto)
+      AUTO_MODE="true"
+      shift
+      ;;
+    --jitter)
+      # v6.3.0: Random delay for cron job load distribution
+      if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
+        JITTER_MAX="$2"
+        shift 2
+      else
+        printf '%sHATA: --jitter için saniye cinsinden değer gerekli (örn: --jitter 3600)%s\n' "${RED}" "${NC}"
+        exit 1
+      fi
+      ;;
+    --verbose)
+      VERBOSE_MODE="true"
+      shift
+      ;;
+    --quiet)
+      QUIET_MODE="true"
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN="true"
+      shift
+      ;;
+    --security-only)
+      SECURITY_ONLY="true"
+      shift
+      ;;
+    --json)
+      JSON_MODE="json"
+      QUIET_MODE="true"
+      shift
+      ;;
+    --json-full)
+      JSON_MODE="json-full"
+      QUIET_MODE="true"
+      shift
+      ;;
+    --skip)
+      if [[ -n "${2:-}" && ! "$2" =~ ^-- ]]; then
+        IFS=',' read -ra SKIP_ITEMS <<< "$2"
+        for item in "${SKIP_ITEMS[@]}"; do
+          case "$item" in
+            snapshot) SKIP_SNAPSHOT=true ;;
+            flatpak) SKIP_FLATPAK=true ;;
+            snap) SKIP_SNAP=true ;;
+            fwupd) SKIP_FWUPD=true ;;
+            dnf | apt | system) SKIP_PKG_MANAGER=true ;; # Paket yöneticisini (APT/DNF) atla
+            *) printf '%sUyarı: Bilinmeyen skip değeri: %s%s\n' "${YELLOW}" "$item" "${NC}" ;;
+          esac
+        done
+        shift 2
+      else
+        printf '%sHATA: --skip için değer gerekli (örn: --skip flatpak,snap)%s\n' "${RED}" "${NC}"
+        exit 1
+      fi
+      ;;
+    --only)
+      if [[ -n "${2:-}" && ! "$2" =~ ^-- ]]; then
+        ONLY_MODE="$2"
+        shift 2
+      else
+        printf '%sHATA: --only için değer gerekli (örn: --only system)%s\n' "${RED}" "${NC}"
+        exit 1
+      fi
+      ;;
+    --uninstall)
+      shift
+      # --purge kontrolü
+      if [[ "${1:-}" == "--purge" ]]; then
+        do_uninstall "--purge"
+      else
+        do_uninstall
+      fi
+      ;;
+    --lang)
+      if [[ -n "${2:-}" && ! "$2" =~ ^-- ]]; then
+        load_language "$2"
+        shift 2
+      else
+        printf '%sHATA: --lang için değer gerekli (örn: --lang en)%s\n' "${RED}" "${NC}"
+        exit 1
+      fi
+      ;;
+    --help) show_help ;;
+    --doctor)
+      do_doctor
+      exit $?
+      ;;
+    --history)
+      if [[ -n "${2:-}" && "${2:-}" =~ ^[0-9]+$ ]]; then
+        do_history "$2"
+        shift
+      else
+        do_history 7
+      fi
+      exit 0
+      ;;
+    *)
+      printf '%sUyarı: Bilinmeyen argüman: %s%s\n' "${YELLOW}" "$1" "${NC}"
+      shift
+      ;;
+  esac
 done
 
 # Verbose ve quiet aynı anda kullanılamaz
 if [[ "$VERBOSE_MODE" == "true" && "$QUIET_MODE" == "true" ]]; then
-    printf '%sHATA: --verbose ve --quiet aynı anda kullanılamaz.%s\n' "${RED}" "${NC}"
-    exit 1
+  printf '%sHATA: --verbose ve --quiet aynı anda kullanılamaz.%s\n' "${RED}" "${NC}"
+  exit 1
 fi
 
 # v6.3.0: Cron jitter - check_root'tan önce uygula (user space'te bekle)
@@ -2487,31 +2544,31 @@ LOCK_FILE="/var/lock/bigfive-updater.lock"
 # Bazı container'larda /var/lock veya /run/lock yoksa oluştur
 # Fedora/RHEL'de /var/lock -> /run/lock symlink'i var
 if [[ -L "/var/lock" ]]; then
-    # Symlink varsa hedef dizini oluştur
-    mkdir -p "/run/lock" 2>/dev/null || true
+  # Symlink varsa hedef dizini oluştur
+  mkdir -p "/run/lock" 2> /dev/null || true
 elif [[ ! -d "/var/lock" ]]; then
-    mkdir -p "/var/lock" 2>/dev/null || true
+  mkdir -p "/var/lock" 2> /dev/null || true
 fi
-exec 9>"$LOCK_FILE"
+exec 9> "$LOCK_FILE"
 if ! flock -n 9; then
-    print_error_with_hint "${MSG_ERR_ALREADY_RUNNING:-Başka bir güncelleme işlemi zaten çalışıyor.}" \
-        "$(printf "${MSG_HINT_ALREADY_RUNNING:-'pgrep -a guncel' ile kontrol edin. Gerekirse 'sudo rm %s' ile kilidi kaldırın.}" "$LOCK_FILE")" "E020"
-    exit 1
+  print_error_with_hint "${MSG_ERR_ALREADY_RUNNING:-Başka bir güncelleme işlemi zaten çalışıyor.}" \
+    "$(printf "${MSG_HINT_ALREADY_RUNNING:-'pgrep -a guncel' ile kontrol edin. Gerekirse 'sudo rm %s' ile kilidi kaldırın.}" "$LOCK_FILE")" "E020"
+  exit 1
 fi
 setup_logging
 
 # v6.0.2: Disk alanı kontrolü (güncellemeler için yeterli alan var mı?)
 if ! check_disk_space 500; then
-    exit 1
+  exit 1
 fi
 
 # v6.3.0: Container ortamı kontrolü (uyarı amaçlı, engellemez)
 check_container_environment
 
 if ! check_connectivity; then
-    print_error_with_hint "${MSG_ERR_NO_INTERNET:-İnternet bağlantısı kurulamadı.}" \
-        "${MSG_HINT_NO_INTERNET:-'ping -c 1 google.com' ile bağlantıyı test edin. DNS veya ağ ayarlarını kontrol edin.}" "E021"
-    exit 1
+  print_error_with_hint "${MSG_ERR_NO_INTERNET:-İnternet bağlantısı kurulamadı.}" \
+    "${MSG_HINT_NO_INTERNET:-'ping -c 1 google.com' ile bağlantıyı test edin. DNS veya ağ ayarlarını kontrol edin.}" "E021"
+  exit 1
 fi
 
 check_self_update
@@ -2519,18 +2576,18 @@ check_self_update
 # v5.3.0: JSON output için başlangıç zamanını kaydet
 START_TIME=$(date +%s)
 
-if [[ "$AUTO_MODE" != "true" && "$QUIET_MODE" != "true" ]]; then clear 2>/dev/null || true; fi
+if [[ "$AUTO_MODE" != "true" && "$QUIET_MODE" != "true" ]]; then clear 2> /dev/null || true; fi
 
 # Başlangıç özeti
 print_system_header
 
 if [[ "$QUIET_MODE" != "true" ]]; then
-    printf '%s   Log: %s%s\n' "${BLUE}" "$LOG_FILE" "${NC}"
-    printf '%s   Mod: %s%s\n' "${BLUE}" "$( [[ "$AUTO_MODE" == "true" ]] && echo "Otomatik 🤖" || echo "İnteraktif 👤" )" "${NC}"
-    [[ "$VERBOSE_MODE" == "true" ]] && printf '%s   Verbose: Aktif%s\n' "${BLUE}" "${NC}"
-    [[ "$DRY_RUN" == "true" ]] && printf '%s   Dry-Run: Aktif (Değişiklik yapılmayacak)%s\n' "${YELLOW}" "${NC}"
-    [[ -n "$ONLY_MODE" ]] && printf '%s   Only: %s%s\n' "${BLUE}" "$ONLY_MODE" "${NC}"
-    echo ""
+  printf '%s   Log: %s%s\n' "${BLUE}" "$LOG_FILE" "${NC}"
+  printf '%s   Mod: %s%s\n' "${BLUE}" "$([[ "$AUTO_MODE" == "true" ]] && echo "Otomatik 🤖" || echo "İnteraktif 👤")" "${NC}"
+  [[ "$VERBOSE_MODE" == "true" ]] && printf '%s   Verbose: Aktif%s\n' "${BLUE}" "${NC}"
+  [[ "$DRY_RUN" == "true" ]] && printf '%s   Dry-Run: Aktif (Değişiklik yapılmayacak)%s\n' "${YELLOW}" "${NC}"
+  [[ -n "$ONLY_MODE" ]] && printf '%s   Only: %s%s\n' "${BLUE}" "$ONLY_MODE" "${NC}"
+  echo ""
 fi
 
 create_snapshot
@@ -2549,12 +2606,12 @@ print_final_summary
 # v6.4.0: Notification
 total_updates=$((APT_COUNT + DNF_COUNT + PACMAN_COUNT + ZYPPER_COUNT + APK_COUNT + FLATPAK_COUNT + SNAP_COUNT + FWUPD_COUNT))
 if [[ "$total_updates" -gt 0 ]]; then
-    send_notification "success" "$total_updates paket güncellendi"
+  send_notification "success" "$total_updates paket güncellendi"
 else
-    send_notification "success" "Sistem güncel, güncelleme yok"
+  send_notification "success" "Sistem güncel, güncelleme yok"
 fi
 
 # v5.3.0: JSON output
 if [[ "$JSON_MODE" != "none" ]]; then
-    output_json 0
+  output_json 0
 fi
