@@ -151,7 +151,7 @@ Bu proje **iki ayrı versiyon sistemi** kullanır:
 
 | Bileşen | Format | Güncel | Güncelleme Sıklığı |
 |---------|--------|--------|--------------------|
-| `guncel` (ana script) | SemVer (x.x.x) | v6.4.0 (Fluent Edition - Hotel) | Her özellik/fix'te |
+| `guncel` (ana script) | SemVer (x.x.x) | v6.5.0 (Fluent Edition - India) | Her özellik/fix'te |
 | `install.sh` (kurulum) | Night-Vx.x.x | Night-V1.4.3 | Sadece kurulum mantığı değiştiğinde |
 
 **İsimlendirme Kuralı:**

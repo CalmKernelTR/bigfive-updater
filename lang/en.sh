@@ -177,6 +177,18 @@ MSG_DOCTOR_LANG_PARTIAL="%d present, %d missing"
 MSG_DOCTOR_SUMMARY_OK="System healthy - BigFive ready to use"
 MSG_DOCTOR_SUMMARY_WARN="%d warning(s) - BigFive can run"
 MSG_DOCTOR_SUMMARY_ERR="%d error(s), %d warning(s) - Please fix issues"
+# v6.5.0 - New Doctor checks
+MSG_DOCTOR_CHECK_PERMS="File permissions..."
+MSG_DOCTOR_PERMS_OK="All permissions correct"
+MSG_DOCTOR_PERMS_WARN="Check: %s"
+MSG_DOCTOR_CHECK_GPG="GPG keyring..."
+MSG_DOCTOR_GPG_OK="GPG available, %d keys"
+MSG_DOCTOR_GPG_NOKEYS="GPG available, no keys imported"
+MSG_DOCTOR_GPG_NOTFOUND="GPG not installed (optional)"
+MSG_DOCTOR_CHECK_LOCK="Lock file..."
+MSG_DOCTOR_LOCK_OK="No lock file (ready to run)"
+MSG_DOCTOR_LOCK_ACTIVE="Another instance running (PID: %s)"
+MSG_DOCTOR_LOCK_STALE="Stale lock file (can be removed)"
 
 # ============================================
 # v6.1.0 - HISTORY Messages

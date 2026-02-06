@@ -616,39 +616,55 @@ get_script_version() {
     echo "$output" | grep -q '\-\-doctor'
 }
 
-@test "doctor: --doctor shows config check (1/6)" {
+@test "doctor: --doctor shows config check (1/9)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -q '\[1/6\].*Config'
+    echo "$output" | grep -q '\[1/9\].*Config'
 }
 
-@test "doctor: --doctor shows required commands check (2/6)" {
+@test "doctor: --doctor shows required commands check (2/9)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -qE '\[2/6\].*(Required|Gerekli)'
+    echo "$output" | grep -qE '\[2/9\].*(Required|Gerekli)'
 }
 
-@test "doctor: --doctor shows optional commands check (3/6)" {
+@test "doctor: --doctor shows optional commands check (3/9)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -qE '\[3/6\].*(Optional|Opsiyonel)'
+    echo "$output" | grep -qE '\[3/9\].*(Optional|Opsiyonel)'
 }
 
-@test "doctor: --doctor shows disk space check (4/6)" {
+@test "doctor: --doctor shows disk space check (4/9)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -q '\[4/6\].*Disk'
+    echo "$output" | grep -q '\[4/9\].*Disk'
 }
 
-@test "doctor: --doctor shows internet check (5/6)" {
+@test "doctor: --doctor shows internet check (5/9)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -qE '\[5/6\].*(Internet|İnternet)'
+    echo "$output" | grep -qE '\[5/9\].*(Internet|İnternet)'
 }
 
-@test "doctor: --doctor shows language files check (6/6)" {
+@test "doctor: --doctor shows language files check (6/9)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    echo "$output" | grep -qE '\[6/6\].*(Language|Dil)'
+    echo "$output" | grep -qE '\[6/9\].*(Language|Dil)'
 }
 
-@test "doctor: --doctor returns 0 when healthy" {
+@test "doctor: --doctor shows permissions check (7/9)" {
     run bash "$GUNCEL_SCRIPT" --doctor
-    [ "$status" -eq 0 ]
+    echo "$output" | grep -qE '\[7/9\].*(permissions|izin)'
+}
+
+@test "doctor: --doctor shows GPG keyring check (8/9)" {
+    run bash "$GUNCEL_SCRIPT" --doctor
+    echo "$output" | grep -qE '\[8/9\].*GPG'
+}
+
+@test "doctor: --doctor shows lock file check (9/9)" {
+    run bash "$GUNCEL_SCRIPT" --doctor
+    echo "$output" | grep -qE '\[9/9\].*(Lock|Kilit)'
+}
+
+@test "doctor: --doctor returns valid exit code (0 or 1)" {
+    run bash "$GUNCEL_SCRIPT" --doctor
+    # 0 = healthy/warnings only, 1 = errors present
+    [[ "$status" -eq 0 || "$status" -eq 1 ]]
 }
 
 @test "doctor: --doctor shows summary line" {

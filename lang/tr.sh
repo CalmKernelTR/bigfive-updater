@@ -177,6 +177,18 @@ MSG_DOCTOR_LANG_PARTIAL="%d mevcut, %d eksik"
 MSG_DOCTOR_SUMMARY_OK="Sistem sağlıklı - BigFive kullanıma hazır"
 MSG_DOCTOR_SUMMARY_WARN="%d uyarı - BigFive çalışabilir"
 MSG_DOCTOR_SUMMARY_ERR="%d hata, %d uyarı - Sorunları düzeltin"
+# v6.5.0 - Yeni Doctor kontrolleri
+MSG_DOCTOR_CHECK_PERMS="Dosya izinleri..."
+MSG_DOCTOR_PERMS_OK="Tüm izinler doğru"
+MSG_DOCTOR_PERMS_WARN="Kontrol: %s"
+MSG_DOCTOR_CHECK_GPG="GPG keyring..."
+MSG_DOCTOR_GPG_OK="GPG mevcut, %d anahtar"
+MSG_DOCTOR_GPG_NOKEYS="GPG mevcut, anahtar yok"
+MSG_DOCTOR_GPG_NOTFOUND="GPG kurulu değil (opsiyonel)"
+MSG_DOCTOR_CHECK_LOCK="Kilit dosyası..."
+MSG_DOCTOR_LOCK_OK="Kilit dosyası yok (çalışmaya hazır)"
+MSG_DOCTOR_LOCK_ACTIVE="Başka bir örnek çalışıyor (PID: %s)"
+MSG_DOCTOR_LOCK_STALE="Eski kilit dosyası (silinebilir)"
 
 # ============================================
 # v6.1.0 - HISTORY Mesajları

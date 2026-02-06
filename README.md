@@ -61,7 +61,7 @@ This project uses two separate version systems:
 
 | Component | Format | Current | Update Frequency |
 |-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v6.4.0 (Fluent Edition - Hotel) | Her özellik/fix'te / Every feature/fix |
+| `guncel` (main script) | SemVer (x.x.x) | v6.5.0 (Fluent Edition - India) | Her özellik/fix'te / Every feature/fix |
 | `install.sh` (installer) | Night-Vx.x.x | Night-V1.4.3 | Sadece kurulum değiştiğinde / Only when install logic changes |
 
 **Neden ayrı? / Why separate?**

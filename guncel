@@ -7,9 +7,9 @@
 #
 
 # --- AYARLAR ---
-VERSION="6.4.0"
+VERSION="6.5.0"
 EDITION="Fluent"
-CODENAME="Hotel"
+CODENAME="India"
 
 # --- i18n (v6.0.0) ---
 LANG_DIR="/usr/share/bigfive-updater/lang"
@@ -1136,7 +1136,7 @@ do_doctor() {
     printf '\n'
 
     # 1. Config dosyası kontrolü
-    printf '%b[1/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_CONFIG:-Config file...}"
+    printf '%b[1/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_CONFIG:-Config file...}"
     if [[ -f "$CONFIG_FILE" ]]; then
         if bash -n "$CONFIG_FILE" 2>/dev/null; then
             printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_CONFIG_OK:-%s}" "$CONFIG_FILE")"
@@ -1149,7 +1149,7 @@ do_doctor() {
     fi
 
     # 2. Gerekli komutlar
-    printf '%b[2/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_REQUIRED:-Required commands...}"
+    printf '%b[2/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_REQUIRED:-Required commands...}"
     local missing_cmds=()
 
     if ! command -v curl &>/dev/null && ! command -v wget &>/dev/null; then
@@ -1175,7 +1175,7 @@ do_doctor() {
     fi
 
     # 3. Opsiyonel komutlar
-    printf '%b[3/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_OPTIONAL:-Optional commands...}"
+    printf '%b[3/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_OPTIONAL:-Optional commands...}"
     local optional_status=()
     command -v jq &>/dev/null && optional_status+=("jq:✓") || optional_status+=("jq:✗")
     command -v fwupdmgr &>/dev/null && optional_status+=("fwupd:✓") || optional_status+=("fwupd:✗")
@@ -1184,7 +1184,7 @@ do_doctor() {
     printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${optional_status[*]}"
 
     # 4. Disk alanı
-    printf '%b[4/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_DISK:-Disk space...}"
+    printf '%b[4/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_DISK:-Disk space...}"
     local available_mb
     available_mb=$(df -m / 2>/dev/null | awk 'NR==2 {print $4}')
     if [[ -n "$available_mb" ]]; then
@@ -1200,7 +1200,7 @@ do_doctor() {
     fi
 
     # 5. İnternet bağlantısı
-    printf '%b[5/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_INTERNET:-Internet connectivity...}"
+    printf '%b[5/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_INTERNET:-Internet connectivity...}"
     local net_ok=false
     if command -v curl &>/dev/null; then
         curl --proto '=https' --tlsv1.2 -s -f -m 5 "https://raw.githubusercontent.com" >/dev/null 2>&1 && net_ok=true
@@ -1215,7 +1215,7 @@ do_doctor() {
     fi
 
     # 6. Dil dosyaları
-    printf '%b[6/6]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_LANG:-Language files...}"
+    printf '%b[6/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_LANG:-Language files...}"
     local lang_ok=0 lang_missing=0
     for lang in tr en; do
         if [[ -f "/usr/share/bigfive-updater/lang/${lang}.sh" ]] || [[ -f "$(dirname "$0")/lang/${lang}.sh" ]]; then
@@ -1229,6 +1229,72 @@ do_doctor() {
     else
         printf '%b-%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_DOCTOR_LANG_PARTIAL:-%d present, %d missing}" "$lang_ok" "$lang_missing")"
         ((warnings++)) || true
+    fi
+
+    # 7. Dosya izinleri kontrolü (v6.5.0)
+    printf '%b[7/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_PERMS:-File permissions...}"
+    local perm_issues=()
+    # guncel script: should be 755 or 700
+    if [[ -f "/usr/local/bin/guncel" ]]; then
+        local guncel_perms
+        guncel_perms=$(stat -c '%a' /usr/local/bin/guncel 2>/dev/null)
+        if [[ "$guncel_perms" != "755" && "$guncel_perms" != "700" ]]; then
+            perm_issues+=("guncel:$guncel_perms")
+        fi
+    fi
+    # config file: should be 644 or 600
+    if [[ -f "$CONFIG_FILE" ]]; then
+        local config_perms
+        config_perms=$(stat -c '%a' "$CONFIG_FILE" 2>/dev/null)
+        if [[ "$config_perms" != "644" && "$config_perms" != "600" ]]; then
+            perm_issues+=("config:$config_perms")
+        fi
+    fi
+    # log dir: should be 750 or 700
+    if [[ -d "$LOG_DIR" ]]; then
+        local logdir_perms
+        logdir_perms=$(stat -c '%a' "$LOG_DIR" 2>/dev/null)
+        if [[ "$logdir_perms" != "750" && "$logdir_perms" != "700" ]]; then
+            perm_issues+=("logdir:$logdir_perms")
+        fi
+    fi
+    if [[ ${#perm_issues[@]} -eq 0 ]]; then
+        printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_PERMS_OK:-All permissions correct}"
+    else
+        printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_DOCTOR_PERMS_WARN:-Check: %s}" "${perm_issues[*]}")"
+        ((warnings++)) || true
+    fi
+
+    # 8. GPG keyring durumu (v6.5.0)
+    printf '%b[8/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_GPG:-GPG keyring...}"
+    if command -v gpg &>/dev/null; then
+        local gpg_key_count
+        gpg_key_count=$(gpg --list-keys 2>/dev/null | grep -c '^pub' || echo "0")
+        if [[ "$gpg_key_count" -gt 0 ]]; then
+            printf '%b✓%b %s\n' "${GREEN}" "${NC}" "$(printf "${MSG_DOCTOR_GPG_OK:-GPG available, %d keys}" "$gpg_key_count")"
+        else
+            printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_GPG_NOKEYS:-GPG available, no keys imported}"
+            ((warnings++)) || true
+        fi
+    else
+        printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_GPG_NOTFOUND:-GPG not installed (optional)}"
+    fi
+
+    # 9. Lock file kontrolü (v6.5.0)
+    printf '%b[9/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_LOCK:-Lock file...}"
+    local lock_file="/var/lock/bigfive-updater.lock"
+    if [[ -f "$lock_file" ]]; then
+        local lock_pid
+        lock_pid=$(cat "$lock_file" 2>/dev/null)
+        if [[ -n "$lock_pid" ]] && kill -0 "$lock_pid" 2>/dev/null; then
+            printf '%b!%b %s\n' "${YELLOW}" "${NC}" "$(printf "${MSG_DOCTOR_LOCK_ACTIVE:-Another instance running (PID: %s)}" "$lock_pid")"
+            ((warnings++)) || true
+        else
+            printf '%b-%b %s\n' "${YELLOW}" "${NC}" "${MSG_DOCTOR_LOCK_STALE:-Stale lock file (can be removed)}"
+            ((warnings++)) || true
+        fi
+    else
+        printf '%b✓%b %s\n' "${GREEN}" "${NC}" "${MSG_DOCTOR_LOCK_OK:-No lock file (ready to run)}"
     fi
 
     # Özet
