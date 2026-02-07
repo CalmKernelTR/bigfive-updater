@@ -235,5 +235,5 @@ jobs:
           echo ""
           echo "  - Lint: ${LINT_RESULT}"
           echo "  - Multi-distro (5 distros): ${DISTRO_RESULT}"
-          echo "  - BATS (170 tests): ${BATS_RESULT}"
+          echo "  - BATS (173 tests): ${BATS_RESULT}"
           echo "========================================"
