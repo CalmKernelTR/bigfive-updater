@@ -162,7 +162,9 @@ Tam entegre server automation deneyimi.
 | v5.5 | BigFive | Dream | Rebranding |
 | v6.0-6.1 | Fluent | Echo | i18n, diagnostics |
 | v6.2 | Fluent | Foxtrot | GPG self-update |
-| v6.3+ | Fluent | Chrom | Server automation |
+| v6.3 | Fluent | Golf | Cron jitter, container |
+| v6.4 | Fluent | Hotel | Server automation |
+| v6.5 | Fluent | India | Quality & Security |
 | v7.0+ | Zenith | TBD | - |
 
 ---
@@ -185,9 +187,9 @@ Tam entegre server automation deneyimi.
 
 | Bileşen | Test Sayısı | Durum |
 |---------|-------------|-------|
-| guncel.bats | 131 | ✅ |
+| guncel.bats | 134 | ✅ |
 | install.bats | 39 | ✅ |
-| **Toplam** | **170** | ✅ |
+| **Toplam** | **173** | ✅ |
 
 ### CI Test Matrisi
 

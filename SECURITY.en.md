@@ -4,10 +4,9 @@
 
 | Version | Security Updates | Status |
 |---------|-----------------|--------|
-| v5.x    | Yes | Active |
-| v4.1.x  | Limited | Critical only |
-| v4.0.x  | No | Deprecated |
-| v3.x    | No | Deprecated |
+| v6.x    | Yes | Active |
+| v5.x    | Yes | Security fixes only |
+| < v5.0  | No | End of life |
 
 Only the **main** branch is actively maintained and supported.
 
