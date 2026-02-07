@@ -934,6 +934,12 @@ run_hooks() {
     [[ ! -f "$hook" ]] && continue
     [[ ! -x "$hook" ]] && continue
 
+    # Security: skip world-writable or non-root-owned hooks
+    if [[ -w "$hook" ]] && [[ "$(stat -c '%a' "$hook" 2>/dev/null)" == *7 ]]; then
+      print_warning "$(printf "Hook atlandı (world-writable): %s" "$(basename "$hook")")"
+      continue
+    fi
+
     hook_count=$((hook_count + 1))
     local hook_name
     hook_name=$(basename "$hook")

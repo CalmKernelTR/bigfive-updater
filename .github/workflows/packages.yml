@@ -70,7 +70,8 @@ jobs:
           addgroup builder abuild
           echo "builder ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
           mkdir -p /var/cache/distfiles
-          chmod 777 /var/cache/distfiles
+          chown builder:abuild /var/cache/distfiles
+          chmod 755 /var/cache/distfiles
 
       - name: Checkout
         uses: actions/checkout@v6
