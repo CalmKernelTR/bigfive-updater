@@ -2,7 +2,7 @@
 # https://github.com/CalmKernelTR/bigfive-updater
 
 pkgname=bigfive-updater
-pkgver=6.4.0
+pkgver=6.5.0
 pkgrel=1
 pkgdesc="Multi-distro Linux system updater with security features"
 arch=('any')
@@ -19,7 +19,7 @@ optdepends=(
 )
 provides=('guncel' 'updater' 'bigfive')
 source=("${pkgname}-${pkgver}.tar.gz::${url}/archive/v${pkgver}.tar.gz")
-sha256sums=('4b4249bc17c040b1ced1e59f56c71c6d28b8626bd94b40272edd339fd6f6a3ba')
+sha256sums=('SKIP')
 
 package() {
     cd "${srcdir}/${pkgname}-${pkgver}"

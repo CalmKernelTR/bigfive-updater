@@ -1,7 +1,7 @@
 # Contributor: Ahmet T <ahm3t0t@users.noreply.github.com>
 # Maintainer: Ahmet T <ahm3t0t@users.noreply.github.com>
 pkgname=bigfive-updater
-pkgver=6.4.0
+pkgver=6.5.0
 pkgrel=0
 pkgdesc="Multi-distro Linux system updater with security features"
 url="https://github.com/CalmKernelTR/bigfive-updater"
