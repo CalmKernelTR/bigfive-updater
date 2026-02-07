@@ -328,6 +328,10 @@ BIGFIVE_LANG=en guncel          # Environment variable ile
 | `--lang <tr\|en>` | Çıktı dilini seçer (v6.0+) |
 | `--uninstall` | BigFive Updater'ı kaldır (config/log korunur) |
 | `--uninstall --purge` | Config ve loglar dahil tamamen kaldır |
+| `--doctor` | Sistem sağlık kontrolü (config, bağımlılık, disk, ağ) |
+| `--history [N]` | Son N günün güncelleme geçmişi (varsayılan: 7) |
+| `--jitter [N]` | Cron için rastgele gecikme 0-N saniye (varsayılan: 300) |
+| `--security-only` | Sadece güvenlik güncellemeleri - DNF/Zypper native (v6.4+) |
 | `--help` | Yardım mesajını gösterir |
 
 ### Skip/Only Değerleri

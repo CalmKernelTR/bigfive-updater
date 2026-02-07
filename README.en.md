@@ -214,6 +214,10 @@ BIGFIVE_LANG=en guncel          # Via environment variable
 | `--lang <tr\|en>` | Select output language (v6.0+) |
 | `--uninstall` | Remove BigFive Updater (config/logs preserved) |
 | `--uninstall --purge` | Completely remove including config and logs |
+| `--doctor` | System health check (config, deps, disk, network) |
+| `--history [N]` | View update history for last N days (default: 7) |
+| `--jitter [N]` | Random delay 0-N seconds for cron (default: 300) |
+| `--security-only` | Security updates only - DNF/Zypper native (v6.4+) |
 | `--help` | Display help message |
 
 ### Skip/Only Values
