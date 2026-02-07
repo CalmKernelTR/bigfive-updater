@@ -1,6 +1,6 @@
 .\" Man page for guncel - BigFive Updater
 .\" Generated from guncel.8.md
-.TH GUNCEL 8 "February 2026" "BigFive Updater 6.1.0" "System Administration"
+.TH GUNCEL 8 "February 2026" "BigFive Updater 6.5.0" "System Administration"
 .SH NAME
 guncel \- universal Linux system updater (BigFive Edition)
 .SH SYNOPSIS
@@ -74,6 +74,15 @@ troubleshooting issues before running updates.
 .BI \-\-history " [N]"
 Show update history for the last N days (default: 7). Displays date, time,
 status, and details of each update run from the log directory.
+.TP
+.BI \-\-jitter " [N]"
+Add random delay (0-N seconds, default: 300) before starting updates.
+Useful for cron jobs to avoid thundering herd on mirrors. (v6.3.0+)
+.TP
+.B \-\-security\-only
+Only apply security updates. Supported natively by DNF and Zypper.
+For APT/Pacman/APK, shows a warning and suggests alternatives like
+unattended-upgrades or arch-audit. (v6.4.0+)
 .TP
 .B \-\-help
 Display help message and exit.
@@ -216,8 +225,27 @@ CONFIG_VERBOSE=true
 
 # Snapshot timeout (seconds)
 CONFIG_SNAPSHOT_TIMEOUT=300
+
+# Jitter (random delay) for cron jobs (v6.3.0+)
+CONFIG_JITTER=300
+
+# Security-only mode (v6.4.0+)
+CONFIG_SECURITY_ONLY=false
+
+# Notifications (v6.4.0+)
+NOTIFY_ON_SUCCESS=true
+NOTIFY_ON_FAILURE=true
+NOTIFY_URL=https://ntfy.sh/my-topic
 .fi
 .RE
+.SH HOOKS (v6.4.0+)
+BigFive supports pre and post update hooks for custom automation:
+.TP
+.I /etc/bigfive-updater.d/pre-*.sh
+Scripts executed before updates begin.
+.TP
+.I /etc/bigfive-updater.d/post-*.sh
+Scripts executed after updates complete.
 .SH SEE ALSO
 .BR apt (8),
 .BR dnf (8),
@@ -228,10 +256,10 @@ CONFIG_SNAPSHOT_TIMEOUT=300
 .BR snap (8),
 .BR fwupdmgr (1)
 .SH BUGS
-Report bugs at: https://github.com/ahm3t0t/bigfive-updater/issues
+Report bugs at: https://github.com/CalmKernelTR/bigfive-updater/issues
 .SH COPYRIGHT
 Copyright (C) 2026 Ahmet T. Licensed under MIT License.
 .SH AUTHOR
 Written by Ahmet T. with contributions from Claude AI.
 .PP
-Project homepage: https://github.com/ahm3t0t/bigfive-updater
+Project homepage: https://github.com/CalmKernelTR/bigfive-updater
