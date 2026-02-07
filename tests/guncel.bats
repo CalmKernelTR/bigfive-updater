@@ -477,7 +477,7 @@ get_script_version() {
 
 @test "Self-update uses releases URL not raw.githubusercontent.com" {
     # v5.4.6: CDN cache fix
-    grep -q 'GITHUB_RAW_URL="https://github.com/ahm3t0t/bigfive-updater/releases' "$GUNCEL_SCRIPT"
+    grep -q 'GITHUB_RAW_URL="https://github.com/CalmKernelTR/bigfive-updater/releases' "$GUNCEL_SCRIPT"
 }
 
 @test "SHA256 grep pattern matches exact guncel filename" {

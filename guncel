@@ -3,7 +3,7 @@
 # SC2059: i18n için printf format string'de değişken kullanımı gerekli
 #
 # BigFive Updater
-# GitHub: https://github.com/ahm3t0t/bigfive-updater
+# GitHub: https://github.com/CalmKernelTR/bigfive-updater
 #
 
 # --- AYARLAR ---
@@ -17,10 +17,10 @@ BIGFIVE_LANG="${BIGFIVE_LANG:-}" # Env var ile override
 LOG_DIR="/var/log/bigfive-updater"
 LOG_FILE="$LOG_DIR/update_$(date +%Y%m%d_%H%M%S).log"
 # v5.4.5: Releases URL kullan (CDN cache sorunu önlenir - raw.githubusercontent.com cache'lenebilir)
-GITHUB_RAW_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/guncel"
-GITHUB_SHA256_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS"
+GITHUB_RAW_URL="https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/guncel"
+GITHUB_SHA256_URL="https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/SHA256SUMS"
 # v6.2.0: GPG imza doğrulaması URL'leri
-GITHUB_SHA256_SIG_URL="https://github.com/ahm3t0t/bigfive-updater/releases/latest/download/SHA256SUMS.asc"
+GITHUB_SHA256_SIG_URL="https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/SHA256SUMS.asc"
 GITHUB_PUBKEY_URL="https://raw.githubusercontent.com/CalmKernelTR/bigfive-updater/main/pubkey.asc"
 CONFIG_FILE="/etc/bigfive-updater.conf"
 
