@@ -84,30 +84,30 @@ jobs:
           SHA256: ${{ steps.checksum.outputs.sha256 }}
         run: |
           cd aur-repo
-          cat > .SRCINFO << SRCEOF
-          pkgbase = bigfive-updater
-          	pkgdesc = Multi-distro Linux system updater with security features
-          	pkgver = ${VER}
-          	pkgrel = 1
-          	url = https://github.com/CalmKernelTR/bigfive-updater
-          	arch = any
-          	license = MIT
-          	depends = bash
-          	depends = curl
-          	optdepends = flatpak: Flatpak application updates
-          	optdepends = snapd: Snap package updates
-          	optdepends = fwupd: Firmware updates
-          	optdepends = snapper: Btrfs/LVM snapshot support
-          	optdepends = timeshift: System restore point support
-          	optdepends = gnupg: GPG signature verification
-          	provides = guncel
-          	provides = updater
-          	provides = bigfive
-          	source = bigfive-updater-${VER}.tar.gz::https://github.com/CalmKernelTR/bigfive-updater/archive/v${VER}.tar.gz
-          	sha256sums = ${SHA256}
+          cat > .SRCINFO <<SRCEOF
+pkgbase = bigfive-updater
+	pkgdesc = Multi-distro Linux system updater with security features
+	pkgver = ${VER}
+	pkgrel = 1
+	url = https://github.com/CalmKernelTR/bigfive-updater
+	arch = any
+	license = MIT
+	depends = bash
+	depends = curl
+	optdepends = flatpak: Flatpak application updates
+	optdepends = snapd: Snap package updates
+	optdepends = fwupd: Firmware updates
+	optdepends = snapper: Btrfs/LVM snapshot support
+	optdepends = timeshift: System restore point support
+	optdepends = gnupg: GPG signature verification
+	provides = guncel
+	provides = updater
+	provides = bigfive
+	source = bigfive-updater-${VER}.tar.gz::https://github.com/CalmKernelTR/bigfive-updater/archive/v${VER}.tar.gz
+	sha256sums = ${SHA256}
 
-          pkgname = bigfive-updater
-          SRCEOF
+pkgname = bigfive-updater
+SRCEOF
           echo "Generated .SRCINFO"
 
       - name: Commit and push to AUR

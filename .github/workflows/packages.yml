@@ -91,10 +91,7 @@ jobs:
           cd packaging/alpine
           chown -R builder:builder .
           su builder -c "abuild checksum"
-          # Build package (ignore index error due to self-signed key)
-          su builder -c "abuild -r" || true
-          # Verify packages were actually built
-          ls -la /home/builder/packages/packaging/x86_64/*.apk
+          su builder -c "abuild -r"
 
       - name: Collect packages
         run: |
