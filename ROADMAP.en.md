@@ -162,7 +162,9 @@ Fully integrated server automation experience.
 | v5.5 | BigFive | Dream | Rebranding |
 | v6.0-6.1 | Fluent | Echo | i18n, diagnostics |
 | v6.2 | Fluent | Foxtrot | GPG self-update |
-| v6.3+ | Fluent | Chrom | Server automation |
+| v6.3 | Fluent | Golf | Cron jitter, container |
+| v6.4 | Fluent | Hotel | Server automation |
+| v6.5 | Fluent | India | Quality & Security |
 | v7.0+ | Zenith | TBD | - |
 
 ---
@@ -185,9 +187,9 @@ Fully integrated server automation experience.
 
 | Component | Test Count | Status |
 |-----------|------------|--------|
-| guncel.bats | 131 | ✅ |
+| guncel.bats | 134 | ✅ |
 | install.bats | 39 | ✅ |
-| **Total** | **170** | ✅ |
+| **Total** | **173** | ✅ |
 
 ### CI Test Matrix
 

@@ -4,10 +4,9 @@
 
 | Sürüm | Güvenlik Güncellemeleri | Durum |
 |-------|-------------------------|-------|
-| v5.x    | Evet | Aktif |
-| v4.1.x  | Sınırlı | Sadece kritik |
-| v4.0.x  | Hayır | Kullanımdan kaldırıldı |
-| v3.x    | Hayır | Kullanımdan kaldırıldı |
+| v6.x    | Evet | Aktif |
+| v5.x    | Evet | Sadece güvenlik |
+| < v5.0  | Hayır | Kullanımdan kaldırıldı |
 
 Sadece **main** dalı aktif olarak desteklenmektedir.
 
