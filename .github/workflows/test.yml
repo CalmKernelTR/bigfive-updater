@@ -3,7 +3,31 @@ name: Tests
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.github/CODEOWNERS'
+      - '.github/dependabot.yml'
+      - 'SHA256SUMS*'
+      - 'pubkey.asc'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.github/CODEOWNERS'
+      - '.github/dependabot.yml'
+      - 'SHA256SUMS*'
+      - 'pubkey.asc'
 
 # Note: ShellCheck is run in ci.yml (ShellCheck Lint job)
 # This workflow focuses on syntax and install tests

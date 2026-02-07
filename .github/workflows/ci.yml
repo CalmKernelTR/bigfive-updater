@@ -3,8 +3,32 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.github/CODEOWNERS'
+      - '.github/dependabot.yml'
+      - 'SHA256SUMS*'
+      - 'pubkey.asc'
   pull_request:
     branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.github/ISSUE_TEMPLATE/**'
+      - '.github/PULL_REQUEST_TEMPLATE.md'
+      - '.github/CODEOWNERS'
+      - '.github/dependabot.yml'
+      - 'SHA256SUMS*'
+      - 'pubkey.asc'
   workflow_dispatch:
 
 concurrency:
@@ -235,5 +259,5 @@ jobs:
           echo ""
           echo "  - Lint: ${LINT_RESULT}"
           echo "  - Multi-distro (5 distros): ${DISTRO_RESULT}"
-          echo "  - BATS (173 tests): ${BATS_RESULT}"
+          echo "  - BATS (193 tests): ${BATS_RESULT}"
           echo "========================================"
