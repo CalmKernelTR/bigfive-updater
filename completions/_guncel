@@ -1,6 +1,6 @@
 #compdef guncel updater bigfive
 # Zsh completion for guncel/updater/bigfive
-# BigFive Updater v6.1.0+
+# BigFive Updater v6.5.0+
 # Install: sudo cp _guncel /usr/share/zsh/site-functions/_guncel
 
 local -a backends languages
@@ -36,7 +36,9 @@ _arguments -s \
     '--purge[Remove all files including logs (use with --uninstall)]' \
     '--doctor[Run system health check]' \
     '--history[Show update history for last N days]:days:' \
-    '--lang[Set output language]:language:->languages'
+    '--lang[Set output language]:language:->languages' \
+    '--security-only[Only apply security updates (DNF/Zypper)]' \
+    '--jitter[Random delay in seconds for cron (0-N)]:seconds:'
 
 case "$state" in
     backends)

@@ -1,5 +1,5 @@
 # Bash completion for guncel/updater/bigfive
-# BigFive Updater v6.1.0+
+# BigFive Updater v6.5.0+
 # Install: sudo cp guncel.bash /usr/share/bash-completion/completions/guncel
 
 _guncel_completions() {
@@ -9,7 +9,7 @@ _guncel_completions() {
     prev="${COMP_WORDS[COMP_CWORD-1]}"
 
     # Ana seçenekler
-    opts="--help --auto --verbose --quiet --dry-run --json --json-full --skip --only --uninstall --doctor --history --lang"
+    opts="--help --auto --verbose --quiet --dry-run --json --json-full --skip --only --uninstall --doctor --history --lang --security-only --jitter"
 
     # --skip ve --only için değerler
     skip_only_opts="snapshot flatpak snap fwupd system apt dnf pacman zypper apk"
@@ -33,8 +33,8 @@ _guncel_completions() {
             COMPREPLY=( $(compgen -W "${lang_opts}" -- "${cur}") )
             return 0
             ;;
-        --history)
-            # Gün sayısı için tamamlama yok, kullanıcı sayı yazabilir
+        --history|--jitter)
+            # Sayısal değer için tamamlama yok, kullanıcı sayı yazabilir
             return 0
             ;;
     esac

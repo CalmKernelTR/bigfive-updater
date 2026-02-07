@@ -1,5 +1,5 @@
 # Fish completion for guncel/updater/bigfive
-# BigFive Updater v6.1.0+
+# BigFive Updater v6.5.0+
 # Install: sudo cp guncel.fish /usr/share/fish/vendor_completions.d/guncel.fish
 
 # Disable file completion
@@ -32,3 +32,7 @@ complete -c guncel -c updater -c bigfive -l skip -d 'Skip specific backends' -xa
 
 # --only option with backend values
 complete -c guncel -c updater -c bigfive -l only -d 'Run only specific backends' -xa "$backends"
+
+# Security and jitter options
+complete -c guncel -c updater -c bigfive -l security-only -d 'Only apply security updates (DNF/Zypper)'
+complete -c guncel -c updater -c bigfive -l jitter -d 'Random delay in seconds for cron (0-N)'
