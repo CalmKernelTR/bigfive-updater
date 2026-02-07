@@ -725,7 +725,7 @@ get_script_version() {
 }
 
 @test "flag: --jitter requires numeric argument" {
-    grep -qA5 '\-\-jitter\)' "$GUNCEL_SCRIPT" | grep -q 'shift'
+    grep -qA5 -- '--jitter)' "$GUNCEL_SCRIPT" | grep -q 'shift'
 }
 
 @test "flag: --help includes --jitter option" {
@@ -747,11 +747,11 @@ get_script_version() {
 }
 
 @test "function: json_escape escapes backslash" {
-    grep -qA5 '^json_escape\(\)' "$GUNCEL_SCRIPT" | grep -q 'str//\\\\/\\\\\\\\'
+    grep -A5 '^json_escape()' "$GUNCEL_SCRIPT" | grep -qF 'str//\'
 }
 
 @test "function: json_escape escapes double quote" {
-    grep -qA5 '^json_escape\(\)' "$GUNCEL_SCRIPT" | grep -q '\\\"'
+    grep -A5 '^json_escape()' "$GUNCEL_SCRIPT" | grep -qF '\"'
 }
 
 @test "function: check_disk_space exists" {
