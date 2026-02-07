@@ -23,7 +23,7 @@ What actually happened.
 ## Environment
 - OS: [e.g., Ubuntu 22.04, Arch Linux]
 - Shell: [e.g., bash 5.1, zsh]
-- Script Version: [e.g., 3.7.1]
+- Script Version: [e.g., 6.5.0]
 
 ## Logs
 ```

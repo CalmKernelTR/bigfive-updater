@@ -96,4 +96,6 @@ fishcomp() {
 	ln -s guncel.fish "$subpkgdir"/usr/share/fish/vendor_completions.d/bigfive.fish
 }
 
+# Checksums are computed at build time via 'abuild checksum' in CI.
+# Run 'abuild checksum' locally to populate before submitting to aports.
 sha512sums="SKIP"
