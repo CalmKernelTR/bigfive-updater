@@ -19,7 +19,7 @@ Brief description of the changes in this PR.
 ## Checklist
 - [ ] My code follows the project's style guidelines
 - [ ] I have updated the VERSION if needed
-- [ ] I have updated CHANGELOG.md
+- [ ] I have updated CHANGELOG.tr.md / CHANGELOG.en.md
 - [ ] I have updated SHA256SUMS if files changed
 
 ## Related Issues
