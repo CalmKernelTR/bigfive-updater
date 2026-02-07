@@ -1,5 +1,5 @@
 Name:           bigfive-updater
-Version:        6.5.0
+Version:        6.5.1
 Release:        1%{?dist}
 Summary:        Multi-distro Linux system updater with security features
 License:        MIT
@@ -94,6 +94,11 @@ install -dm755 %{buildroot}%{_localstatedir}/log/%{name}
 %dir %{_localstatedir}/log/%{name}
 
 %changelog
+* Sat Feb 07 2026 Ahmet Kaan Sever <ahmet@calmkernel.net> - 6.5.1-1
+- Audit fixes: security hardening, code quality, test coverage
+- Shell completions: --security-only, --jitter options
+- 20 new BATS tests (193 total), CI path-based filtering
+
 * Fri Feb 06 2026 Ahmet Kaan Sever <ahmet@calmkernel.net> - 6.5.0-1
 - Multi-language i18n support (TR/EN), notification system enhancements
 - Codename: Fluent Edition India

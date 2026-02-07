@@ -1,5 +1,5 @@
 # Fish completion for guncel/updater/bigfive
-# BigFive Updater v6.5.0+
+# BigFive Updater v6.5.1+
 # Install: sudo cp guncel.fish /usr/share/fish/vendor_completions.d/guncel.fish
 
 # Disable file completion

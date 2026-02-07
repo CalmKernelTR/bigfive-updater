@@ -1,5 +1,5 @@
 # Bash completion for guncel/updater/bigfive
-# BigFive Updater v6.5.0+
+# BigFive Updater v6.5.1+
 # Install: sudo cp guncel.bash /usr/share/bash-completion/completions/guncel
 
 _guncel_completions() {

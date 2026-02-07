@@ -1,6 +1,6 @@
 #compdef guncel updater bigfive
 # Zsh completion for guncel/updater/bigfive
-# BigFive Updater v6.5.0+
+# BigFive Updater v6.5.1+
 # Install: sudo cp _guncel /usr/share/zsh/site-functions/_guncel
 
 local -a backends languages

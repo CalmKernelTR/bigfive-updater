@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [6.5.1] - 2026-02-07 "Fluent Edition - India"
+### Fixed
+- **Security:** chmod 777 replaced with chown+chmod 755, trufflehog SHA pinning, world-writable hook protection
+- **Code quality:** Array quoting (dnf_cmd/zypper_cmd), json_escape hostname/distro, BIGFIVE_REEXEC guard
+- **do_doctor:** Hardcoded /usr/local/bin replaced with command -v + fallback
+- **URL unification:** ahm3t0t -> CalmKernelTR (repo URLs)
+
+### Added
+- **Shell completions:** --security-only and --jitter options
+- **i18n:** 21 new MSG_* keys (disk, container, jitter, sudo, hooks, security-only)
+- **Tests:** 20 new BATS tests (173 -> 193 total)
+- **CI:** Path-based filtering (CI skipped for docs-only PRs)
+
+### Changed
+- **Man pages:** v6.5.1 update, HOOKS section, config examples
+- **Packaging:** RPM, AUR, Alpine synced to v6.5.1
+- **Documentation:** SECURITY, README, ROADMAP synced
+
+---
+
 ## [6.5.0] - 2026-02-06 "Fluent Edition - India"
 ### Added
 - **Expanded --doctor command:** 6 → 9 health checks

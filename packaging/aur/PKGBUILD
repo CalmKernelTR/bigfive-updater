@@ -2,7 +2,7 @@
 # https://github.com/CalmKernelTR/bigfive-updater
 
 pkgname=bigfive-updater
-pkgver=6.5.0
+pkgver=6.5.1
 pkgrel=1
 pkgdesc="Multi-distro Linux system updater with security features"
 arch=('any')

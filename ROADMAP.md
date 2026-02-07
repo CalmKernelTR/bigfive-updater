@@ -127,6 +127,16 @@ Full server automation features.
 - [ ] Vulnerability scanning integration (--doctor --security) → v6.6.0
 - [ ] GitHub Wiki documentation → v6.6.0
 
+### v6.5.1 "Fluent Edition - India" - Audit Fixes ✅
+
+- [x] **Security hardening:** chmod 777 fix, trufflehog SHA pinning, world-writable hook protection
+- [x] **Code quality:** Array quoting, json_escape, BIGFIVE_REEXEC guard
+- [x] **Shell completions:** --security-only, --jitter options added
+- [x] **i18n:** 21 new MSG_* keys
+- [x] **Tests:** 20 new BATS tests (193 total)
+- [x] **CI:** Path-based filtering for docs-only PRs
+- [x] **Packaging:** RPM, AUR, Alpine synced, do_doctor path fix
+
 ### v6.6.0 "Fluent Edition - Juliet" - Documentation & Vuln Scanning
 
 - [ ] Vulnerability scanning integration (--doctor --security)

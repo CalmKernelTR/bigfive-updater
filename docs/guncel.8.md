@@ -1,4 +1,4 @@
-% GUNCEL(8) BigFive Updater 6.5.0
+% GUNCEL(8) BigFive Updater 6.5.1
 % Ahmet T. <meet@calmkernel.tr>
 % February 2026
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # BigFive Updater - Türkçe Dil Dosyası
 # Language: Turkish (tr)
-# Version: 6.5.0 Fluent Edition India
+# Version: 6.5.1 Fluent Edition India
 # Encoding: UTF-8
 
 # ============================================

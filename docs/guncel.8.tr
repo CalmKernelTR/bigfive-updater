@@ -1,6 +1,6 @@
 .\" Man page for guncel - BigFive Updater (Türkçe)
 .\" Generated from guncel.8.md
-.TH GUNCEL 8 "Şubat 2026" "BigFive Updater 6.5.0" "Sistem Yönetimi"
+.TH GUNCEL 8 "Şubat 2026" "BigFive Updater 6.5.1" "Sistem Yönetimi"
 .SH İSİM
 guncel \- evrensel Linux sistem güncelleyici (BigFive Edition)
 .SH KULLANIM

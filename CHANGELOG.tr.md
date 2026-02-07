@@ -5,6 +5,26 @@ Bu projedeki tüm önemli değişiklikler bu dosyada belgelenecektir.
 Format [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) standardına,
 versiyon numaraları ise [Semantic Versioning](https://semver.org/spec/v2.0.0.html) standardına uygundur.
 
+## [6.5.1] - 2026-02-07 "Fluent Edition - India"
+### Düzeltmeler
+- **Güvenlik:** chmod 777 yerine chown+chmod 755, trufflehog SHA pinleme, world-writable hook koruması
+- **Kod kalitesi:** Array quoting (dnf_cmd/zypper_cmd), json_escape hostname/distro, BIGFIVE_REEXEC guard
+- **do_doctor:** Hardcoded /usr/local/bin yerine command -v + fallback
+- **URL birleştirme:** ahm3t0t -> CalmKernelTR (repo URL'leri)
+
+### Eklenenler
+- **Shell completions:** --security-only ve --jitter opsiyonları
+- **i18n:** 21 yeni MSG_* anahtarı (disk, container, jitter, sudo, hooks, security-only)
+- **Testler:** 20 yeni BATS testi (173 -> 193 toplam)
+- **CI:** Path-based filtering (docs-only PR'larda CI atlanır)
+
+### Değişenler
+- **Man pages:** v6.5.1 güncelleme, HOOKS bölümü, config örnekleri
+- **Packaging:** RPM, AUR, Alpine v6.5.1 senkronize
+- **Dokümantasyon:** SECURITY, README, ROADMAP senkronize
+
+---
+
 ## [6.5.0] - 2026-02-06 "Fluent Edition - India"
 ### Eklenenler
 - **Genişletilmiş --doctor komutu:** 6 → 9 sağlık kontrolü
