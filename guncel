@@ -1250,9 +1250,17 @@ do_doctor() {
   printf '%b[7/9]%b %s ' "${BLUE}" "${NC}" "${MSG_DOCTOR_CHECK_PERMS:-File permissions...}"
   local perm_issues=()
   # guncel script: should be 755 or 700
-  if [[ -f "/usr/local/bin/guncel" ]]; then
+  local guncel_bin
+  guncel_bin=$(command -v guncel 2>/dev/null || echo "")
+  if [[ -z "$guncel_bin" ]]; then
+    # Fallback: check common install paths
+    for _p in /usr/local/bin/guncel /usr/bin/guncel; do
+      [[ -f "$_p" ]] && guncel_bin="$_p" && break
+    done
+  fi
+  if [[ -n "$guncel_bin" && -f "$guncel_bin" ]]; then
     local guncel_perms
-    guncel_perms=$(stat -c '%a' /usr/local/bin/guncel 2> /dev/null)
+    guncel_perms=$(stat -c '%a' "$guncel_bin" 2> /dev/null)
     if [[ "$guncel_perms" != "755" && "$guncel_perms" != "700" ]]; then
       perm_issues+=("guncel:$guncel_perms")
     fi
