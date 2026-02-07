@@ -1,6 +1,6 @@
 .\" Man page for guncel - BigFive Updater (Türkçe)
 .\" Generated from guncel.8.md
-.TH GUNCEL 8 "Şubat 2026" "BigFive Updater 6.1.0" "Sistem Yönetimi"
+.TH GUNCEL 8 "Şubat 2026" "BigFive Updater 6.5.0" "Sistem Yönetimi"
 .SH İSİM
 guncel \- evrensel Linux sistem güncelleyici (BigFive Edition)
 .SH KULLANIM
@@ -71,6 +71,15 @@ Güncelleme çalıştırmadan önce sorunları gidermek için kullanışlıdır.
 .BI \-\-history " [N]"
 Son N günün güncelleme geçmişini göster (varsayılan: 7). Log dizininden
 her güncelleme çalıştırmasının tarih, saat, durum ve detaylarını görüntüler.
+.TP
+.BI \-\-jitter " [N]"
+Güncellemelere başlamadan önce rastgele gecikme ekle (0-N saniye, varsayılan: 300).
+Mirror sunucularına eşzamanlı yüklenmekten kaçınmak için cron'da kullanışlıdır. (v6.3.0+)
+.TP
+.B \-\-security\-only
+Sadece güvenlik güncellemelerini uygula. DNF ve Zypper'da doğal olarak desteklenir.
+APT/Pacman/APK için uyarı gösterir ve unattended-upgrades veya arch-audit
+gibi alternatifleri önerir. (v6.4.0+)
 .TP
 .B \-\-help
 Yardım mesajını göster ve çık.
@@ -213,8 +222,27 @@ CONFIG_VERBOSE=true
 
 # Snapshot zaman aşımı (saniye)
 CONFIG_SNAPSHOT_TIMEOUT=300
+
+# Cron için jitter (rastgele gecikme) (v6.3.0+)
+CONFIG_JITTER=300
+
+# Sadece güvenlik modu (v6.4.0+)
+CONFIG_SECURITY_ONLY=false
+
+# Bildirimler (v6.4.0+)
+NOTIFY_ON_SUCCESS=true
+NOTIFY_ON_FAILURE=true
+NOTIFY_URL=https://ntfy.sh/my-topic
 .fi
 .RE
+.SH HOOK'LAR (v6.4.0+)
+BigFive, özel otomasyon için güncelleme öncesi ve sonrası hook'ları destekler:
+.TP
+.I /etc/bigfive-updater.d/pre-*.sh
+Güncellemeler başlamadan önce çalıştırılan scriptler.
+.TP
+.I /etc/bigfive-updater.d/post-*.sh
+Güncellemeler tamamlandıktan sonra çalıştırılan scriptler.
 .SH AYRICA BAKINIZ
 .BR apt (8),
 .BR dnf (8),
@@ -225,10 +253,10 @@ CONFIG_SNAPSHOT_TIMEOUT=300
 .BR snap (8),
 .BR fwupdmgr (1)
 .SH HATALAR
-Hataları şu adreste bildirin: https://github.com/ahm3t0t/bigfive-updater/issues
+Hataları şu adreste bildirin: https://github.com/CalmKernelTR/bigfive-updater/issues
 .SH TELİF HAKKI
 Telif Hakkı (C) 2026 Ahmet T. MIT Lisansı altında lisanslanmıştır.
 .SH YAZAR
 Ahmet T. tarafından Claude AI katkılarıyla yazılmıştır.
 .PP
-Proje ana sayfası: https://github.com/ahm3t0t/bigfive-updater
+Proje ana sayfası: https://github.com/CalmKernelTR/bigfive-updater
