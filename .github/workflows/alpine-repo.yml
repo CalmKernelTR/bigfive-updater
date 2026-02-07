@@ -8,7 +8,7 @@ on:
       version:
         description: 'Version to build (e.g., 6.0.2)'
         required: true
-        default: '6.0.2'
+        default: '6.5.0'
 
 permissions:
   contents: read
