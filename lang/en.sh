@@ -216,3 +216,40 @@ MSG_HISTORY_DETAIL_UNKNOWN="Unknown"
 # ============================================
 MSG_HELP_OPT_DOCTOR="  --doctor            System health check (config, dependencies, disk, network)"
 MSG_HELP_OPT_HISTORY="  --history [N]       Show update history for last N days (default: 7)"
+
+# ============================================
+# v6.3.0+ - Security, Hook, Container, Jitter
+# ============================================
+MSG_HELP_OPT_JITTER="  --jitter <sec>      Cron jitter (random delay 0-N seconds)"
+MSG_HELP_OPT_SECURITY="  --security-only     Security updates only (DNF/Zypper)"
+MSG_HELP_EX_SECURITY="  guncel --security-only        -> Security updates only (DNF/Zypper)"
+
+# Disk check
+MSG_ERR_LOW_DISK="Insufficient disk space: %sMB available, %sMB required."
+MSG_HINT_LOW_DISK="Free disk space: sudo apt clean / sudo dnf clean all / sudo pacman -Sc"
+MSG_INFO_DISK_OK="Disk space sufficient: %sMB available."
+MSG_WARN_DISK_CHECK_FAIL="Could not check disk space."
+
+# Container
+MSG_WARN_CONTAINER="Container environment detected: %s"
+MSG_HINT_CONTAINER="Container updates are not persistent. Run outside the container to update the host system."
+
+# Jitter
+MSG_INFO_JITTER="Cron jitter: waiting %d seconds (max: %d)..."
+
+# Sudo
+MSG_ERR_SUDO_NOPASSWD="sudo NOPASSWD required for auto mode."
+MSG_HINT_SUDO_NOPASSWD="Add NOPASSWD to /etc/sudoers or run as root."
+
+# Hook
+MSG_HOOK_RUNNING="Running hook: %s"
+MSG_HOOK_FAILED="Hook failed: %s"
+MSG_HOOK_COMPLETE="%d hooks executed (%d failed)"
+
+# Security-only
+MSG_INFO_SECURITY_ONLY="Applying security updates only..."
+MSG_WARN_SECURITY_APT="--security-only not supported for APT. All updates will be applied."
+MSG_WARN_SECURITY_PACMAN="--security-only not supported for Pacman. All updates will be applied."
+MSG_WARN_SECURITY_APK="--security-only not supported for APK. All updates will be applied."
+MSG_HINT_SECURITY_APT="Tip: Configure unattended-upgrades for automatic security updates."
+MSG_HINT_SECURITY_PACMAN="Tip: Use arch-audit to check for security vulnerabilities."

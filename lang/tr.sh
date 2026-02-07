@@ -216,3 +216,40 @@ MSG_HISTORY_DETAIL_UNKNOWN="Belirsiz"
 # ============================================
 MSG_HELP_OPT_DOCTOR="  --doctor            Sistem sağlık kontrolü (config, bağımlılıklar, disk, ağ)"
 MSG_HELP_OPT_HISTORY="  --history [N]       Son N günün güncelleme geçmişi (varsayılan: 7)"
+
+# ============================================
+# v6.3.0+ - Güvenlik, Hook, Container, Jitter
+# ============================================
+MSG_HELP_OPT_JITTER="  --jitter <sn>       Cron jitter (0-N saniye arası rastgele bekleme)"
+MSG_HELP_OPT_SECURITY="  --security-only     Sadece güvenlik güncellemeleri (DNF/Zypper)"
+MSG_HELP_EX_SECURITY="  guncel --security-only        -> Sadece güvenlik güncellemeleri (DNF/Zypper)"
+
+# Disk kontrolü
+MSG_ERR_LOW_DISK="Yetersiz disk alanı: %sMB mevcut, %sMB gerekli."
+MSG_HINT_LOW_DISK="Disk alanı açın: sudo apt clean / sudo dnf clean all / sudo pacman -Sc"
+MSG_INFO_DISK_OK="Disk alanı yeterli: %sMB mevcut."
+MSG_WARN_DISK_CHECK_FAIL="Disk alanı kontrol edilemedi."
+
+# Container
+MSG_WARN_CONTAINER="Container ortamı tespit edildi: %s"
+MSG_HINT_CONTAINER="Container güncellemeleri kalıcı değildir. Host sistemini güncellemek için container dışında çalıştırın."
+
+# Jitter
+MSG_INFO_JITTER="Cron jitter: %d saniye bekleniyor (max: %d)..."
+
+# Sudo
+MSG_ERR_SUDO_NOPASSWD="Auto mode için sudo NOPASSWD gerekli."
+MSG_HINT_SUDO_NOPASSWD="/etc/sudoers dosyasına NOPASSWD ekleyin veya root olarak çalıştırın."
+
+# Hook
+MSG_HOOK_RUNNING="Hook çalıştırılıyor: %s"
+MSG_HOOK_FAILED="Hook başarısız: %s"
+MSG_HOOK_COMPLETE="%d hook çalıştırıldı (%d başarısız)"
+
+# Security-only
+MSG_INFO_SECURITY_ONLY="Sadece güvenlik güncellemeleri uygulanıyor..."
+MSG_WARN_SECURITY_APT="APT için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak."
+MSG_WARN_SECURITY_PACMAN="Pacman için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak."
+MSG_WARN_SECURITY_APK="APK için --security-only desteklenmiyor. Tüm güncellemeler uygulanacak."
+MSG_HINT_SECURITY_APT="Öneri: unattended-upgrades paketi ile otomatik güvenlik güncellemeleri yapılandırın."
+MSG_HINT_SECURITY_PACMAN="Öneri: arch-audit paketi ile güvenlik açıklarını kontrol edebilirsiniz."
