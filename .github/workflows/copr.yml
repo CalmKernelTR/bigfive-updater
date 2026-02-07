@@ -71,13 +71,13 @@ jobs:
         run: |
           if [ -n "$COPR_LOGIN" ] && [ -n "$COPR_TOKEN" ]; then
             mkdir -p ~/.config
-            cat > ~/.config/copr << EOF
-          [copr-cli]
-          login = $COPR_LOGIN
-          username = tahmet
-          token = $COPR_TOKEN
-          copr_url = https://copr.fedorainfracloud.org
-          EOF
+            cat > ~/.config/copr <<EOF
+[copr-cli]
+login = $COPR_LOGIN
+username = tahmet
+token = $COPR_TOKEN
+copr_url = https://copr.fedorainfracloud.org
+EOF
             copr-cli build tahmet/bigfive-updater ~/rpmbuild/SRPMS/*.src.rpm
           else
             echo "COPR credentials not set, skipping upload"
