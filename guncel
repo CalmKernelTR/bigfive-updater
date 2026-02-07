@@ -628,7 +628,7 @@ output_json() {
   timestamp=$(date -Iseconds)
 
   local hostname_str
-  hostname_str=$(hostname 2> /dev/null || echo "unknown")
+  hostname_str=$(json_escape "$(hostname 2> /dev/null || echo "unknown")")
 
   local dry_run_val="false"
   [[ "$DRY_RUN" == "true" ]] && dry_run_val="true"
@@ -652,7 +652,9 @@ EOF
     # Full JSON for SIEM/Audit
     local distro distro_ver kernel_str
     IFS='|' read -r distro distro_ver <<< "$(get_distro_info)"
-    kernel_str=$(uname -r 2> /dev/null || echo "unknown")
+    distro=$(json_escape "$distro")
+    distro_ver=$(json_escape "$distro_ver")
+    kernel_str=$(json_escape "$(uname -r 2> /dev/null || echo "unknown")")
 
     # Build arrays - join with comma
     local pkg_managers_json="" packages_json="" warnings_json="" errors_json=""
@@ -1350,6 +1352,7 @@ check_root() {
 # --- YENİ v3.6.0: SHA256 DOĞRULAMA İLE SELF-UPDATE ---
 check_self_update() {
   if [[ "${SELF_UPDATE_DISABLED:-false}" == "true" ]]; then return; fi
+  if [[ "${BIGFIVE_REEXEC:-}" == "1" ]]; then return; fi
   if [[ "$DRY_RUN" == "true" ]]; then return; fi
 
   local REMOTE_FILE
@@ -1434,7 +1437,7 @@ check_self_update() {
       # Kesinti olursa .tmp kalır, orijinal bozulmaz
       if install -m 0755 "$REMOTE_FILE" "${0}.tmp" && mv "${0}.tmp" "$0"; then
         print_success "${MSG_SUCCESS_SCRIPT_UPDATED:-Script güncellendi. Yeniden başlatılıyor...}"
-        exec "$0" "${ORIGINAL_ARGS[@]}"
+        BIGFIVE_REEXEC=1 exec "$0" "${ORIGINAL_ARGS[@]}"
       else
         # Başarısız olursa .tmp dosyasını temizle
         rm -f "${0}.tmp" 2> /dev/null
@@ -1715,17 +1718,17 @@ update_dnf() {
   dnf_temp=$(safe_mktemp dnf_update) || return 1
 
   # v6.4.0: Security-only mode
-  local dnf_cmd="dnf upgrade --refresh -y"
+  local -a dnf_cmd=(dnf upgrade --refresh -y)
   if [[ "$SECURITY_ONLY" == "true" ]]; then
-    dnf_cmd="dnf upgrade --security --refresh -y"
+    dnf_cmd=(dnf upgrade --security --refresh -y)
     print_info "${MSG_INFO_SECURITY_ONLY:-Sadece güvenlik güncellemeleri uygulanıyor...}"
   fi
 
   # DNF upgrade (30 dakika timeout)
   if [[ "$VERBOSE_MODE" == "true" ]]; then
-    timeout 1800 $dnf_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$dnf_temp"
+    timeout 1800 "${dnf_cmd[@]}" 2>&1 | tee -a "$LOG_FILE" | tee "$dnf_temp"
   else
-    timeout 1800 $dnf_cmd 2>&1 | tee "$dnf_temp" >> "$LOG_FILE"
+    timeout 1800 "${dnf_cmd[@]}" 2>&1 | tee "$dnf_temp" >> "$LOG_FILE"
   fi
 
   # DNF sayacını parse et - v5.4.7 FIX: DNF5 formatı desteği
@@ -1863,17 +1866,17 @@ update_zypper() {
 
   # Güncelleme yap
   # v6.4.0: Security-only mode
-  local zypper_cmd="zypper --non-interactive update"
+  local -a zypper_cmd=(zypper --non-interactive update)
   if [[ "$SECURITY_ONLY" == "true" ]]; then
-    zypper_cmd="zypper --non-interactive patch --category security"
+    zypper_cmd=(zypper --non-interactive patch --category security)
     print_info "${MSG_INFO_SECURITY_ONLY:-Sadece güvenlik güncellemeleri uygulanıyor...}"
   fi
 
   # Zypper update (30 dakika timeout)
   if [[ "$VERBOSE_MODE" == "true" ]]; then
-    timeout 1800 $zypper_cmd 2>&1 | tee -a "$LOG_FILE" | tee "$zypper_temp"
+    timeout 1800 "${zypper_cmd[@]}" 2>&1 | tee -a "$LOG_FILE" | tee "$zypper_temp"
   else
-    timeout 1800 $zypper_cmd 2>&1 | tee "$zypper_temp" >> "$LOG_FILE"
+    timeout 1800 "${zypper_cmd[@]}" 2>&1 | tee "$zypper_temp" >> "$LOG_FILE"
   fi
 
   # v5.5.2 FIX: Zypper çıktısından gerçek güncelleme sayısını parse et
@@ -2604,7 +2607,7 @@ run_hooks "post"
 print_final_summary
 
 # v6.4.0: Notification
-total_updates=$((APT_COUNT + DNF_COUNT + PACMAN_COUNT + ZYPPER_COUNT + APK_COUNT + FLATPAK_COUNT + SNAP_COUNT + FWUPD_COUNT))
+total_updates=$(( ${APT_COUNT//[!0-9]/} + ${DNF_COUNT//[!0-9]/} + ${PACMAN_COUNT//[!0-9]/} + ${ZYPPER_COUNT//[!0-9]/} + ${APK_COUNT//[!0-9]/} + ${FLATPAK_COUNT//[!0-9]/} + ${SNAP_COUNT//[!0-9]/} + ${FWUPD_COUNT//[!0-9]/} ))
 if [[ "$total_updates" -gt 0 ]]; then
   send_notification "success" "$total_updates paket güncellendi"
 else
