@@ -711,3 +711,105 @@ get_script_version() {
     run bash "$GUNCEL_SCRIPT" --history
     [ "$status" -eq 0 ]
 }
+
+# ============================================
+# v6.5.0 - NEW FLAG TESTS
+# ============================================
+
+@test "flag: --jitter is parsed in argument handler" {
+    grep -qE '\-\-jitter\)' "$GUNCEL_SCRIPT"
+}
+
+@test "flag: --security-only is parsed in argument handler" {
+    grep -qE '\-\-security-only\)' "$GUNCEL_SCRIPT"
+}
+
+@test "flag: --jitter requires numeric argument" {
+    grep -qA5 '\-\-jitter\)' "$GUNCEL_SCRIPT" | grep -q 'shift'
+}
+
+@test "flag: --help includes --jitter option" {
+    run bash "$GUNCEL_SCRIPT" --help
+    echo "$output" | grep -q '\-\-jitter'
+}
+
+@test "flag: --help includes --security-only option" {
+    run bash "$GUNCEL_SCRIPT" --help
+    echo "$output" | grep -q '\-\-security-only'
+}
+
+# ============================================
+# v6.5.0 - FUNCTION TESTS
+# ============================================
+
+@test "function: json_escape exists and handles special chars" {
+    grep -qE '^json_escape\(\)' "$GUNCEL_SCRIPT"
+}
+
+@test "function: json_escape escapes backslash" {
+    grep -qA5 '^json_escape\(\)' "$GUNCEL_SCRIPT" | grep -q 'str//\\\\/\\\\\\\\'
+}
+
+@test "function: json_escape escapes double quote" {
+    grep -qA5 '^json_escape\(\)' "$GUNCEL_SCRIPT" | grep -q '\\\"'
+}
+
+@test "function: check_disk_space exists" {
+    grep -qE '^check_disk_space\(\)|^function check_disk_space' "$GUNCEL_SCRIPT"
+}
+
+@test "function: run_hooks exists" {
+    grep -qE '^run_hooks\(\)' "$GUNCEL_SCRIPT"
+}
+
+@test "function: run_hooks skips world-writable scripts" {
+    grep -qA20 '^run_hooks\(\)' "$GUNCEL_SCRIPT" | grep -q 'world-writable'
+}
+
+@test "function: safe_source exists" {
+    grep -qE '^safe_source\(\)' "$GUNCEL_SCRIPT"
+}
+
+# ============================================
+# v6.5.0 - JSON OUTPUT VALIDATION
+# ============================================
+
+@test "json: --json output is valid JSON structure" {
+    run bash "$GUNCEL_SCRIPT" --json --dry-run
+    echo "$output" | grep -q '"version":'
+    echo "$output" | grep -q '"status":'
+    echo "$output" | grep -q '"exit_code":'
+}
+
+@test "json: --json output contains hostname field" {
+    run bash "$GUNCEL_SCRIPT" --json --dry-run
+    echo "$output" | grep -q '"hostname":'
+}
+
+@test "json: hostname is escaped via json_escape" {
+    grep -A3 'hostname_str=' "$GUNCEL_SCRIPT" | grep -q 'json_escape'
+}
+
+# ============================================
+# v6.5.0 - SELF-UPDATE GUARD
+# ============================================
+
+@test "self-update: BIGFIVE_REEXEC guard exists" {
+    grep -q 'BIGFIVE_REEXEC' "$GUNCEL_SCRIPT"
+}
+
+@test "self-update: exec sets BIGFIVE_REEXEC env" {
+    grep -q 'BIGFIVE_REEXEC=1 exec' "$GUNCEL_SCRIPT"
+}
+
+@test "self-update: check_self_update skips on BIGFIVE_REEXEC" {
+    grep -qA5 '^check_self_update\(\)' "$GUNCEL_SCRIPT" | grep -q 'BIGFIVE_REEXEC'
+}
+
+# ============================================
+# v6.5.0 - SANITIZATION
+# ============================================
+
+@test "sanitization: total_updates uses numeric stripping" {
+    grep 'total_updates=' "$GUNCEL_SCRIPT" | grep -q '//\[!0-9\]/'
+}
