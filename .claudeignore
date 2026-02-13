@@ -1,0 +1,15 @@
+# BigFive Updater — Claude Code context exclusions
+
+# Git internals
+.git/
+
+# Test containers (Docker images, heavy)
+test-containers/
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
