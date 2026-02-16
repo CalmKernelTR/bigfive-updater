@@ -87,30 +87,31 @@ jobs:
           SHA256: ${{ steps.checksum.outputs.sha256 }}
         run: |
           cd aur-repo
-          cat > .SRCINFO <<SRCEOF
-pkgbase = bigfive-updater
-	pkgdesc = Multi-distro Linux system updater with security features
-	pkgver = ${VER}
-	pkgrel = 1
-	url = https://github.com/CalmKernelTR/bigfive-updater
-	arch = any
-	license = MIT
-	depends = bash
-	depends = curl
-	optdepends = flatpak: Flatpak application updates
-	optdepends = snapd: Snap package updates
-	optdepends = fwupd: Firmware updates
-	optdepends = snapper: Btrfs/LVM snapshot support
-	optdepends = timeshift: System restore point support
-	optdepends = gnupg: GPG signature verification
-	provides = guncel
-	provides = updater
-	provides = bigfive
-	source = bigfive-updater-${VER}.tar.gz::https://github.com/CalmKernelTR/bigfive-updater/archive/v${VER}.tar.gz
-	sha256sums = ${SHA256}
-
-pkgname = bigfive-updater
-SRCEOF
+          T="$(printf '\t')"
+          {
+            echo "pkgbase = bigfive-updater"
+            echo "${T}pkgdesc = Multi-distro Linux system updater with security features"
+            echo "${T}pkgver = ${VER}"
+            echo "${T}pkgrel = 1"
+            echo "${T}url = https://github.com/CalmKernelTR/bigfive-updater"
+            echo "${T}arch = any"
+            echo "${T}license = MIT"
+            echo "${T}depends = bash"
+            echo "${T}depends = curl"
+            echo "${T}optdepends = flatpak: Flatpak application updates"
+            echo "${T}optdepends = snapd: Snap package updates"
+            echo "${T}optdepends = fwupd: Firmware updates"
+            echo "${T}optdepends = snapper: Btrfs/LVM snapshot support"
+            echo "${T}optdepends = timeshift: System restore point support"
+            echo "${T}optdepends = gnupg: GPG signature verification"
+            echo "${T}provides = guncel"
+            echo "${T}provides = updater"
+            echo "${T}provides = bigfive"
+            echo "${T}source = bigfive-updater-${VER}.tar.gz::https://github.com/CalmKernelTR/bigfive-updater/archive/v${VER}.tar.gz"
+            echo "${T}sha256sums = ${SHA256}"
+            echo ""
+            echo "pkgname = bigfive-updater"
+          } > .SRCINFO
           echo "Generated .SRCINFO"
 
       - name: Commit and push to AUR
