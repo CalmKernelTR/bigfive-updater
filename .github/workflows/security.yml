@@ -27,7 +27,7 @@ jobs:
           fetch-depth: 0
 
       - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@e9734c1ff25106f68d4266f0b09c1fcfc915dad1 # pin to specific SHA
+        uses: trufflesecurity/trufflehog@6961f2bace57ab32b23b3ba40f8f420f6bc7e004 # pin to specific SHA
         with:
           path: ./
           extra_args: --only-verified
