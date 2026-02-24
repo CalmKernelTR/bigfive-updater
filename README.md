@@ -1,158 +1,100 @@
-# BigFive Updater 🛡️
+# BigFive Updater
 
-[![CI Status](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/ci.yml/badge.svg)](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/ci.yml)
-[![Tests](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/test.yml/badge.svg)](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/CalmKernelTR/bigfive-updater/graph/badge.svg)](https://codecov.io/gh/CalmKernelTR/bigfive-updater)
-[![Branch Protection](https://img.shields.io/badge/main-protected-blue)](https://github.com/CalmKernelTR/bigfive-updater/rules)
-[![Latest Release](https://img.shields.io/github/v/release/CalmKernelTR/bigfive-updater?sort=semver&label=Version)](https://github.com/CalmKernelTR/bigfive-updater/releases)
-[![License](https://img.shields.io/github/license/CalmKernelTR/bigfive-updater)](https://github.com/CalmKernelTR/bigfive-updater/blob/main/LICENSE)
-![GitHub last commit](https://img.shields.io/github/last-commit/CalmKernelTR/bigfive-updater)
-![GitHub code size](https://img.shields.io/github/languages/code-size/CalmKernelTR/bigfive-updater)
+**One command. All distros. Zero nonsense.**
 
-**Linux sistemleri için Zırhlı, Akıllı ve Çoklu-Dağıtım (Multi-Distro) Güncelleme Aracı.**
-
-**Armored, Smart, Multi-Distro Update Tool for Linux Systems.**
-
-> *Tembel ama takıntılı adminin en yakın dostu.*
-> **One command. One updater. Zero nonsense.**
+[![CI](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/ci.yml/badge.svg)](https://github.com/CalmKernelTR/bigfive-updater/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/github/v/release/CalmKernelTR/bigfive-updater?sort=semver&label=Version)](https://github.com/CalmKernelTR/bigfive-updater/releases)
+[![License: MIT](https://img.shields.io/github/license/CalmKernelTR/bigfive-updater)](LICENSE)
 
 ---
 
-## 🌐 Documentation / Dokümantasyon
+You run Fedora on your desktop, Ubuntu on your server, Arch on your side project, and Alpine in your containers. Updating them means remembering `dnf`, `apt`, `pacman`, `zypper`, `apk` — and their flags, quirks, and gotchas.
 
-| Language | Documentation | Roadmap | Changelog |
-|----------|---------------|---------|-----------|
-| 🇹🇷 Türkçe | [README.tr.md](README.tr.md) | [ROADMAP.tr.md](ROADMAP.tr.md) | [CHANGELOG.tr.md](CHANGELOG.tr.md) |
-| 🇬🇧 English | [README.en.md](README.en.md) | [ROADMAP.en.md](ROADMAP.en.md) | [CHANGELOG.en.md](CHANGELOG.en.md) |
+**BigFive Updater** gives you one command that works everywhere: `guncel`.
+
+It detects your distro, picks the right package manager, runs the update with sane defaults, logs everything, and gets out of your way. Pure Bash. No dependencies. No magic.
 
 ---
 
-## 🚀 Quick Start / Hızlı Başlangıç
+## Supported Distros
+
+| | Distro Family | Package Manager |
+|---|---|---|
+| 🎩 | Fedora, RHEL, CentOS, Rocky, Alma | `dnf` / `yum` |
+| 🐧 | Ubuntu, Debian, Linux Mint, Pop!_OS, Zorin | `apt` |
+| 🏗️ | Arch, Manjaro, EndeavourOS, CachyOS | `pacman` |
+| 🦎 | openSUSE Leap, Tumbleweed, GeckoLinux | `zypper` |
+| 🏔️ | Alpine Linux | `apk` |
+
+---
+
+## Install
 
 ```bash
-# Installation / Kurulum (Universal - All Distros)
+# Universal (all distros)
 curl -fsSL https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/install.sh | sudo bash
 
-# Arch Linux / Manjaro / EndeavourOS (AUR)
-yay -S bigfive-updater   # veya: paru -S bigfive-updater
+# Arch Linux (AUR)
+yay -S bigfive-updater
 
-# Alpine Linux (APK) - See README.en.md or README.tr.md for full instructions
-# Quick: Add key + repo, then: apk add bigfive-updater
-```
-```bash
-# Usage / Kullanım (3 alias: guncel, updater, bigfive)
-guncel              # Interactive mode / İnteraktif mod
-updater --verbose   # Show details / Detayları göster
-bigfive --quiet     # Quiet mode / Sessiz mod
-guncel --auto       # Automatic mode / Otomatik mod
-guncel --dry-run    # Preview updates / Güncellemeleri önizle
-guncel --lang en    # English output / İngilizce çıktı (v6.0+)
-guncel --doctor     # System health check / Sistem sağlık kontrolü (v6.1+)
-guncel --history    # Update history / Güncelleme geçmişi (v6.1+)
-guncel --help       # Help / Yardım
+# Alpine Linux — see full docs for repo setup
+apk add bigfive-updater
 ```
 
----
-
-## 📦 Version System / Sürüm Sistemi
-
-Bu proje iki ayrı versiyon sistemi kullanır:
-
-This project uses two separate version systems:
-
-| Component | Format | Current | Update Frequency |
-|-----------|--------|---------|------------------|
-| `guncel` (main script) | SemVer (x.x.x) | v6.5.1 (Fluent Edition - India) | Her özellik/fix'te / Every feature/fix |
-| `install.sh` (installer) | Night-Vx.x.x | Night-V1.4.3 | Sadece kurulum değiştiğinde / Only when install logic changes |
-
-**Neden ayrı? / Why separate?**
-- Ana script sık güncellenir, installer nadiren değişir
-- Main script updates frequently, installer rarely changes
-
----
-
-## 📋 Features / Özellikler
-
-### BigFive Edition - Multi-Distro Support (v5.x)
-
-**v5.x = BigFive Edition** (5 paket yöneticisi desteği / 5 package managers supported)
-- ✅ **APT** - Debian/Ubuntu/Zorin/Linux Mint
-- ✅ **DNF** - Fedora/RHEL/CentOS
-- ✅ **Pacman** - Arch Linux/Manjaro/EndeavourOS
-- ✅ **Zypper** - openSUSE Leap/Tumbleweed
-- ✅ **APK** - Alpine Linux
-
-### Core Features / Temel Özellikler
-- ✅ Full Coverage: System packages, Flatpak, Snap, Firmware
-- ✅ Selective Updates: `--skip` and `--only` flags (including `--skip system`)
-- ✅ Dry-Run Mode: Preview without applying
-- ✅ JSON Output: `--json` for monitoring, `--json-full` for SIEM/audit (v5.3+)
-- ✅ Shell Completion: Bash, Zsh, Fish tab completion (v5.4+)
-- ✅ Man Page: `man guncel` for full documentation (v5.4+)
-- ✅ Config File: `/etc/bigfive-updater.conf`
-- ✅ GPG Signature Verification: Cryptographically signed releases
-- ✅ SHA256 Verification: Secure self-updates
-- ✅ Automatic Backup: Rollback capability
-- ✅ TLS 1.2+ Hardening: Secure downloads
-- ✅ Multi-Language (v6.0+): `--lang tr|en`, `BIGFIVE_LANG` env var
-- ✅ System Health Check (v6.1+): `--doctor` for diagnostics
-- ✅ Update History (v6.1+): `--history [N]` for last N days
-- ✅ Cron Jitter (v6.3+): `--jitter [N]` for random delay
-- ✅ Container Detection (v6.3+): Auto-detect Docker/Podman/LXC
-- ✅ Security Updates (v6.4+): `--security-only` for security patches
-- ✅ Pre/Post Hooks (v6.4+): Custom automation scripts
-- ✅ Notifications (v6.4+): ntfy.sh, Gotify, webhook support
-
----
-
-## 🧪 Testing / Test
-
-Bu proje [BATS](https://github.com/bats-core/bats-core) (Bash Automated Testing System) kullanır.
-
-This project uses [BATS](https://github.com/bats-core/bats-core) for testing.
+## Use
 
 ```bash
-# BATS kurulumu / Install BATS
-sudo apt-get install bats  # Debian/Ubuntu
-# veya / or
-brew install bats-core     # macOS
-
-# Testleri çalıştır / Run tests
-bats tests/*.bats
-
-# Verbose çıktı / Verbose output
-bats --tap tests/*.bats
+guncel                # Interactive update — just run it
+guncel --auto         # Non-interactive, perfect for cron
+guncel --dry-run      # See what would happen, change nothing
+guncel --doctor       # System health check
+guncel --history      # Review past updates
+guncel --verbose      # Show every detail
+guncel --quiet        # Minimal output
+guncel --lang en      # English output (default: Turkish)
 ```
 
-### Test Status / Test Durumu
-
-| Component | Tests | Status |
-|-----------|-------|--------|
-| guncel.bats | 134 | ✅ |
-| install.bats | 39 | ✅ |
-| **Total** | **173** | ✅ |
+Three aliases, same tool: `guncel`, `updater`, `bigfive`.
 
 ---
 
-## 🔐 Security / Güvenlik
+## Why not just `apt upgrade`?
 
-- GPG signed releases / GPG imzalı sürümler
-- TLS 1.2+ enforced / TLS 1.2+ zorunlu
-- SHA256 verification / SHA256 doğrulama
-- Strict mode (`set -Eeuo pipefail`)
+You already know your package manager. BigFive doesn't replace it — it wraps it with things you'd build yourself if you had the time:
 
-Detaylar için / For details: [SECURITY.tr.md](SECURITY.tr.md) | [SECURITY.en.md](SECURITY.en.md)
+- **Distro detection** — one command across all your machines, no muscle memory switching
+- **Logging** — every update logged with timestamps, searchable with `--history`
+- **Health checks** — `--doctor` catches common issues before they bite (stale repos, broken deps, disk space)
+- **Dry run** — preview changes before committing, especially on production
+- **i18n** — Turkish and English, runtime switchable
+- **Cron-friendly** — `--auto --quiet` for unattended servers, with logrotate included
+- **Shell completions** — Bash, Zsh, Fish
 
----
-
-## 🤝 Contributing / Katkıda Bulunma
-
-Katkıda bulunmak için / For contribution guidelines: [CONTRIBUTING.tr.md](CONTRIBUTING.tr.md) | [CONTRIBUTING.en.md](CONTRIBUTING.en.md)
-
-Davranış kuralları / Code of conduct: [CODE_OF_CONDUCT.tr.md](CODE_OF_CONDUCT.tr.md) | [CODE_OF_CONDUCT.en.md](CODE_OF_CONDUCT.en.md)
+If you only run one distro on one machine, your native package manager is fine. BigFive shines when you manage multiple distros or want guardrails around your updates.
 
 ---
 
-## 📄 License / Lisans
+## Documentation
 
-[MIT License](LICENSE)
+| | Language | README | Roadmap | Changelog |
+|---|---|---|---|---|
+| 🇹🇷 | Türkçe | [README.tr.md](README.tr.md) | [ROADMAP.tr.md](ROADMAP.tr.md) | [CHANGELOG.tr.md](CHANGELOG.tr.md) |
+| 🇬🇧 | English | [README.en.md](README.en.md) | [ROADMAP.en.md](ROADMAP.en.md) | [CHANGELOG.en.md](CHANGELOG.en.md) |
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) · [Code of Conduct](CODE_OF_CONDUCT.md) · [Security Policy](SECURITY.md)
+
+---
+
+## License
+
+MIT — use it, fork it, improve it.
+
+---
+
+<p align="center">
+  <i>Built by <a href="https://calmkernel.tr">CalmKernel</a> — tembel ama takıntılı adminin en yakın dostu.</i>
+</p>
