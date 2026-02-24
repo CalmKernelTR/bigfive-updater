@@ -66,20 +66,21 @@ paru -S bigfive-updater
 
 ```bash
 # İmza anahtarını içe aktar
-wget -qO /etc/apk/keys/bigfive-updater.rsa.pub \
-  https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/bigfive-updater.rsa.pub
+sudo wget -O /etc/apk/keys/bigfive@ahm3t0t.rsa.pub \
+  https://ahm3t0t.github.io/bigfive-updater/bigfive@ahm3t0t.rsa.pub
 
 # Repo ekle
-echo "https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/" >> /etc/apk/repositories
+echo "https://ahm3t0t.github.io/bigfive-updater/alpine/v3.20/main" | sudo tee -a /etc/apk/repositories
 
 # Kur
-apk add bigfive-updater
+sudo apk update
+sudo apk add bigfive-updater
 ```
 
 ### Fedora (COPR)
 
 ```bash
-dnf copr enable calmkernel/bigfive-updater
+dnf copr enable tahmet/bigfive-updater
 dnf install bigfive-updater
 ```
 
@@ -116,6 +117,26 @@ guncel --dry-run    # Önizleme modu — neyin değişeceğini gösterir, hiçbi
 guncel --doctor     # Sistem sağlık kontrolü: repolar, disk, bağımlılıklar, kilitler
 guncel --history    # Geçmiş güncelleme loglarını incele
 guncel --verbose    # Paket yöneticisinin tam çıktısını göster
+```
+
+#### `--doctor` Örnek Çıktı
+
+```
+BigFive Doctor - System Health Check
+══════════════════════════════════════════════════════
+
+[1/9] Config dosyası...         ✓ /etc/bigfive-updater.conf
+[2/9] Gerekli komutlar...       ✓ Tümü mevcut
+[3/9] Opsiyonel komutlar...     - jq:✓ fwupd:✗ flatpak:✓ snap:✗
+[4/9] Disk alanı...             ✓ 24830MB kullanılabilir (min: 500MB)
+[5/9] İnternet bağlantısı...    ✓ GitHub erişilebilir
+[6/9] Dil dosyaları...          ✓ 2 dil dosyası mevcut
+[7/9] Dosya izinleri...         ✓ Tüm izinler doğru
+[8/9] GPG anahtarlık...         ✓ GPG mevcut, 1 anahtar
+[9/9] Kilit dosyası...          ✓ Kilit dosyası yok (çalışmaya hazır)
+
+══════════════════════════════════════════════════════
+✓ Sistem sağlıklı - BigFive kullanıma hazır
 ```
 
 ### Seçenekler
@@ -173,7 +194,7 @@ Bu proje iki ayrı sürüm izlemesi kullanır:
 
 | Bileşen | Format | Açıklama |
 |---|---|---|
-| `guncel` (ana script) | SemVer (ör. 6.1.2) | Aracın kendisi |
+| `guncel` (ana script) | SemVer (ör. 6.5.1) | Aracın kendisi |
 | `install.sh` | SemVer (ör. 2.0.1) | Kurulum scripti, bağımsız sürümlenir |
 
 ---
@@ -189,6 +210,44 @@ Bu proje iki ayrı sürüm izlemesi kullanır:
 
 - Tek bir dağıtımda tek bir makine kullanıyorsanız ve kaslarınız `apt upgrade` için hazırsa, buna ihtiyacınız yok
 - Düzinelerce sunucuda orkestrasyon gerekiyorsa Ansible/Salt kullanın — BigFive yerel bir araçtır
+
+---
+
+## Sorun Giderme
+
+| Sorun | Neden | Çözüm |
+|-------|-------|-------|
+| `Permission denied` | Root olarak çalıştırılmıyor | `sudo guncel` ile veya root olarak çalıştırın |
+| `--auto` modunda "sudo NOPASSWD gerekli" hatası | Cron/CI ortamında interaktif sudo yok | `/etc/sudoers` dosyasına guncel komutu için `NOPASSWD` satırı ekleyin veya doğrudan root olarak çalıştırın |
+| Eski kilit dosyası (`Another instance running`) | Önceki çalıştırma temizlenmeden çöktü | `/var/lock/bigfive-updater.lock` dosyasını elle silin |
+| Dil dosyaları bulunamadı | Eksik kurulum veya elle kopyalama | Yeniden kurun veya `/usr/share/bigfive-updater/lang/` altında dosyaların varlığını kontrol edin |
+| Güncelleme geçmişi yok (`--history` boş) | Daha önce çalıştırılmamış veya log dizini eksik | `/var/log/bigfive-updater/` dizininin var olduğunu ve `update_*.log` dosyaları içerdiğini kontrol edin |
+| Shell tamamlama çalışmıyor | Tamamlama dosyaları kurulmamış veya shell yeniden yüklenmemiş | Aşağıdaki [Shell Tamamlama](#shell-tamamlama) bölümüne bakın; kurulumdan sonra shell'i yeniden başlatın |
+
+---
+
+## Shell Tamamlama
+
+Kurulum scripti tamamlama dosyalarını otomatik kopyalar. Elle kurulum için:
+
+| Shell | Kaynak Dosya | Kurulum Yolu |
+|-------|-------------|--------------|
+| **Bash** | `completions/guncel.bash` | `/usr/share/bash-completion/completions/guncel` |
+| **Zsh** | `completions/_guncel` | `/usr/share/zsh/site-functions/_guncel` |
+| **Fish** | `completions/guncel.fish` | `~/.config/fish/completions/guncel.fish` |
+
+```bash
+# Elle kurulum örneği (Bash)
+sudo cp completions/guncel.bash /usr/share/bash-completion/completions/guncel
+
+# Elle kurulum örneği (Zsh)
+sudo cp completions/_guncel /usr/share/zsh/site-functions/_guncel
+
+# Elle kurulum örneği (Fish)
+cp completions/guncel.fish ~/.config/fish/completions/guncel.fish
+```
+
+Kopyaladıktan sonra tamamlamaların aktif olması için yeni bir shell oturumu açın (veya `source ~/.bashrc` çalıştırın).
 
 ---
 

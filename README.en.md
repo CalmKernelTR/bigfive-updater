@@ -66,20 +66,21 @@ paru -S bigfive-updater
 
 ```bash
 # Import the signing key
-wget -qO /etc/apk/keys/bigfive-updater.rsa.pub \
-  https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/bigfive-updater.rsa.pub
+sudo wget -O /etc/apk/keys/bigfive@ahm3t0t.rsa.pub \
+  https://ahm3t0t.github.io/bigfive-updater/bigfive@ahm3t0t.rsa.pub
 
 # Add the repository
-echo "https://github.com/CalmKernelTR/bigfive-updater/releases/latest/download/" >> /etc/apk/repositories
+echo "https://ahm3t0t.github.io/bigfive-updater/alpine/v3.20/main" | sudo tee -a /etc/apk/repositories
 
 # Install
-apk add bigfive-updater
+sudo apk update
+sudo apk add bigfive-updater
 ```
 
 ### Fedora (COPR)
 
 ```bash
-dnf copr enable calmkernel/bigfive-updater
+dnf copr enable tahmet/bigfive-updater
 dnf install bigfive-updater
 ```
 
@@ -116,6 +117,26 @@ guncel --dry-run    # Preview mode — shows what would change, touches nothing
 guncel --doctor     # System health check: repos, disk, deps, locks
 guncel --history    # Review past update logs
 guncel --verbose    # Show full package manager output
+```
+
+#### `--doctor` Example Output
+
+```
+BigFive Doctor - System Health Check
+══════════════════════════════════════════════════════
+
+[1/9] Config file...        ✓ /etc/bigfive-updater.conf
+[2/9] Required commands...  ✓ All present
+[3/9] Optional commands...  - jq:✓ fwupd:✗ flatpak:✓ snap:✗
+[4/9] Disk space...         ✓ 24830MB available (min: 500MB)
+[5/9] Internet connectivity... ✓ GitHub reachable
+[6/9] Language files...     ✓ 2 language files present
+[7/9] File permissions...   ✓ All permissions correct
+[8/9] GPG keyring...        ✓ GPG available, 1 keys
+[9/9] Lock file...          ✓ No lock file (ready to run)
+
+══════════════════════════════════════════════════════
+✓ System healthy - BigFive ready to use
 ```
 
 ### Options
@@ -173,7 +194,7 @@ This project uses two separate version tracks:
 
 | Component | Format | Description |
 |---|---|---|
-| `guncel` (main script) | SemVer (e.g., 6.1.2) | The tool itself |
+| `guncel` (main script) | SemVer (e.g., 6.5.1) | The tool itself |
 | `install.sh` | SemVer (e.g., 2.0.1) | The installer, versioned independently |
 
 ---
@@ -189,6 +210,44 @@ This project uses two separate version tracks:
 
 - If you run one distro on one machine and your muscle memory is already wired for `apt upgrade`, you don't need this
 - If you need orchestration across dozens of servers, use Ansible/Salt — BigFive is a local tool
+
+---
+
+## Troubleshooting
+
+| Problem | Cause | Solution |
+|---------|-------|----------|
+| `Permission denied` | Not running as root | Run with `sudo guncel` or as root |
+| `--auto` mode fails with "sudo NOPASSWD required" | Cron/CI environment has no interactive sudo | Add a `NOPASSWD` entry in `/etc/sudoers` for the guncel command, or run directly as root |
+| Stale lock file (`Another instance running`) | Previous run crashed without cleanup | Remove `/var/lock/bigfive-updater.lock` manually |
+| Language files not found | Incomplete install or manual copy | Reinstall, or check that files exist in `/usr/share/bigfive-updater/lang/` |
+| No update history (`--history` shows nothing) | No previous runs, or log directory missing | Check that `/var/log/bigfive-updater/` exists and has `update_*.log` files |
+| Shell completions not working | Completion files not installed or shell not reloaded | See [Shell Completion](#shell-completion) below; restart your shell after installing |
+
+---
+
+## Shell Completion
+
+The installer copies completion files automatically. For manual installation:
+
+| Shell | Source File | Install Path |
+|-------|------------|--------------|
+| **Bash** | `completions/guncel.bash` | `/usr/share/bash-completion/completions/guncel` |
+| **Zsh** | `completions/_guncel` | `/usr/share/zsh/site-functions/_guncel` |
+| **Fish** | `completions/guncel.fish` | `~/.config/fish/completions/guncel.fish` |
+
+```bash
+# Manual install example (Bash)
+sudo cp completions/guncel.bash /usr/share/bash-completion/completions/guncel
+
+# Manual install example (Zsh)
+sudo cp completions/_guncel /usr/share/zsh/site-functions/_guncel
+
+# Manual install example (Fish)
+cp completions/guncel.fish ~/.config/fish/completions/guncel.fish
+```
+
+After copying, open a new shell session (or run `source ~/.bashrc`) for completions to take effect.
 
 ---
 

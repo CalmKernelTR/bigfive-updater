@@ -52,9 +52,49 @@ guncel --history      # Review past updates
 guncel --verbose      # Show every detail
 guncel --quiet        # Minimal output
 guncel --lang en      # English output (default: Turkish)
+guncel --version      # Show version
+guncel --help         # Show all options
 ```
 
 Three aliases, same tool: `guncel`, `updater`, `bigfive`.
+
+### Example Output
+
+```
+$ sudo guncel --auto
+
+>>> BigFive Updater v6.5.1 (Fluent Edition - India)
+--------------------------------------------------
+
+>>> APT: Güncelleme Başlıyor
+--------------------------------------------------
+  [✓] Paket listesi güncellendi.
+
+>>> APT: Dist-Upgrade
+--------------------------------------------------
+  [✓] 12 paket güncellendi.
+
+>>> APT: Temizlik
+--------------------------------------------------
+  [✓] Temizlik tamamlandı.
+
+>>> Flatpak: Güncelleme
+--------------------------------------------------
+  [✓] 3 uygulama güncellendi.
+
+========================================
+  [+] GÜNCELLEME TAMAMLANDI
+----------------------------------------
+  APT: 12 paket güncellendi
+  Flatpak: 3 uygulama güncellendi
+  Snap: Güncel
+  Firmware: Güncel
+----------------------------------------
+  Snapshot: Oluşturulmadı
+  Reboot: Gerekli değil
+  Log: /var/log/bigfive-updater/update_20260224_030000.log
+========================================
+```
 
 ---
 
