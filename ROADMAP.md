@@ -206,7 +206,7 @@ Fully integrated server automation experience.
 |-----------|------------|--------|
 | guncel.bats | 134 | ✅ |
 | install.bats | 39 | ✅ |
-| **Total** | **173** | ✅ |
+| **Total** | **193** | ✅ |
 
 ### CI Test Matrix
 
