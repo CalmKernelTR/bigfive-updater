@@ -2453,7 +2453,10 @@ while [[ $# -gt 0 ]]; do
             flatpak) SKIP_FLATPAK=true ;;
             snap) SKIP_SNAP=true ;;
             fwupd) SKIP_FWUPD=true ;;
-            dnf | apt | pacman | zypper | apk | system) SKIP_PKG_MANAGER=true ;; # Paket yöneticisini atla
+            system) SKIP_PKG_MANAGER=true ;;
+            dnf | apt | pacman | zypper | apk)
+              printf '%sUyarı: --skip %s tüm sistem paket yöneticilerini atlar. Bunu istiyorsanız --skip system kullanın.%s\n' "${YELLOW}" "$item" "${NC}"
+              SKIP_PKG_MANAGER=true ;;
             *) printf '%sUyarı: Bilinmeyen skip değeri: %s%s\n' "${YELLOW}" "$item" "${NC}" ;;
           esac
         done
