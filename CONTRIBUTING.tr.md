@@ -195,7 +195,7 @@ Bu projede **iki ayrı versiyon sistemi** kullanılmaktadır:
 
 ### 1. Ana Script (guncel) - SemVer
 
-**Format:** `MAJOR.MINOR.PATCH` (örn: 5.2.0)
+**Format:** `MAJOR.MINOR.PATCH` (örn: 6.5.1)
 
 | Segment | Ne Zaman Artırılır |
 |---------|--------------------|
@@ -207,20 +207,20 @@ Bu projede **iki ayrı versiyon sistemi** kullanılmaktadır:
 
 ```bash
 # guncel içinde
-VERSION="5.2.1"
-EDITION="BigFive"
-CODENAME="Alpine"
+VERSION="6.5.1"
+EDITION="Fluent"
+CODENAME="India"
 ```
 
 ### 2. Kurulum Scripti (install.sh) - Night Version
 
-**Format:** `Night-Vx.x.x` (örn: Night-V1.3.2)
+**Format:** `Night-Vx.x.x` (örn: Night-V1.4.3)
 
 **Güncelleme Sıklığı:** Sadece kurulum mantığı değiştiğinde
 
 ```bash
 # install.sh içinde
-# BigFive Updater Installer Night-V1.3.2
+# BigFive Updater Installer Night-V1.4.3
 ```
 
 ### Neden Ayrı Sistemler?
@@ -237,17 +237,17 @@ CODENAME="Alpine"
 ### release.sh Kullanımı
 
 ```bash
-# Patch release (bug fix): 5.2.0 → 5.2.1
+# Patch release (bug fix): 6.5.1 → 6.5.2
 ./release.sh patch
 
-# Minor release (new feature): 5.2.0 → 5.3.0
+# Minor release (new feature): 6.5.1 → 6.6.0
 ./release.sh minor
 
-# Major release (breaking change): 5.2.0 → 6.0.0
+# Major release (breaking change): 6.5.1 → 7.0.0
 ./release.sh major
 
-# Manuel versiyon: → 5.2.5
-./release.sh 5.2.5
+# Manuel versiyon: → 6.5.5
+./release.sh 6.5.5
 
 # Otomatik onay (CI için)
 ./release.sh patch -y
@@ -345,9 +345,9 @@ docker run --rm -v "$(pwd):/app" alpine:3.20 sh -c "apk add bash curl && bash /a
 
 | Bileşen | Test Sayısı | Durum |
 |---------|-------------|-------|
-| guncel.bats | 134 | ✅ |
+| guncel.bats | 153 | ✅ |
 | install.bats | 39 | ✅ |
-| **Toplam** | **173** | ✅ |
+| **Toplam** | **192** | ✅ |
 
 ### Code Coverage
 
@@ -444,6 +444,13 @@ Script şu flag'leri destekler:
 | `--uninstall` | Aracı kaldır |
 | `--uninstall --purge` | Aracı ve config/log'ları kaldır |
 | `--help` | Yardım mesajı |
+| `--json` | Monitoring için JSON çıktı |
+| `--json-full` | SIEM/audit için detaylı JSON |
+| `--doctor` | Sistem sağlık kontrolü |
+| `--history [N]` | Güncelleme geçmişi (son N gün) |
+| `--jitter [N]` | Cron için rastgele gecikme (0-N saniye) |
+| `--security-only` | Sadece güvenlik güncellemeleri |
+| `--lang <code>` | Çıktı dilini ayarla (tr/en) |
 
 ### Backend Değerleri
 

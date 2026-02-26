@@ -131,6 +131,6 @@ trap 'rm -f "$TEMP_FILE"' EXIT
 
 ### Lock File Protection
 ```bash
-exec 200>/var/lock/bigfive-updater.lock
-flock -n 200 || exit 1
+exec 9> "$LOCK_FILE"
+flock -n 9 || exit 1
 ```

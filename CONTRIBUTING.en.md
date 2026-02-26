@@ -195,7 +195,7 @@ This project uses **two separate version systems**:
 
 ### 1. Main Script (guncel) - SemVer
 
-**Format:** `MAJOR.MINOR.PATCH` (e.g., 5.2.0)
+**Format:** `MAJOR.MINOR.PATCH` (e.g., 6.5.1)
 
 | Segment | When to Increment |
 |---------|-------------------|
@@ -207,20 +207,20 @@ This project uses **two separate version systems**:
 
 ```bash
 # in guncel
-VERSION="5.2.1"
-EDITION="BigFive"
-CODENAME="Alpine"
+VERSION="6.5.1"
+EDITION="Fluent"
+CODENAME="India"
 ```
 
 ### 2. Installation Script (install.sh) - Night Version
 
-**Format:** `Night-Vx.x.x` (e.g., Night-V1.3.2)
+**Format:** `Night-Vx.x.x` (e.g., Night-V1.4.3)
 
 **Update Frequency:** Only when install logic changes
 
 ```bash
 # in install.sh
-# BigFive Updater Installer Night-V1.3.2
+# BigFive Updater Installer Night-V1.4.3
 ```
 
 ### Why Separate Systems?
@@ -237,17 +237,17 @@ CODENAME="Alpine"
 ### Using release.sh
 
 ```bash
-# Patch release (bug fix): 5.2.0 → 5.2.1
+# Patch release (bug fix): 6.5.1 → 6.5.2
 ./release.sh patch
 
-# Minor release (new feature): 5.2.0 → 5.3.0
+# Minor release (new feature): 6.5.1 → 6.6.0
 ./release.sh minor
 
-# Major release (breaking change): 5.2.0 → 6.0.0
+# Major release (breaking change): 6.5.1 → 7.0.0
 ./release.sh major
 
-# Manual version: → 5.2.5
-./release.sh 5.2.5
+# Manual version: → 6.5.5
+./release.sh 6.5.5
 
 # Auto-confirm (for CI)
 ./release.sh patch -y
@@ -345,9 +345,9 @@ docker run --rm -v "$(pwd):/app" alpine:3.20 sh -c "apk add bash curl && bash /a
 
 | Component | Tests | Status |
 |-----------|-------|--------|
-| guncel.bats | 134 | ✅ |
+| guncel.bats | 153 | ✅ |
 | install.bats | 39 | ✅ |
-| **Total** | **173** | ✅ |
+| **Total** | **192** | ✅ |
 
 ### Code Coverage
 
@@ -444,6 +444,13 @@ Script supports these flags:
 | `--uninstall` | Uninstall the tool |
 | `--uninstall --purge` | Remove with config/logs |
 | `--help` | Help message |
+| `--json` | JSON output for monitoring |
+| `--json-full` | Detailed JSON for SIEM/audit |
+| `--doctor` | System health check |
+| `--history [N]` | Show update history (last N days) |
+| `--jitter [N]` | Random delay for cron (0-N seconds) |
+| `--security-only` | Security updates only |
+| `--lang <code>` | Set output language (tr/en) |
 
 ### Backend Values
 

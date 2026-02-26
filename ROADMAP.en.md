@@ -97,8 +97,8 @@ Short-term improvements building on existing infrastructure.
   - Disk space: minimum 500MB free
   - Internet: GitHub raw URL ping
   - Lang files: existence check
-- [ ] GitHub Actions CI matrix build: Automatic 5-distro testing on every PR (Docker base images ready)
-- [ ] install.sh improvements: wget TLS flag modernize, grep portability, message clarity, variable cleanup
+- [x] GitHub Actions CI matrix build: Automatic 5-distro testing on every PR (Docker base images ready)
+- [x] install.sh improvements: wget TLS flag modernize, grep portability, message clarity, variable cleanup
 - [x] ~~Hook false positive fix~~ (completed in claude-code-skills repo, Fase 5)
 
 ### v6.2.0 "Fluent Edition - Foxtrot" - GPG Self-Update ✅
@@ -119,12 +119,14 @@ GPG signature verification for self-update.
 
 Automation features for server administrators.
 
-- [ ] **Notification system:** Post `--auto` update notifications
+- [x] **Notification system:** Post `--auto` update notifications
   - Webhook (Slack, Discord, Teams, generic HTTP)
   - Email (SMTP)
   - Config file settings (`CONFIG_NOTIFY_*`)
-- [ ] `--security-only` flag: Apply security updates only (APT/DNF/Zypper supported)
-- [ ] **Pre/post update hooks:** `/etc/bigfive-updater/hooks.d/{pre,post}-update.sh` — user-defined scripts (backup, service restart, etc.)
+- [x] `--security-only` flag: Apply security updates only (APT/DNF/Zypper supported)
+- [x] **Pre/post update hooks:** `/etc/bigfive-updater/hooks.d/{pre,post}-update.sh` — user-defined scripts (backup, service restart, etc.)
+
+> **Note:** These features were completed and released as part of v6.4.0 "Hotel" and v6.3.0 "Golf".
 
 ### v7.0.0 "Zenith Edition" - Notification Templates & Setup
 
@@ -187,9 +189,9 @@ Fully integrated server automation experience.
 
 | Component | Test Count | Status |
 |-----------|------------|--------|
-| guncel.bats | 134 | ✅ |
+| guncel.bats | 153 | ✅ |
 | install.bats | 39 | ✅ |
-| **Total** | **173** | ✅ |
+| **Total** | **192** | ✅ |
 
 ### CI Test Matrix
 
