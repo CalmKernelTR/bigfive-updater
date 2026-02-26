@@ -121,10 +121,16 @@ guncel --verbose    # Paket yöneticisinin tam çıktısını göster
 ### Seçenekler
 
 ```bash
-guncel --quiet      # Minimal çıktı (scriptler için uygun)
-guncel --lang en    # Çıktı dilini İngilizce'ye çevir
-guncel --lang tr    # Çıktı dilini Türkçe'ye çevir (varsayılan)
-guncel --help       # Tüm seçenekleri göster
+guncel --quiet          # Minimal çıktı (scriptler için uygun)
+guncel --lang en        # Çıktı dilini İngilizce'ye çevir
+guncel --lang tr        # Çıktı dilini Türkçe'ye çevir (varsayılan)
+guncel --json           # Monitoring için JSON çıktı (Zabbix, Nagios, Prometheus)
+guncel --json-full      # SIEM/audit için detaylı JSON (Wazuh, Splunk, ELK)
+guncel --skip flatpak   # Belirli backend'leri atla
+guncel --only system    # Sadece belirli backend'leri çalıştır
+guncel --security-only  # Sadece güvenlik güncellemeleri (v6.4.0+)
+guncel --jitter 300     # Cron için rastgele gecikme (v6.3.0+)
+guncel --help           # Tüm seçenekleri göster
 ```
 
 ### Cron Örneği
@@ -173,8 +179,8 @@ Bu proje iki ayrı sürüm izlemesi kullanır:
 
 | Bileşen | Format | Açıklama |
 |---|---|---|
-| `guncel` (ana script) | SemVer (ör. 6.1.2) | Aracın kendisi |
-| `install.sh` | SemVer (ör. 2.0.1) | Kurulum scripti, bağımsız sürümlenir |
+| `guncel` (ana script) | SemVer (ör. 6.5.1) | Aracın kendisi |
+| `install.sh` | Night-Vx.x.x (ör. Night-V1.4.3) | Kurulum scripti, bağımsız sürümlenir |
 
 ---
 

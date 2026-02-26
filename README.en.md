@@ -121,10 +121,16 @@ guncel --verbose    # Show full package manager output
 ### Options
 
 ```bash
-guncel --quiet      # Minimal output (good for scripts)
-guncel --lang en    # Switch output language to English
-guncel --lang tr    # Switch output language to Turkish (default)
-guncel --help       # Show all available options
+guncel --quiet          # Minimal output (good for scripts)
+guncel --lang en        # Switch output language to English
+guncel --lang tr        # Switch output language to Turkish (default)
+guncel --json           # JSON output for monitoring (Zabbix, Nagios, Prometheus)
+guncel --json-full      # Detailed JSON for SIEM/audit (Wazuh, Splunk, ELK)
+guncel --skip flatpak   # Skip specific backends
+guncel --only system    # Run only specific backends
+guncel --security-only  # Apply security updates only (v6.4.0+)
+guncel --jitter 300     # Random delay for cron jobs (v6.3.0+)
+guncel --help           # Show all available options
 ```
 
 ### Cron Example
@@ -173,8 +179,8 @@ This project uses two separate version tracks:
 
 | Component | Format | Description |
 |---|---|---|
-| `guncel` (main script) | SemVer (e.g., 6.1.2) | The tool itself |
-| `install.sh` | SemVer (e.g., 2.0.1) | The installer, versioned independently |
+| `guncel` (main script) | SemVer (e.g., 6.5.1) | The tool itself |
+| `install.sh` | Night-Vx.x.x (e.g., Night-V1.4.3) | The installer, versioned independently |
 
 ---
 

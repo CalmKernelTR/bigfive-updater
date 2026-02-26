@@ -97,8 +97,8 @@ Kısa vadeli iyileştirmeler — mevcut altyapının üzerine.
   - Disk alanı: minimum 500MB boş
   - İnternet: GitHub raw URL ping
   - Dil dosyaları: varlık kontrolü
-- [ ] GitHub Actions CI matrix build: Her PR'da 5 distro otomatik test (Docker base images hazır)
-- [ ] install.sh iyileştirmeleri: wget TLS flag modernize, grep portability, mesaj netliği, değişken cleanup
+- [x] GitHub Actions CI matrix build: Her PR'da 5 distro otomatik test (Docker base images hazır)
+- [x] install.sh iyileştirmeleri: wget TLS flag modernize, grep portability, mesaj netliği, değişken cleanup
 - [x] ~~Hook false positive fix~~ (claude-code-skills reposunda tamamlandı, Fase 5)
 
 ### v6.2.0 "Fluent Edition - Foxtrot" - GPG Self-Update ✅
@@ -119,12 +119,14 @@ Self-update için GPG imza doğrulaması.
 
 Sunucu yöneticileri için otomasyon özellikleri.
 
-- [ ] **Notification sistemi:** `--auto` sonrası bildirim gönderimi
+- [x] **Notification sistemi:** `--auto` sonrası bildirim gönderimi
   - Webhook (Slack, Discord, Teams, generic HTTP)
   - Email (SMTP)
   - Config dosyasından ayarlama (`CONFIG_NOTIFY_*`)
-- [ ] `--security-only` flag: Sadece güvenlik güncellemelerini uygula (APT/DNF/Zypper destekli)
-- [ ] **Pre/post update hooks:** `/etc/bigfive-updater/hooks.d/{pre,post}-update.sh` — kullanıcı tanımlı scriptler (backup, servis restart vb.)
+- [x] `--security-only` flag: Sadece güvenlik güncellemelerini uygula (APT/DNF/Zypper destekli)
+- [x] **Pre/post update hooks:** `/etc/bigfive-updater/hooks.d/{pre,post}-update.sh` — kullanıcı tanımlı scriptler (backup, servis restart vb.)
+
+> **Not:** Bu özellikler v6.4.0 "Hotel" ve v6.3.0 "Golf" sürümlerinde tamamlanıp yayınlandı.
 
 ### v7.0.0 "Zenith Edition" - Notification Templates & Setup
 
@@ -189,7 +191,7 @@ Tam entegre server automation deneyimi.
 |---------|-------------|-------|
 | guncel.bats | 134 | ✅ |
 | install.bats | 39 | ✅ |
-| **Toplam** | **173** | ✅ |
+| **Toplam** | **193** | ✅ |
 
 ### CI Test Matrisi
 
