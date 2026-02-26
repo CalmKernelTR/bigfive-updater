@@ -3,32 +3,8 @@ name: CI
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.gitattributes'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE.md'
-      - '.github/CODEOWNERS'
-      - '.github/dependabot.yml'
-      - 'SHA256SUMS*'
-      - 'pubkey.asc'
   pull_request:
     branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'LICENSE'
-      - '.gitignore'
-      - '.gitattributes'
-      - '.github/ISSUE_TEMPLATE/**'
-      - '.github/PULL_REQUEST_TEMPLATE.md'
-      - '.github/CODEOWNERS'
-      - '.github/dependabot.yml'
-      - 'SHA256SUMS*'
-      - 'pubkey.asc'
   workflow_dispatch:
 
 permissions:
@@ -43,10 +19,35 @@ env:
   IMAGE_OWNER: ahm3t0t
 
 jobs:
+  # ==================== Path Detection ====================
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      code: ${{ steps.filter.outputs.code }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            code:
+              - 'guncel'
+              - 'install.sh'
+              - 'release.sh'
+              - 'lang/**'
+              - 'tests/**'
+              - '.github/workflows/ci.yml'
+              - 'Makefile'
+
   # ==================== Lint ====================
   lint:
     name: ShellCheck Lint
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -82,7 +83,8 @@ jobs:
   multi-distro:
     name: ${{ matrix.distro }} (${{ matrix.pkg_manager }})
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [changes, lint]
+    if: needs.changes.outputs.code == 'true'
     timeout-minutes: 15
     environment: production
 
@@ -178,7 +180,8 @@ jobs:
   bats:
     name: BATS Tests
     runs-on: ubuntu-latest
-    needs: lint
+    needs: [changes, lint]
+    if: needs.changes.outputs.code == 'true'
 
     steps:
       - name: Checkout
@@ -234,26 +237,37 @@ jobs:
   ci-success:
     name: CI Success
     runs-on: ubuntu-latest
-    needs: [lint, multi-distro, bats]
+    needs: [changes, lint, multi-distro, bats]
     if: always()
 
     steps:
       - name: Check results
         env:
+          CODE_CHANGED: ${{ needs.changes.outputs.code }}
+          CHANGES_RESULT: ${{ needs.changes.result }}
           LINT_RESULT: ${{ needs.lint.result }}
           DISTRO_RESULT: ${{ needs.multi-distro.result }}
           BATS_RESULT: ${{ needs.bats.result }}
         run: |
-          if [[ "${LINT_RESULT}" != "success" ]]; then
-            echo "Lint failed"
+          if [[ "${CHANGES_RESULT}" != "success" ]]; then
+            echo "Changes detection failed"
             exit 1
           fi
-          if [[ "${DISTRO_RESULT}" != "success" ]]; then
-            echo "Multi-distro tests failed"
-            exit 1
+          if [[ "${CODE_CHANGED}" != "true" ]]; then
+            echo "========================================"
+            echo "  DOCS-ONLY CHANGE — CI SKIPPED"
+            echo "========================================"
+            exit 0
           fi
-          if [[ "${BATS_RESULT}" != "success" ]]; then
-            echo "BATS tests failed"
+          FAILED=false
+          for result_var in LINT_RESULT DISTRO_RESULT BATS_RESULT; do
+            result="${!result_var}"
+            if [[ "$result" != "success" ]]; then
+              echo "${result_var}: ${result} — FAILED"
+              FAILED=true
+            fi
+          done
+          if [[ "$FAILED" == "true" ]]; then
             exit 1
           fi
           echo "========================================"
@@ -262,5 +276,5 @@ jobs:
           echo ""
           echo "  - Lint: ${LINT_RESULT}"
           echo "  - Multi-distro (5 distros): ${DISTRO_RESULT}"
-          echo "  - BATS (193 tests): ${BATS_RESULT}"
+          echo "  - BATS: ${BATS_RESULT}"
           echo "========================================"
