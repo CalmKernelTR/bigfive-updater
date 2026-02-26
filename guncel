@@ -316,6 +316,35 @@ print_dry_run() {
   echo "[$(date '+%F %T')] DRY-RUN: $1" >> "$LOG_FILE"
 }
 
+# --- AUDIT FIX: sanitize_count() helper (DRY) ---
+# Sayaç değerlerini güvenli numerik değere dönüştürür
+sanitize_count() {
+  local val
+  val=$(echo "${1:-0}" | tr -cd '0-9')
+  echo "${val:-0}"
+}
+
+# --- AUDIT FIX: run_with_logging() helper (DRY) ---
+# Verbose/non-verbose komut çalıştırmayı tek noktadan yönetir
+run_with_logging() {
+  local timeout_secs="$1"
+  shift
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    timeout "$timeout_secs" "$@" 2>&1 | tee -a "$LOG_FILE"
+  else
+    timeout "$timeout_secs" "$@" >> "$LOG_FILE" 2>&1
+  fi
+}
+
+# Timeout olmadan verbose/non-verbose çalıştırma
+run_logged() {
+  if [[ "$VERBOSE_MODE" == "true" ]]; then
+    "$@" 2>&1 | tee -a "$LOG_FILE"
+  else
+    "$@" >> "$LOG_FILE" 2>&1
+  fi
+}
+
 # --- v5.3.0: JSON OUTPUT HELPER FUNCTIONS ---
 
 # JSON escape fonksiyonu - özel karakterleri escape eder
@@ -442,27 +471,17 @@ print_final_summary() {
   local reboot_status
   reboot_status=$(check_reboot_required)
 
-  # FIX: Ensure all counters are numeric - strip any non-numeric chars
+  # FIX: Ensure all counters are numeric via sanitize_count()
   # v5.1: BigFive - apt, dnf, pacman, zypper, apk
   local apt_c dnf_c pacman_c zypper_c apk_c flatpak_c snap_c fwupd_c
-  apt_c=$(echo "${APT_COUNT:-0}" | tr -cd '0-9')
-  dnf_c=$(echo "${DNF_COUNT:-0}" | tr -cd '0-9')
-  pacman_c=$(echo "${PACMAN_COUNT:-0}" | tr -cd '0-9')
-  zypper_c=$(echo "${ZYPPER_COUNT:-0}" | tr -cd '0-9')
-  apk_c=$(echo "${APK_COUNT:-0}" | tr -cd '0-9')
-  flatpak_c=$(echo "${FLATPAK_COUNT:-0}" | tr -cd '0-9')
-  snap_c=$(echo "${SNAP_COUNT:-0}" | tr -cd '0-9')
-  fwupd_c=$(echo "${FWUPD_COUNT:-0}" | tr -cd '0-9')
-
-  # Default to 0 if empty after stripping
-  apt_c=${apt_c:-0}
-  dnf_c=${dnf_c:-0}
-  pacman_c=${pacman_c:-0}
-  zypper_c=${zypper_c:-0}
-  apk_c=${apk_c:-0}
-  flatpak_c=${flatpak_c:-0}
-  snap_c=${snap_c:-0}
-  fwupd_c=${fwupd_c:-0}
+  apt_c=$(sanitize_count "${APT_COUNT:-0}")
+  dnf_c=$(sanitize_count "${DNF_COUNT:-0}")
+  pacman_c=$(sanitize_count "${PACMAN_COUNT:-0}")
+  zypper_c=$(sanitize_count "${ZYPPER_COUNT:-0}")
+  apk_c=$(sanitize_count "${APK_COUNT:-0}")
+  flatpak_c=$(sanitize_count "${FLATPAK_COUNT:-0}")
+  snap_c=$(sanitize_count "${SNAP_COUNT:-0}")
+  fwupd_c=$(sanitize_count "${FWUPD_COUNT:-0}")
 
   local total_updates=$((apt_c + dnf_c + pacman_c + zypper_c + apk_c + flatpak_c + snap_c + fwupd_c))
 
@@ -602,25 +621,16 @@ output_json() {
   local reboot_req="false"
   [[ "$(check_reboot_required)" == "yes" ]] && reboot_req="true"
 
-  # FIX: Ensure all counters are numeric
+  # FIX: Ensure all counters are numeric via sanitize_count()
   local apt_c dnf_c pacman_c zypper_c apk_c flatpak_c snap_c fwupd_c
-  apt_c=$(echo "${APT_COUNT:-0}" | tr -cd '0-9')
-  dnf_c=$(echo "${DNF_COUNT:-0}" | tr -cd '0-9')
-  pacman_c=$(echo "${PACMAN_COUNT:-0}" | tr -cd '0-9')
-  zypper_c=$(echo "${ZYPPER_COUNT:-0}" | tr -cd '0-9')
-  apk_c=$(echo "${APK_COUNT:-0}" | tr -cd '0-9')
-  flatpak_c=$(echo "${FLATPAK_COUNT:-0}" | tr -cd '0-9')
-  snap_c=$(echo "${SNAP_COUNT:-0}" | tr -cd '0-9')
-  fwupd_c=$(echo "${FWUPD_COUNT:-0}" | tr -cd '0-9')
-
-  apt_c=${apt_c:-0}
-  dnf_c=${dnf_c:-0}
-  pacman_c=${pacman_c:-0}
-  zypper_c=${zypper_c:-0}
-  apk_c=${apk_c:-0}
-  flatpak_c=${flatpak_c:-0}
-  snap_c=${snap_c:-0}
-  fwupd_c=${fwupd_c:-0}
+  apt_c=$(sanitize_count "${APT_COUNT:-0}")
+  dnf_c=$(sanitize_count "${DNF_COUNT:-0}")
+  pacman_c=$(sanitize_count "${PACMAN_COUNT:-0}")
+  zypper_c=$(sanitize_count "${ZYPPER_COUNT:-0}")
+  apk_c=$(sanitize_count "${APK_COUNT:-0}")
+  flatpak_c=$(sanitize_count "${FLATPAK_COUNT:-0}")
+  snap_c=$(sanitize_count "${SNAP_COUNT:-0}")
+  fwupd_c=$(sanitize_count "${FWUPD_COUNT:-0}")
 
   local total_count=$((apt_c + dnf_c + pacman_c + zypper_c + apk_c + flatpak_c + snap_c + fwupd_c))
 
@@ -1653,11 +1663,7 @@ update_apt() {
   print_header "${MSG_HEADER_APT_UPDATE:-APT: Güncelleme Başlıyor}"
 
   # APT update (10 dakika timeout)
-  if [[ "$VERBOSE_MODE" == "true" ]]; then
-    timeout 600 apt-get update 2>&1 | tee -a "$LOG_FILE"
-  else
-    timeout 600 apt-get update >> "$LOG_FILE" 2>&1
-  fi
+  run_with_logging 600 apt-get update
 
   print_header "${MSG_HEADER_APT_UPGRADE:-APT: Dist-Upgrade}"
   local apt_upgradable apt_simulate
@@ -1677,20 +1683,11 @@ update_apt() {
   fi
 
   # APT dist-upgrade (30 dakika timeout)
-  if [[ "$VERBOSE_MODE" == "true" ]]; then
-    timeout 1800 apt-get dist-upgrade -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
-  else
-    timeout 1800 apt-get dist-upgrade -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
-  fi
+  run_with_logging 1800 apt-get dist-upgrade -y "${apt_opts[@]}"
 
   print_header "${MSG_HEADER_APT_CLEANUP:-APT: Temizlik}"
-  if [[ "$VERBOSE_MODE" == "true" ]]; then
-    apt-get autoremove -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
-    apt-get autoclean -y "${apt_opts[@]}" 2>&1 | tee -a "$LOG_FILE"
-  else
-    apt-get autoremove -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
-    apt-get autoclean -y "${apt_opts[@]}" >> "$LOG_FILE" 2>&1
-  fi
+  run_logged apt-get autoremove -y "${apt_opts[@]}"
+  run_logged apt-get autoclean -y "${apt_opts[@]}"
 
   print_info "$(printf "${MSG_INFO_APT_COUNT:-APT: %d paket güncellendi.}" "$APT_COUNT")"
   add_pkg_manager_status "apt" "ran" "$APT_COUNT"
@@ -1783,11 +1780,7 @@ update_pacman() {
   pacman_temp=$(safe_mktemp pacman_update) || return 1
 
   # Önce veritabanını güncelle (10 dakika timeout)
-  if [[ "$VERBOSE_MODE" == "true" ]]; then
-    timeout 600 pacman -Sy 2>&1 | tee -a "$LOG_FILE"
-  else
-    timeout 600 pacman -Sy >> "$LOG_FILE" 2>&1
-  fi
+  run_with_logging 600 pacman -Sy
 
   # Güncellenecek paket sayısını al
   local pacman_updates
@@ -1815,6 +1808,7 @@ update_pacman() {
       timeout 1800 pacman -Su --noconfirm 2>&1 | tee "$pacman_temp" >> "$LOG_FILE"
     fi
   fi
+  # NOT: Pacman upgrade hem log hem temp dosyasına yazıyor (tee pipe), run_with_logging uygun değil
 
   rm -f "$pacman_temp"
 
@@ -1828,6 +1822,7 @@ update_pacman() {
     else
       echo "$orphans" | xargs pacman -Rns --noconfirm >> "$LOG_FILE" 2>&1 || true
     fi
+    # NOT: Pipe girdisi nedeniyle run_logged uygun değil
   fi
 
   # Cache temizliği
@@ -1852,11 +1847,7 @@ update_zypper() {
   zypper_temp=$(safe_mktemp zypper_update) || return 1
 
   # Repo'ları yenile (10 dakika timeout)
-  if [[ "$VERBOSE_MODE" == "true" ]]; then
-    timeout 600 zypper refresh 2>&1 | tee -a "$LOG_FILE"
-  else
-    timeout 600 zypper refresh >> "$LOG_FILE" 2>&1
-  fi
+  run_with_logging 600 zypper refresh
 
   # Güncellenecek paket sayısını al - v5.4.7 FIX: Doğru parsing
   # zypper lu çıktısı: "S | Repository | Name | Current | Available | Arch"
@@ -1913,11 +1904,7 @@ update_zypper() {
 
   # Kullanılmayan bağımlılıkları temizle
   print_header "${MSG_HEADER_ZYPPER_CLEANUP:-Zypper: Temizlik}"
-  if [[ "$VERBOSE_MODE" == "true" ]]; then
-    zypper --non-interactive packages --orphaned 2>&1 | tee -a "$LOG_FILE" || true
-  else
-    zypper --non-interactive packages --orphaned >> "$LOG_FILE" 2>&1 || true
-  fi
+  run_logged zypper --non-interactive packages --orphaned || true
 
   print_info "$(printf "${MSG_INFO_ZYPPER_COUNT:-Zypper: %d paket güncellendi.}" "$ZYPPER_COUNT")"
   add_pkg_manager_status "zypper" "ran" "$ZYPPER_COUNT"
@@ -1938,11 +1925,7 @@ update_apk() {
   print_header "${MSG_HEADER_APK_UPDATE:-APK: Güncelleme}"
 
   # Repo'ları güncelle (10 dakika timeout)
-  if [[ "$VERBOSE_MODE" == "true" ]]; then
-    timeout 600 apk update 2>&1 | tee -a "$LOG_FILE"
-  else
-    timeout 600 apk update >> "$LOG_FILE" 2>&1
-  fi
+  run_with_logging 600 apk update
 
   # Güncellenecek paket sayısını al
   local apk_updates
@@ -1965,18 +1948,10 @@ update_apk() {
   fi
 
   # Güncelleme yap (30 dakika timeout)
-  if [[ "$VERBOSE_MODE" == "true" ]]; then
-    timeout 1800 apk upgrade 2>&1 | tee -a "$LOG_FILE"
-  else
-    timeout 1800 apk upgrade >> "$LOG_FILE" 2>&1
-  fi
+  run_with_logging 1800 apk upgrade
 
   # Cache temizliği
-  if [[ "$VERBOSE_MODE" == "true" ]]; then
-    apk cache clean 2>&1 | tee -a "$LOG_FILE" || true
-  else
-    apk cache clean >> "$LOG_FILE" 2>&1 || true
-  fi
+  run_logged apk cache clean || true
 
   print_info "$(printf "${MSG_INFO_APK_COUNT:-APK: %d paket güncellendi.}" "$APK_COUNT")"
   add_pkg_manager_status "apk" "ran" "$APK_COUNT"
@@ -2013,11 +1988,11 @@ update_flatpak() {
 
   if [[ "$VERBOSE_MODE" == "true" ]]; then
     flatpak update -y 2>&1 | tee -a "$LOG_FILE" | tee "$flatpak_temp" || print_warning "${MSG_WARN_FLATPAK_ERROR:-Flatpak hata verdi.}"
-    flatpak uninstall --unused -y 2>&1 | tee -a "$LOG_FILE" || true
   else
     flatpak update -y 2>&1 | tee "$flatpak_temp" >> "$LOG_FILE" || print_warning "${MSG_WARN_FLATPAK_ERROR:-Flatpak hata verdi.}"
-    flatpak uninstall --unused -y >> "$LOG_FILE" 2>&1 || true
   fi
+  # NOT: flatpak update hem log hem temp dosyasına yazıyor (tee pipe), run_logged uygun değil
+  run_logged flatpak uninstall --unused -y || true
 
   if grep -qi "Nothing to do" "$flatpak_temp" 2> /dev/null; then
     FLATPAK_COUNT=0
@@ -2066,11 +2041,7 @@ update_snap() {
     done <<< "$snap_updates"
   fi
 
-  if [[ "$VERBOSE_MODE" == "true" ]]; then
-    snap refresh 2>&1 | tee -a "$LOG_FILE" || print_warning "${MSG_WARN_SNAP_ERROR:-Snap hata verdi.}"
-  else
-    snap refresh >> "$LOG_FILE" 2>&1 || print_warning "${MSG_WARN_SNAP_ERROR:-Snap hata verdi.}"
-  fi
+  run_logged snap refresh || print_warning "${MSG_WARN_SNAP_ERROR:-Snap hata verdi.}"
 
   print_info "$(printf "${MSG_INFO_SNAP_COUNT:-Snap: %d paket güncellendi.}" "$SNAP_COUNT")"
   add_pkg_manager_status "snap" "ran" "$SNAP_COUNT"
@@ -2114,13 +2085,8 @@ update_firmware() {
       printf '%sTamamlandı (Detaylar log dosyasında).%s\n' "${GREEN}" "${NC}"
     fi
   else
-    if [[ "$VERBOSE_MODE" == "true" ]]; then
-      fwupdmgr refresh --force 2>&1 | tee -a "$LOG_FILE" || true
-      fwupdmgr update -y 2>&1 | tee -a "$LOG_FILE" || true
-    else
-      fwupdmgr refresh --force >> "$LOG_FILE" 2>&1 || true
-      fwupdmgr update -y >> "$LOG_FILE" 2>&1 || true
-    fi
+    run_logged fwupdmgr refresh --force || true
+    run_logged fwupdmgr update -y || true
   fi
 
   print_info "$(printf "${MSG_INFO_FIRMWARE_COUNT:-Firmware: %d güncelleme.}" "$FWUPD_COUNT")"
@@ -2487,7 +2453,10 @@ while [[ $# -gt 0 ]]; do
             flatpak) SKIP_FLATPAK=true ;;
             snap) SKIP_SNAP=true ;;
             fwupd) SKIP_FWUPD=true ;;
-            dnf | apt | system) SKIP_PKG_MANAGER=true ;; # Paket yöneticisini (APT/DNF) atla
+            system) SKIP_PKG_MANAGER=true ;;
+            dnf | apt | pacman | zypper | apk)
+              printf '%sUyarı: --skip %s tüm sistem paket yöneticilerini atlar. Bunu istiyorsanız --skip system kullanın.%s\n' "${YELLOW}" "$item" "${NC}"
+              SKIP_PKG_MANAGER=true ;;
             *) printf '%sUyarı: Bilinmeyen skip değeri: %s%s\n' "${YELLOW}" "$item" "${NC}" ;;
           esac
         done

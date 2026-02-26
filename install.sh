@@ -107,24 +107,47 @@ download_file() {
 }
 
 # GPG doğrulama fonksiyonu (v1.1.0)
+# AUDIT FIX: İzole GNUPGHOME + GPG yoksa kullanıcı uyarısı
 verify_gpg_signature() {
   local file="$1"
   local skip_gpg=false
 
   # GPG kurulu mu?
   if ! command -v gpg &> /dev/null; then
-    printf "%s⚠️  GPG bulunamadı, imza doğrulama atlanıyor.%s\n" "$YELLOW" "$NC"
+    printf "%s⚠️  GPG bulunamadı, imza doğrulama yapılamıyor.%s\n" "$YELLOW" "$NC"
     printf "%s   Kurulum için: apt install gnupg%s\n" "$BLUE" "$NC"
+    printf "%s   GPG doğrulama olmadan devam edilecek. Bu, indirilen dosyanın%s\n" "$YELLOW" "$NC"
+    printf "%s   bütünlüğünün kriptografik olarak doğrulanamayacağı anlamına gelir.%s\n" "$YELLOW" "$NC"
+    if [[ -t 0 ]]; then
+      printf "%s   GPG doğrulama olmadan devam etmek istiyor musunuz? [e/H]: %s" "$YELLOW" "$NC"
+      local user_confirm
+      read -r user_confirm
+      case "$user_confirm" in
+        [eEyY]) printf "%s   Kullanıcı onayı ile devam ediliyor...%s\n" "$BLUE" "$NC" ;;
+        *)
+          printf "%s❌ Kurulum iptal edildi.%s\n" "$RED" "$NC"
+          exit 1
+          ;;
+      esac
+    else
+      printf "%s   (Non-interactive mod: GPG doğrulama olmadan devam ediliyor)%s\n" "$YELLOW" "$NC"
+    fi
     return 0
   fi
 
   printf "%s🔐 GPG imza doğrulaması başlatılıyor...%s\n" "$BLUE" "$NC"
 
+  # AUDIT FIX: İzole GNUPGHOME - sistem keyring'ini kirletme
+  local ISOLATED_GNUPGHOME
+  ISOLATED_GNUPGHOME=$(mktemp -d /tmp/bigfive_gpg_XXXXXX)
+  chmod 700 "$ISOLATED_GNUPGHOME"
+  export GNUPGHOME="$ISOLATED_GNUPGHOME"
+
   # Public key'i indir ve import et (TLS 1.2+)
   if curl --proto '=https' --tlsv1.2 -fsSL "$GPG_PUBKEY_URL" -o "$TEMP_PUBKEY" 2> /dev/null ||
     wget --secure-protocol=TLSv1_2 -qO "$TEMP_PUBKEY" "$GPG_PUBKEY_URL" 2> /dev/null; then
     if gpg --import "$TEMP_PUBKEY" 2> /dev/null; then
-      printf "%s   ✓ Public key import edildi%s\n" "$GREEN" "$NC"
+      printf "%s   ✓ Public key import edildi (izole keyring)%s\n" "$GREEN" "$NC"
     else
       printf "%s⚠️  Public key import edilemedi, GPG doğrulama atlanıyor.%s\n" "$YELLOW" "$NC"
       skip_gpg=true
@@ -135,6 +158,8 @@ verify_gpg_signature() {
   fi
 
   if [[ "$skip_gpg" == "true" ]]; then
+    rm -rf "$ISOLATED_GNUPGHOME"
+    unset GNUPGHOME
     return 0
   fi
 
@@ -142,12 +167,16 @@ verify_gpg_signature() {
   if ! curl --proto '=https' --tlsv1.2 -fsSL "$GPG_SHA256SUMS_URL" -o "$TEMP_SHA256SUMS" 2> /dev/null &&
     ! wget --secure-protocol=TLSv1_2 -qO "$TEMP_SHA256SUMS" "$GPG_SHA256SUMS_URL" 2> /dev/null; then
     printf "%s⚠️  SHA256SUMS indirilemedi, GPG doğrulama atlanıyor.%s\n" "$YELLOW" "$NC"
+    rm -rf "$ISOLATED_GNUPGHOME"
+    unset GNUPGHOME
     return 0
   fi
 
   if ! curl --proto '=https' --tlsv1.2 -fsSL "$GPG_SHA256SUMS_SIG_URL" -o "$TEMP_SHA256SUMS_SIG" 2> /dev/null &&
     ! wget --secure-protocol=TLSv1_2 -qO "$TEMP_SHA256SUMS_SIG" "$GPG_SHA256SUMS_SIG_URL" 2> /dev/null; then
     printf "%s⚠️  SHA256SUMS.asc indirilemedi, GPG doğrulama atlanıyor.%s\n" "$YELLOW" "$NC"
+    rm -rf "$ISOLATED_GNUPGHOME"
+    unset GNUPGHOME
     return 0
   fi
 
@@ -157,6 +186,8 @@ verify_gpg_signature() {
   else
     printf "%s❌ GPG imza doğrulaması başarısız!%s\n" "$RED" "$NC"
     printf "%s   Dosya değiştirilmiş olabilir. Kurulum iptal edildi.%s\n" "$RED" "$NC"
+    rm -rf "$ISOLATED_GNUPGHOME"
+    unset GNUPGHOME
     exit 1
   fi
 
@@ -173,10 +204,16 @@ verify_gpg_signature() {
     printf "%s❌ SHA256 checksum uyuşmuyor!%s\n" "$RED" "$NC"
     printf "%s   Beklenen: %s%s\n" "$RED" "$expected_hash" "$NC"
     printf "%s   Bulunan:  %s%s\n" "$RED" "$actual_hash" "$NC"
+    rm -rf "$ISOLATED_GNUPGHOME"
+    unset GNUPGHOME
     exit 1
   else
     printf "%s⚠️  SHA256SUMS dosyasında 'guncel' bulunamadı, checksum atlanıyor.%s\n" "$YELLOW" "$NC"
   fi
+
+  # İzole GNUPGHOME temizliği
+  rm -rf "$ISOLATED_GNUPGHOME"
+  unset GNUPGHOME
 
   return 0
 }
